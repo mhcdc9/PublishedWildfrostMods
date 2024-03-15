@@ -15,7 +15,21 @@ namespace BattleEditor
     {
         public Main(string modDirectory) : base(modDirectory)
         {
+        }
 
+        public void ExampleCode()
+        {
+            new BattleDataEditor(this, "Spare Shells")
+            .SetSprite(this.ImagePath("Spare Shells.png").ToSprite())
+            .SetNameRef("The Other Shelled Husks")
+            .EnemyDictionary(('C', "Conker"), ('W', "ShellWitch"), ('P', "Pecan"), ('K', "Prickle"), ('B', "Bolgo"))
+            .StartWavePoolData(0, "Wave 1: The first of the husks")
+            .ConstructWaves(3, 0, "CWW", "CWP")
+            .StartWavePoolData(1, "Wave 2: Some more husks")
+            .ConstructWaves(3, 1, "PCW", "CPW", "CKW", "KCW")
+            .StartWavePoolData(2, "Wave 3: Bolgo is here!")
+            .ConstructWaves(3, 9, "BPW", "BCW")
+            .AddBattleToLoader().RegisterBattle(0, mandatory: true);
         }
 
         public override string GUID => "mhcdc9.wildfrost.battle";
@@ -30,10 +44,24 @@ namespace BattleEditor
     public class BattleDataEditor
     {
         private readonly WildfrostMod mod;
-        private readonly BattleData bd;
+        public readonly BattleData bd;
         private bool newBattle = false;
         private List<CardData> enemies = new List<CardData>();
+        private Dictionary<char, CardData> dictionary = new Dictionary<char, CardData>();
         private int wavePoolIndex = 0;
+
+        public readonly string[] VanillaBattles =
+        {
+            "Pengoons", "Snowbos", 
+            "Berries", "Frosters", "Shroomers", "Yeti",
+            "Frenzy Boss", "Split Boss",
+            "Goats", "Husks", "Spice Monkeys",
+            "Drek", "Spikers",
+            "Clunker Boss", "Toadstool Boss",
+            "Blockers", "Wildlings",
+            "Final Boss",
+            "Final Final Boss"
+        };
 
         /// <summary>
         /// Starts a battle data editor for the desired battle. 
@@ -49,7 +77,7 @@ namespace BattleEditor
             bd = mod.Get<BattleData>(name);
             if (bd == null)
             {
-                Debug.LogWarning("[Warning] Cound not find BattleData for " + name + ". Creating new BattleData instead.");
+                Debug.LogWarning("[BattleEditor] Cound not find BattleData for " + name + ". Creating new BattleData instead.");
                 bd = ScriptableObject.CreateInstance<BattleData>();
                 bd.name = name;
                 bd.bonusUnitPool = new CardData[0];
@@ -129,7 +157,7 @@ namespace BattleEditor
                 cards[i] = mod.Get<CardData>(cardNames[i]).Clone();
                 if (!cards[i])
                 {
-                    Debug.LogWarning("[Warning] The card " + cardNames[i] + " does not exist. Check the name again.");
+                    Debug.LogWarning("[BattleEditor] The card " + cardNames[i] + " does not exist. Check the name again.");
                 }
             }
             return AddCardsToWavePool(index, cards);
@@ -153,20 +181,51 @@ namespace BattleEditor
         }
 
         /// <summary>
-        /// Loads enemies into memory to be used later. Use this before the first ConstructWaves(). Order matter later.
+        /// Makes a dictionary of enemies indexed by shortened character codes that can be used in formations for ConstructWaves
+        /// </summary>
+        /// <param name="keyValuePairs"></param>
+        /// <returns></returns>
+        public BattleDataEditor EnemyDictionary(params (char, string)[] keyValuePairs)
+        {
+            enemies = new List<CardData>(keyValuePairs.Length);
+            dictionary.Clear();
+            for (int i = 0; i < keyValuePairs.Length; i++)
+            {
+                CardData card = mod.Get<CardData>(keyValuePairs[i].Item2) ?? throw new ArgumentException("CardData name is not valid.", keyValuePairs[i].Item2);
+                enemies.Add(card.Clone());
+                dictionary.Add(keyValuePairs[i].Item1, enemies[i]);
+            }
+            return this;
+        }
+
+        /// <summary>
+        /// Loads enemies into memory to be used later. Use this before the first ConstructWaves(). Order matter later. EnemyKeys are also cleared to default.
         /// </summary>
         /// <param name="cardNames"></param>
         /// <returns></returns>
         public BattleDataEditor PossibleEnemies(params string[] cardNames)
         {
             enemies = new List<CardData>(cardNames.Length);
+            dictionary.Clear();
             for (int i = 0; i < cardNames.Length; i++)
             {
-                enemies.Add(mod.Get<CardData>(cardNames[i]).Clone());
-                if (!enemies[i])
-                {
-                    Debug.LogWarning("[Warning] The card " + cardNames[i] + " does not exist. Check the name again.");
-                }
+                CardData card = mod.Get<CardData>(cardNames[i]) ?? throw new ArgumentException("CardData name is not valid.", cardNames[i]);
+                enemies.Add(card.Clone());
+            }
+            return this;
+        }
+
+        /// <summary>
+        /// Add keys for enemies added by Possible Enemies(). If not specified, numbers can be used instead.
+        /// </summary>
+        /// <param name="enemyKeys"></param>
+        /// <returns></returns>
+        public BattleDataEditor EnemyKeys(params char[] enemyKeys)
+        {
+            dictionary.Clear();
+            for (int i=0; i<Math.Min(enemies.Count(), enemyKeys.Count()); i++)
+            {
+                dictionary.Add(enemyKeys[i], enemies[i]);
             }
             return this;
         }
@@ -253,8 +312,13 @@ namespace BattleEditor
         /// <returns></returns>
         public BattleDataEditor ConstructWaves(int maxSize, int positionPriority, params string[] formations)
         {
+            return ConstructWaves(maxSize, positionPriority, formations, true);
+        }
+
+        public BattleDataEditor ConstructWaves(int maxSize, int positionPriority, string[] formations, bool removeExistingWaves = true)
+        {
             BattleWavePoolData.Wave[] waves = new BattleWavePoolData.Wave[formations.Length];
-            for(int i = 0; i < formations.Length; i++)
+            for (int i = 0; i < formations.Length; i++)
             {
                 string formation = formations[i];
                 BattleWavePoolData.Wave wave = new BattleWavePoolData.Wave();
@@ -263,14 +327,28 @@ namespace BattleEditor
                 wave.fixedOrder = true;
                 wave.maxSize = maxSize; //Making this value larger than your formation gives Gobling a place to spawn.
                 wave.units = new List<CardData>(formation.Length);
-                for(int j = 0; j < formation.Length; j++)
+                for (int j = 0; j < formation.Length; j++)
                 {
-                    string c = formation.Substring(j,1);
-                    wave.units.Add(enemies[int.Parse(c)]);
+                    string c = formation.Substring(j, 1);
+                    if (dictionary.ContainsKey(c[0]))
+                    {
+                        wave.units.Add(dictionary[c[0]].Clone());
+                    }
+                    else
+                    {
+                        wave.units.Add(enemies[int.Parse(c)].Clone());
+                    }
                 }
                 waves[i] = wave;
             }
-            bd.pools[wavePoolIndex].waves = waves;
+            if (removeExistingWaves)
+            {
+                bd.pools[wavePoolIndex].waves = waves;
+            }
+            else
+            {
+                bd.pools[wavePoolIndex].waves = bd.pools[wavePoolIndex].waves.AddRangeToArray(waves);
+            }
             return this;
         }
 
@@ -320,6 +398,15 @@ namespace BattleEditor
             
             
             return this;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="tier"></param>
+        public static void ResetTier(int tier, params string[] battleNames)
+        {
+            for(int i=0; i<battles.Length; i++)
         }
     }
 }

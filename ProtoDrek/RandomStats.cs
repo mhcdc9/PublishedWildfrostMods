@@ -5,11 +5,49 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using WildfrostHopeMod;
 
 namespace RandomStat
 {
     public class RandomStats : WildfrostMod
     {
+        [ConfigManagerTitle("Base HP (%)")]
+        [ConfigManagerDesc("A card's minimum HP is determined will be a percentage of its original hp (default=0.5)")]
+        [ConfigSlider(0, 1f)]
+        [ConfigItem(0.5f, "Base HP")]
+        public float hpBase = 0.5f;
+
+        [ConfigManagerTitle("Random HP Multiplier")]
+        [ConfigManagerDesc("A card's average random HP is this multiplier times its original hp (default=0.5)")]
+        [ConfigSlider(0, 2f)]
+        [ConfigItem(0.5f, "HP Variance")]
+        public float hpVariance = 0.5f;
+
+        [ConfigManagerTitle("Base Attack (%)")]
+        [ConfigManagerDesc("A card's minimum attack is determined will be a percentage of its original attack (default=0.2)")]
+        [ConfigSlider(0, 1f)]
+        [ConfigItem(0.2f, "Base Attack")]
+        public float attackBase = 0.2f;
+
+        [ConfigManagerTitle("Random Attack Multiplier")]
+        [ConfigManagerDesc("A card's average random attack is almost this multiplier times its original attack (default=1.0)")]
+        [ConfigSlider(0, 2f)]
+        [ConfigItem(1f, "Attack Variance")]
+        public float attackVariance = 1f;
+
+        [ConfigManagerTitle("Counter Variance")]
+        [ConfigManagerDesc("Higher variance leads to more volatile counters (default=0.5, Be careful)")]
+        [ConfigSlider(0, 0.95f)]
+        [ConfigItem(0.5f, "Counter Variance")]
+        public float counterVariance = 0.5f;
+
+        [ConfigManagerTitle("Counter Skew")]
+        [ConfigManagerDesc("Counter skew modifies the average change in counters. Lower skew leads to smaller counters (default=-0.3)")]
+        [ConfigSlider(-1f, 1f)]
+        [ConfigItem(-0.3f, "Counter Skew")]
+        public float counterSkew = -0.3f;
+
+
         public RandomStats(string modDirectory) : base(modDirectory)
         {
             
@@ -36,17 +74,17 @@ namespace RandomStat
         {
             if (cardData.hasHealth)
             {
-                var baseHealth = cardData.hp%2 + cardData.hp/2 + Geom(cardData.hp/2);
-                cardData.hp = baseHealth;
+                float baseHealth = hpBase*cardData.hp + Geom(hpVariance*cardData.hp);
+                cardData.hp = (int) Math.Ceiling(baseHealth);
             }
             if (cardData.hasAttack)
             {
-                var baseAttack = Geom(cardData.damage + 0.5f);
-                cardData.damage = baseAttack;
+                float baseAttack = attackBase*cardData.hp + Geom(attackVariance * (cardData.damage + 0.5f));
+                cardData.damage = (int)Math.Ceiling(baseAttack);
             }
             if (cardData.counter != 0)
             {
-                cardData.counter = Stoch(cardData.counter);
+                cardData.counter = Stoch(cardData.counter, counterVariance, counterSkew);
             }
         }
 
@@ -64,13 +102,13 @@ namespace RandomStat
             return count;
         }
 
-        private int Stoch(int counter)
+        private int Stoch(int counter, float variance, float skew)
         {
             float reroll = Dead.Random.Range(0f, 1f);
-            while(reroll < 0.6f)
+            while(reroll < variance)
             {
                 var r = Dead.Random.Range(0f, 1f);
-                if(r < (counter+1f)/(2f*counter))
+                if(r < ((1f+skew)*counter+1.01f-skew)/(2f*counter))
                 {
                     counter++;
                 }

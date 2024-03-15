@@ -19,6 +19,8 @@ namespace AnotherTribe
             public static string[] gameModes = new string[] { "GameModeNormal" };
             public static GameMode currentGameMode;
             public static int index = 0;
+            public GameObject video = null;
+            public GameObject myScroller = null;
             private void Update()
             {
                 if (Input.GetKeyDown(KeyCode.L))
@@ -41,9 +43,14 @@ namespace AnotherTribe
                     References.PlayerData = new PlayerData(cd, inventory);
                     StartCoroutine(GoToCampaign());
                 }
-                if (Input.GetKeyDown(KeyCode.Asterisk))
+                if (Input.GetKeyDown(KeyCode.Equals))
                 {
-                    GameObject video = null;
+                    StartCoroutine(GoToCharacterSelect());
+                }
+                if (Input.GetKeyDown(KeyCode.N))
+                {
+
+                    //GameObject video = null;
                     foreach (JournalPageMenu j in UnityEngine.Object.FindObjectsOfType<JournalPageMenu>())
                     {
                         if (j.gameObject.name == "VideoSettings")
@@ -72,6 +79,46 @@ namespace AnotherTribe
                     }
                 }
 
+                if (Input.GetKeyDown(KeyCode.B))
+                {
+
+                    GameObject scroller = null;
+                    foreach (SmoothScrollRect j in UnityEngine.Object.FindObjectsOfType<SmoothScrollRect>())
+                    {
+                        if (j.gameObject.name == "Scroll View" && j.transform.parent.gameObject.name == "Challenges")
+                        {
+                            scroller = j.gameObject;
+                            GameObject challenges = j.transform.parent.gameObject;
+                            Debug.Log("[AnotherTribe] Scroller.");
+                            myScroller = scroller.InstantiateKeepName();
+                            scroller.SetActive(false);
+                            SmoothScrollRect smoothScroll = myScroller.GetComponent<SmoothScrollRect>();
+                            smoothScroll.viewport.gameObject.SetActive(false);
+                            myScroller.transform.SetParent(challenges.transform);
+                            if (video != null)
+                            {
+                                Debug.Log("[AnotherTribe] Made it this far");
+                                GameObject g2 = new GameObject();
+                                smoothScroll.viewport = g2.AddComponent<RectTransform>();
+                                g2.transform.SetParent(myScroller.transform);
+                                GameObject g = video.InstantiateKeepName();
+                                Debug.Log("[AnotherTribe] Made it over");
+                                g.SetActive(true);
+                                g.transform.SetParent(g2.transform);
+                            }
+                            break;
+                        }
+                    }
+
+                    /*if (framerate != null)
+                    {
+                        GameObject framerate2 = framerate.InstantiateKeepName();
+                        framerate2.transform.parent = video.transform;
+                        framerate2.GetComponentInChildren<TextMeshProUGUI>().text = "Not Max FPS";
+                        framerate2.GetComponent<SetSettingInt>().key = "SpecialCardFrames";
+                    }*/
+                }
+                
                 if (Input.GetKeyDown(KeyCode.M))
                 {
                     Debug.Log("[AnotherTribe] Button Pressed.");
@@ -107,6 +154,11 @@ namespace AnotherTribe
                 yield return Transition.To("Campaign");
                 Transition.End();
             }
+            private IEnumerator GoToCharacterSelect()
+            {
+                yield return Transition.To("CharacterSelect");
+                Transition.End();
+            }
 
             private IEnumerator Do(SelectTribe tribe)
             {
@@ -134,6 +186,38 @@ namespace AnotherTribe
 
         public override void Load()
         {
+            List<CardData> list =  AddressableLoader.GetGroup<CardData>("CardData");
+            for(int i=0; i< list.Count; i++)
+            {
+                /*string attackEffects = "";
+                foreach(CardData.StatusEffectStacks s in list[i].attackEffects)
+                {
+                    attackEffects += s.data.name;
+                    if (s.data.stackable)
+                    {
+                        attackEffects += string.Format("({0})", s.count);
+                    }
+                    attackEffects += ", ";
+                }
+                string startingEffects = "";
+                foreach (CardData.StatusEffectStacks s in list[i].startWithEffects)
+                {
+                    startingEffects += s.data.name;
+                    if (s.data.stackable)
+                    {
+                        startingEffects += string.Format("({0})", s.count);
+                    }
+                    startingEffects += ", ";
+                }
+                Debug.Log(string.Format("{0}||{1}|",attackEffects,startingEffects));*/
+                string startingEffects = "";
+                foreach (CardData.TraitStacks s in list[i].traits)
+                {
+                    startingEffects += s.data.name;
+                    startingEffects += ", ";
+                }
+                Debug.Log(string.Format("{0}|", startingEffects));
+            }
             base.Load();
             Events.OnSceneLoaded += HookScene;
             Events.OnSceneChanged += ChangeScene;

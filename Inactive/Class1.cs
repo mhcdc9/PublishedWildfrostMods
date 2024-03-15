@@ -65,6 +65,7 @@ namespace TestMod
                 card.SetName(card.name + ": " + r.ToString());
             entity.data.name = "Boop.";
             //}      
+            
         }
 
         public override List<T> AddAssets<T, Y>()
