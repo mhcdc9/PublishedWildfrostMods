@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 using static CampaignGenerator;
 using static MapPath;
 using static Text;
@@ -19,6 +20,7 @@ namespace TestMod
     {
         public Test(string modDirectory) : base(modDirectory)
         {
+            CreateModAssets();
         }
 
         public override string GUID => "mhcdc9.wildfrost.test";
@@ -31,7 +33,7 @@ namespace TestMod
 
         private bool preLoaded = false;
 
-        private string[] dord = { "Hmm" };
+        private GameObject button;
 
         private List<StatusEffectDataBuilder> effects;
         private void CreateModAssets()
@@ -44,9 +46,10 @@ namespace TestMod
                 .WithType("")
                 .WithText("<keyword=snow> acts like <keyword=shell> on self and allies")
                 .WithCanBeBoosted(false)
-                .FreeModify(delegate (StatusEffectData data)
+                .FreeModify(delegate (StatusEffectXActsLikeShell data)
                 {
-                    ((StatusEffectXActsLikeShell)data).targetType = "snow";
+                    data.targetType = "snow";
+                    data.imagePath = this.ImagePath("Shnell.png");
                 })
                 );
 
@@ -64,12 +67,15 @@ namespace TestMod
 
         public override void Load()
         {
-            if (!preLoaded) { CreateModAssets(); }
+            //if (!preLoaded) { CreateModAssets(); }
             Events.OnCardDataCreated += Shnell;
-            Events.OnSceneLoaded += SceneLoaded;
-            Events.OnCampaignGenerated += CampaignGenerated;
-            NoTargetTextSystem.instance.shakeDurationRange = new Vector2(0.1f, 0.13f);
             base.Load();
+            //button = DefaultControls.CreateButton(new DefaultControls.Resources());
+            GameObject gameObject = CardManager.cardIcons["lumin"];
+            Debug.Log($"[Test] Found Lumin.");
+            gameObject.AddComponent<ButtonHelper>();
+            gameObject.GetComponent<ButtonHelper>().targetGraphic = gameObject.GetComponent<Image>();
+
         }
 
         [HarmonyPatch(typeof(Text), "ProcessTag", new Type[]
@@ -98,31 +104,7 @@ namespace TestMod
         public override void Unload()
         {
             Events.OnCardDataCreated -= Shnell;
-            Events.OnSceneLoaded -= SceneLoaded;
-            Events.OnCampaignGenerated -= CampaignGenerated;
             base.Unload();
-        }
-
-        private async Task CampaignGenerated()
-        {
-            Debug.Log("Task Started");
-            for (int i=0; i< References.Campaign.nodes.Count; i++)
-            {
-                CampaignNode node = References.Campaign.nodes[i];
-                if (node.tier <= 2 && node.type.name == "CampaignNodeItem")
-                {
-                    Debug.Log("Treasure Found!");
-                    SaveCollection<string> collection = (SaveCollection<string>) node.data["cards"];
-                    collection.Add("Yuki");
-                    for(int j=0; j<collection.Count; j++)
-                    {
-                        Debug.Log(collection[j]);
-                    }
-                    Debug.Log("Yuki Added.");
-                    node.data["cards"] = collection;
-                }
-            }
-            Debug.Log("Task Done");
         }
 
 

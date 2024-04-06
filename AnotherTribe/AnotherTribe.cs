@@ -23,10 +23,6 @@ namespace AnotherTribe
             public GameObject myScroller = null;
             private void Update()
             {
-                if (Input.GetKeyDown(KeyCode.L))
-                {
-                    StartCoroutine(Hijack());
-                }
                 if (Input.GetKeyDown(KeyCode.K))
                 {
                     if (SceneManager.ActiveSceneKey != "Town")
@@ -46,37 +42,6 @@ namespace AnotherTribe
                 if (Input.GetKeyDown(KeyCode.Equals))
                 {
                     StartCoroutine(GoToCharacterSelect());
-                }
-                if (Input.GetKeyDown(KeyCode.N))
-                {
-
-                    //GameObject video = null;
-                    foreach (JournalPageMenu j in UnityEngine.Object.FindObjectsOfType<JournalPageMenu>())
-                    {
-                        if (j.gameObject.name == "VideoSettings")
-                        {
-                            video = j.gameObject;
-                            Debug.Log("[AnotherTribe] Found VideoSettings.");
-                            break;
-                        }
-                    }
-                    GameObject framerate = null;
-                    foreach (Transform t in video.GetComponentsInChildren<Transform>())
-                    {
-                        if (t.gameObject.name == "Target Frame Rate")
-                        {
-                            Debug.Log("[AnotherTribe] Found it.");
-                            framerate = t.gameObject;
-                            break;
-                        }
-                    }
-                    if (framerate != null)
-                    {
-                        GameObject framerate2 = framerate.InstantiateKeepName();
-                        framerate2.transform.parent = video.transform;
-                        framerate2.GetComponentInChildren<TextMeshProUGUI>().text = "Not Max FPS";
-                        framerate2.GetComponent<SetSettingInt>().key = "SpecialCardFrames";
-                    }
                 }
 
                 if (Input.GetKeyDown(KeyCode.B))
@@ -135,18 +100,6 @@ namespace AnotherTribe
                         }
                     }
                 }
-            }
-
-            private IEnumerator Hijack()
-            {
-                yield return SceneManager.WaitUntilUnloaded("CardFramesUnlocked");
-                yield return SceneManager.Load("CardFramesUnlocked", SceneType.Temporary);
-                CardFramesUnlockedSequence sequence = GameObject.FindObjectOfType<CardFramesUnlockedSequence>();
-                Debug.Log("[Another Tribe] " + sequence.name);
-                TextMeshProUGUI titleObject = sequence.GetComponentInChildren<TextMeshProUGUI>(true);
-                titleObject.text = "<size=0.55>What? <#ff0>Magikarp</color> has\n evolved into <#ff0>Gyarados</color>!";
-                //titleObject.text = "<size=0.55>What? <#ff0>X</color> Pokemon have evolved!";
-                yield return sequence.StartCoroutine("CreateCards", new string[] { "Sword", "Noodle", "Witch", "Snowcracker", "Crowbar" });
             }
 
             private IEnumerator GoToCampaign()

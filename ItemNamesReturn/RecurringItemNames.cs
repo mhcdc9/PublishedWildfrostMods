@@ -45,8 +45,6 @@ namespace TestMod
             //Events.OnEntityChosen += ModifyNameAgain;
             Events.OnCampaignEnd += AddRenames;
             Events.OnBattleStart += ClearCurrentNames;
-            UnityEngine.Debug.Log("[Recurnames] Mod Loaded.");
-            //titleFallback
         }
 
         protected override void Unload()
@@ -57,7 +55,6 @@ namespace TestMod
             //Events.OnEntityChosen -= ModifyNameAgain;
             Events.OnCampaignEnd -= AddRenames;
             Events.OnBattleStart -= ClearCurrentNames;
-            UnityEngine.Debug.Log("[Recurnames] Mod Unloaded.");
         }
 
         private void ClearCurrentNames()
@@ -204,6 +201,9 @@ namespace TestMod
             UnityEngine.Debug.Log("[Recurnames] The item/clunker " + cardName + " has a nickname: " + newName);
             if (Events.CheckRename(ref entity, ref newName))
             {
+                renamedCards.Add(entity.data.name);
+                originalNames.Add(entity.data.title);
+
                 entity.data.forceTitle = newName;
                 Card card = entity.gameObject.GetComponent<Card>();
                 if (card != null)
@@ -212,9 +212,6 @@ namespace TestMod
                     //UnityEngine.Debug.Log("[Recurnames] Name of offered card set.");
                 }
                 //Events.InvokeRename(entity, newName);
-
-                renamedCards.Add(entity.data.name);
-                originalNames.Add(entity.data.title);
 
                 //renameOfCards.Add(newName);
                 CardData cardData = this.Get<CardData>(entity.data.name);

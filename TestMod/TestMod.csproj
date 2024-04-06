@@ -407,6 +407,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ButtonHelper.cs" />
     <Compile Include="StatusEffectXActsLikeShell.cs" />
     <Compile Include="Test.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

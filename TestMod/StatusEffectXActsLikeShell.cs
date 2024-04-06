@@ -1,10 +1,12 @@
-﻿using System;
+﻿using Deadpan.Enums.Engine.Components.Modding;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine.Networking.Types;
+using UnityEngine.UI;
 
 namespace TestMod
 {
@@ -16,11 +18,23 @@ namespace TestMod
 
         public string targetType = "";
         public string spriteName;
+        public string imagePath;
 
         public override IEnumerator PostApplyStatusRoutine(StatusEffectApply apply)
         {
             if (apply?.target?.owner == target.owner && apply.effectData.type == targetType)
             {
+                StatusIcon snowIcon = apply.target.GetComponent<Card>().FindStatusIcon("snow");
+                if (snowIcon != null && imagePath != null)
+                {
+                    snowIcon.GetComponent<Image>().sprite = imagePath.ToSprite();
+                    snowIcon.transform.SetParent(snowIcon.transform.parent.parent.Find("HealthLayout"));
+                }
+                else
+                {
+                    snowIcon = apply.target.GetComponent<Card>().SetStatusIcon("snow", "health", new Stat(apply.count, 0), true);
+                    snowIcon.GetComponent<Image>().sprite = imagePath.ToSprite();
+                }
                 yield return Sequences.Wait(apply.target.curveAnimator.Ping());
             }
         }
