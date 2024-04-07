@@ -364,3 +364,22 @@ FodyWeavers.xsd
 /AddedCards/AddedCards.csproj
 /AddedCards/StatusEffectWild.cs
 /AddedCards/Tyrant.cs
+/AnotherTribe/AnotherTribe.csproj
+/AnotherTribe/AnotherTribe.cs
+/GamemodeAndClasses/GamemodeAndClasses.csproj
+/GamemodeAndClasses/ClassDataBuilderExt.cs
+/GamemodeAndClasses/GameModeBuilderExt.cs
+/GamemodeAndClasses/MainModClass.cs
+/Inactive/Inactive.csproj
+/Inactive/Class1.cs
+/Inactive/Class2.cs
+/Information Collector/Information Collector.csproj
+/Information Collector/InfoCollector.cs
+/PersistentDrek/PersistentDrek.csproj
+/PersistentDrek/PersistentDrek.cs
+/TestMod/TestMod.csproj
+/TestMod/ButtonHelper.cs
+/TestMod/StatusEffectXActsLikeShell.cs
+/TestMod/Test.cs
+/VolatileDeck/VolatileDeck.csproj
+/VolatileDeck/Main.cs
