@@ -367,6 +367,7 @@ FodyWeavers.xsd
 /AnotherTribe/AnotherTribe.csproj
 /AnotherTribe/AnotherTribe.cs
 /GamemodeAndClasses/GamemodeAndClasses.csproj
+/GamemodeAndClasses/AssemblyInfo.cs
 /GamemodeAndClasses/ClassDataBuilderExt.cs
 /GamemodeAndClasses/GameModeBuilderExt.cs
 /GamemodeAndClasses/MainModClass.cs
