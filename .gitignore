@@ -383,3 +383,13 @@ FodyWeavers.xsd
 /TestMod/Test.cs
 /VolatileDeck/VolatileDeck.csproj
 /VolatileDeck/Main.cs
+/TestMod/Properties/AssemblyInfo.cs
+/TestMod/Class1.cs
+/ProtoDrek/Properties/AssemblyInfo.cs
+/PersistentDrek/Properties/AssemblyInfo.cs
+/Information Collector/Properties/AssemblyInfo.cs
+/VolatileDeck/Properties/AssemblyInfo.cs
+/AddedCards/Properties/AssemblyInfo.cs
+/AnotherTribe/Properties/AssemblyInfo.cs
+/GamemodeAndClasses/Properties/AssemblyInfo.cs
+/Inactive/Properties/AssemblyInfo.cs
