@@ -3,27 +3,31 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
+using UnityEngine;
 using UnityEngine.UI;
 using static Building;
 
 namespace Tokens
 {
-    public interface StatusToken
+    public interface IStatusToken
     {
         void ButtonCreate(StatusIconExt icon);
 
         void RunButtonClicked();
 
         IEnumerator ButtonClicked();
+
+
     }
 
     public class StatusIconExt : StatusIcon
     {
         public ButtonAnimator animator;
         public ButtonExt button;
-        private StatusToken effectToken;
+        private IStatusToken effectToken;
 
         
 
@@ -39,7 +43,7 @@ namespace Tokens
             onDestroy.AddListener(DisableDragBlocker);
 
             StatusEffectData effect = entity.FindStatus(type);
-            if (effect is StatusToken effect2)
+            if (effect is IStatusToken effect2)
             {
                 effectToken = effect2;
                 effect2.ButtonCreate(this);
@@ -53,21 +57,49 @@ namespace Tokens
         }
     }
 
-    public class StatusTokenApplyX : StatusEffectApplyX, StatusToken
+    public class StatusTokenApplyX : StatusEffectApplyX, IStatusToken
     {
-        public int fixedAmount = 0;
+        //Standard Code I wish I can put into IStatusToken
+        public bool fromBoard = true;
+        public bool fromHand = false;
+        public bool fromDraw = false;
+        public bool fromDiscard = false;
         public bool finiteUses = false;
         public bool endTurn = false;
         public float timing = 0.2f;
-        public int hitDamage = 0;
 
         public virtual void RunButtonClicked()
         {
-            if ((bool)References.Battle && References.Battle.phase == Battle.Phase.Play && Battle.IsOnBoard(target) && !target.IsSnowed && target.owner == References.Player)
+            if ((bool)References.Battle && References.Battle.phase == Battle.Phase.Play && CorrectPlace() && !target.IsSnowed && target.owner == References.Player)
             {
                 target.StartCoroutine(ButtonClicked());
             }
         }
+
+        public virtual bool CorrectPlace()
+        {
+            if (fromBoard && Battle.IsOnBoard(target))
+            {
+                return true;
+            }
+            if (fromHand && References.Player.handContainer.Contains(target))
+            {
+                return true;
+            }
+            if (fromDraw && target.preContainers.Contains(References.Player.drawContainer))
+            {
+                return true;
+            }
+            if (fromDiscard && target.preContainers.Contains(References.Player.discardContainer))
+            {
+                return true;
+            }
+            return false;
+        }
+
+        //Main Code
+        public int fixedAmount = 0;
+        public int hitDamage = 0;
 
         public IEnumerator ButtonClicked()
         {
@@ -88,6 +120,11 @@ namespace Tokens
 
             }
             yield return Run(GetTargets(), fixedAmount);
+            yield return PostClick();
+        }
+
+        public virtual IEnumerator PostClick()
+        {
             if (finiteUses)
             {
                 count--;
@@ -221,6 +258,139 @@ namespace Tokens
         {
             target.effectBonus -= GetAmount();
             return base.Remove(entity);
+        }
+    }
+
+    public class StatusTokenMoveContainer : StatusEffectData, IStatusToken
+    {
+        //Standard Code
+        public bool fromBoard = true;
+        public bool fromHand = false;
+        public bool fromDraw = false;
+        public bool fromDiscard = false;
+        public bool finiteUses = false;
+        public bool endTurn = false;
+        public float timing = 0.2f;
+
+        public virtual void RunButtonClicked()
+        {
+            if ((bool)References.Battle && References.Battle.phase == Battle.Phase.Play && CorrectPlace() && !target.IsSnowed && target.owner == References.Player)
+            {
+                target.StartCoroutine(ButtonClicked());
+            }
+        }
+
+        public virtual bool CorrectPlace()
+        {
+            if (fromBoard && Battle.IsOnBoard(target))
+            {
+                return true;
+            }
+            if (fromHand && References.Player.handContainer.Contains(target))
+            {
+                return true;
+            }
+            if (fromDraw && target.preContainers.Contains(References.Player.drawContainer))
+            {
+                return true;
+            }
+            if (fromDiscard && target.preContainers.Contains(References.Player.discardContainer))
+            {
+                return true;
+            }
+            return false;
+        }
+
+        public virtual IEnumerator PostClick()
+        {
+            if (finiteUses)
+            {
+                count--;
+                if (count == 0)
+                {
+                    yield return Remove();
+                }
+                target.promptUpdate = true;
+            }
+            if (endTurn)
+            {
+                yield return Sequences.Wait(timing);
+                References.Player.endTurn = true;
+            }
+        }
+
+        //Main Code
+        public Container toContainer;
+        public bool top = true;
+
+        public enum Container
+        {
+            DrawPile,
+            Hand,
+            DiscardPile
+        }
+
+        public CardContainer FindContainer()
+        {
+            switch(toContainer)
+            {
+                case Container.DrawPile:
+                    return References.Player.drawContainer;
+                case Container.DiscardPile:
+                    return References.Player.discardContainer;
+                case Container.Hand:
+                    return References.Player.handContainer;
+            }
+            throw new Exception("Did you forget to declare toContainer when creating the StatusEffect?");
+        }
+
+        public IEnumerator ButtonClicked()
+        {
+            CardContainer cc = FindContainer();
+            int index = cc.Count;
+            CardPocketSequence sequence = UnityEngine.GameObject.FindObjectOfType<CardPocketSequence>();
+            CardPocketSequence.Card card = null;
+            if (sequence != null)
+            {
+                for(int i=0; sequence.cards.Count > 0; i++)
+                {
+                    if (sequence.cards[i].entity == target)
+                    {
+                        card = sequence.cards[i];
+                        target.transform.SetParent(References.instance.transform, true);
+                        sequence.cards.RemoveAt(i);
+                        break;
+                    }
+                }
+                sequence.promptEnd = true;
+                yield return new WaitUntil(() => !sequence.isActiveAndEnabled);
+                card.Reset();
+                card.Return();
+                yield return new WaitForSeconds(0.25f);
+            }
+            if (cc.Contains(target))
+            {
+                index -= 1;
+            }
+            if (!top)
+            {
+                index = 0;
+            }
+            yield return Sequences.CardMove(target, new CardContainer[1] { cc }, index);
+            foreach(CardContainer c in target.preContainers) 
+            {
+                c.TweenChildPositions();
+            }
+            if(!target.preContainers.Contains(cc))
+            {
+                cc.TweenChildPositions();
+            }
+            //yield return PostClick();
+        }
+
+        public void ButtonCreate(StatusIconExt icon)
+        {
+            return;
         }
     }
 

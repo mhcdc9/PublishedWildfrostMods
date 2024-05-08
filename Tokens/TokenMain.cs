@@ -28,13 +28,23 @@ namespace Tokens
 
         public override string Description => "Tokens are a new type of card upgrade (token icons are clickable!). They can be obtained by asking Goblings nicely for them.";
 
+        public static bool OverrideDrag = false;
+
         public static readonly List<CardUpgradeData> tokenList = new List<CardUpgradeData>();
 
+        public CardData.StatusEffectStacks SStack(string name, int count) => new CardData.StatusEffectStacks(Get<StatusEffectData>(name), count);
 
         public static TargetConstraint OnlyUnits()
         {
             TargetConstraintPlayType constraint = ScriptableObject.CreateInstance<TargetConstraintPlayType>();
             constraint.targetPlayType = Card.PlayType.Place;
+            return constraint;
+        }
+
+        public static TargetConstraint OnlyItems()
+        {
+            TargetConstraintPlayType constraint = ScriptableObject.CreateInstance<TargetConstraintPlayType>();
+            constraint.targetPlayType = Card.PlayType.Play;
             return constraint;
         }
 
@@ -111,7 +121,7 @@ namespace Tokens
                 .SubscribeToAfterAllBuildEvent(
                     (data) =>
                     {
-                        data.targetConstraints = new TargetConstraint[]{ OnlyUnits(), IsBoostable() };
+                        data.targetConstraints = new TargetConstraint[]{ IsBoostable() };
                         data.effects = new CardData.StatusEffectStacks[]{new CardData.StatusEffectStacks(Get<StatusEffectData>("Lumin Token"),2)};
                         tokenList.Add(data);
                     }),
@@ -146,7 +156,21 @@ namespace Tokens
                         data.targetConstraints = new TargetConstraint[]{ OnlyUnits(), DoesAttacks() };
                         data.effects = new CardData.StatusEffectStacks[]{new CardData.StatusEffectStacks(Get<StatusEffectData>("Fist Token"),1)};
                         tokenList.Add(data);
-                    })
+                    }),
+
+                new CardUpgradeDataBuilder(this)
+                .CreateToken("decktoken","Hidden Ace")
+                .WithImage("deckToken.png")
+                .WithText("Move this item (from anywhere!) to the top of your draw pile\nUses: <1>\n(Free action)")
+                .WithTier(2)
+                .SubscribeToAfterAllBuildEvent(
+                    (data) =>
+                    {
+                        data.targetConstraints = new TargetConstraint[]{ OnlyItems() };
+                        data.effects = new CardData.StatusEffectStacks[]{SStack("Deck Token",1)};
+                        tokenList.Add(data);
+                    }),
+
             };
 
             CreateTokenIcon("potionToken", this.ImagePath("potionToken.png").ToSprite(), "potionToken", "snow", Color.white);
@@ -154,6 +178,7 @@ namespace Tokens
             CreateTokenIcon("luminToken", this.ImagePath("luminToken.png").ToSprite(), "luminToken", "snow", Color.white);
             CreateTokenIcon("bowToken", this.ImagePath("bowToken.png").ToSprite(), "bowToken", "", Color.white);
             CreateTokenIcon("fistToken", this.ImagePath("fistToken.png").ToSprite(), "fistToken", "snow", Color.white);
+            CreateTokenIcon("deckToken", this.ImagePath("deckToken.png").ToSprite(), "deckToken", "snow", Color.white);
 
             effects = new List<StatusEffectDataBuilder>()
             {
@@ -168,6 +193,7 @@ namespace Tokens
                 .FreeModify<StatusTokenApplyX>(
                     (data) =>
                     {
+                        data.fromHand = true;
                         data.finiteUses = true;
                         data.doPing = false;
                         data.applyToFlags = StatusEffectApplyX.ApplyToFlags.Self;
@@ -208,6 +234,7 @@ namespace Tokens
                 .FreeModify<StatusTokenApplyX>(
                     (data) =>
                     {
+                        data.fromHand = true;
                         data.fixedAmount = 1;
                         data.doPing = false;
                         data.finiteUses = true;
@@ -247,6 +274,7 @@ namespace Tokens
                 .FreeModify<StatusTokenApplyX>(
                     (data) =>
                     {
+                        data.fromHand = true;
                         data.fixedAmount = 1;
                         data.finiteUses = false;
                         data.applyToFlags = StatusEffectApplyX.ApplyToFlags.Self;
@@ -319,7 +347,22 @@ namespace Tokens
                 .WithCanBeBoosted(false)
                 .WithStackable(false)
                 .WithType("")
-                .WithText("When destroyed, gain a <keyword=mhcdc9.wildfrost.tokens.token>.")
+                .WithText("When destroyed, gain a <keyword=mhcdc9.wildfrost.tokens.token>."),
+
+                new StatusEffectDataBuilder(this)
+                .CreateStatusToken<StatusTokenMoveContainer>("Deck Token", "deckToken")
+                .FreeModify<StatusTokenMoveContainer>(
+                    (data) =>
+                    {
+                        data.fromBoard = false;
+                        data.fromDiscard = true;
+                        data.fromHand = true;
+                        data.fromDraw = true;
+                        data.finiteUses = true;
+                        data.targetConstraints = new TargetConstraint[0];
+                        data.toContainer = StatusTokenMoveContainer.Container.DrawPile;
+                        data.top = true;
+                    })
             };
 
             keywords = new List<KeywordDataBuilder>()
@@ -400,7 +443,7 @@ namespace Tokens
             CreateTokenHolder();
             Events.OnCardDataCreated += Gobling;
             Events.OnSceneLoaded += SceneLoaded;
-            Events.OnCheckEntityDrag += ButtonExt.DisableDrag;
+            DisableDrag();
         }
 
         public override void Unload()
@@ -410,7 +453,14 @@ namespace Tokens
             Holder.Destroy();
             Events.OnCardDataCreated -= Gobling;
             Events.OnSceneLoaded -= SceneLoaded;
-            Events.OnCheckEntityDrag -= ButtonExt.DisableDrag;
+        }
+
+        public void DisableDrag()
+        {
+            if (!OverrideDrag)
+            {
+                Events.OnCheckEntityDrag += ButtonExt.DisableDrag;
+            }  
         }
 
         private void Gobling(CardData cardData)

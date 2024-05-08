@@ -415,6 +415,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ButtonExt.cs" />
+    <Compile Include="Extensions.cs" />
     <Compile Include="StatusClasses.cs" />
     <Compile Include="TokenMain.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

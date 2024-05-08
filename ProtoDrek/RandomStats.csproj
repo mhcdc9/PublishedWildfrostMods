@@ -68,6 +68,9 @@
     <Reference Include="HarderBattles">
       <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\workshop\content\1811990\3176496164\HarderBattles.dll</HintPath>
     </Reference>
+    <Reference Include="Hopeful_QOLs">
+      <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\workshop\content\1811990\3163062331\Hopeful_QOLs.dll</HintPath>
+    </Reference>
     <Reference Include="Mono.Cecil">
       <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Wildfrost\Wildfrost_Data\Managed\Mono.Cecil.dll</HintPath>
     </Reference>
