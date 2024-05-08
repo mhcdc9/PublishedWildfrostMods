@@ -73,6 +73,7 @@ namespace Tokens
         private List<CardUpgradeDataBuilder> upgrades;
         private List<StatusEffectDataBuilder> effects;
         private List<KeywordDataBuilder> keywords;
+        private List<TraitData> traits;
         private bool preLoaded = false;
         private void CreateModAssets()
         {
@@ -171,6 +172,18 @@ namespace Tokens
                         tokenList.Add(data);
                     }),
 
+                new CardUpgradeDataBuilder(this)
+                .CreateToken("prismtoken","Prism Stone")
+                .WithImage("prismToken.png")
+                .WithText("Gain <keyword=mhcdc9.wildfrost.tokens.prism> 1\nUses: <1>\n(Ends Turn!)")
+                .WithTier(2)
+                .SubscribeToAfterAllBuildEvent(
+                    (data) =>
+                    {
+                        data.targetConstraints = new TargetConstraint[]{ OnlyUnits() };
+                        data.effects = new CardData.StatusEffectStacks[]{SStack("Prism Token",1)};
+                        tokenList.Add(data);
+                    }),
             };
 
             CreateTokenIcon("potionToken", this.ImagePath("potionToken.png").ToSprite(), "potionToken", "snow", Color.white);
@@ -179,6 +192,8 @@ namespace Tokens
             CreateTokenIcon("bowToken", this.ImagePath("bowToken.png").ToSprite(), "bowToken", "", Color.white);
             CreateTokenIcon("fistToken", this.ImagePath("fistToken.png").ToSprite(), "fistToken", "snow", Color.white);
             CreateTokenIcon("deckToken", this.ImagePath("deckToken.png").ToSprite(), "deckToken", "snow", Color.white);
+            CreateTokenIcon("prismToken", this.ImagePath("prismToken.png").ToSprite(), "prismToken", "snow", Color.white);
+            CreateTokenIcon("mysteryToken", this.ImagePath("mysteryToken.png").ToSprite(), "mysteryToken", "", Color.white);
 
             effects = new List<StatusEffectDataBuilder>()
             {
@@ -346,8 +361,9 @@ namespace Tokens
                 .Create<StatusEffectGiveUpgradeOnDeath>("Give Token When Destroyed")
                 .WithCanBeBoosted(false)
                 .WithStackable(false)
-                .WithType("")
-                .WithText("When destroyed, gain a <keyword=mhcdc9.wildfrost.tokens.token>."),
+                .WithType("mysteryToken")
+                .WithVisible(true)
+                .WithText("When destroyed, gain a <keyword=mhcdc9.wildfrost.tokens.token>"),
 
                 new StatusEffectDataBuilder(this)
                 .CreateStatusToken<StatusTokenMoveContainer>("Deck Token", "deckToken")
@@ -362,6 +378,40 @@ namespace Tokens
                         data.targetConstraints = new TargetConstraint[0];
                         data.toContainer = StatusTokenMoveContainer.Container.DrawPile;
                         data.top = true;
+                    }),
+
+                new StatusEffectDataBuilder(this)
+                .CreateStatusToken<StatusTokenApplyX>("Prism Token", "prismToken")
+                .FreeModify<StatusTokenApplyX>(
+                    (data) =>
+                    {
+                        data.endTurn = true;
+                        data.fromHand = true;
+                        data.finiteUses = true;
+                        data.fixedAmount = 1;
+                        data.targetConstraints = new TargetConstraint[0];
+                        data.applyToFlags = StatusEffectApplyX.ApplyToFlags.Self;
+                    })
+                .SubscribeToAfterAllBuildEvent(
+                    (data) =>
+                    {
+                        StatusTokenApplyX data2 = (StatusTokenApplyX)data;
+                        data2.effectToApply = Get<StatusEffectData>("Prism");
+                    }),
+
+                new StatusEffectDataBuilder(this)
+                .Create<StatusEffectPrism>("Prism")
+                .WithCanBeBoosted(false)
+                .WithIsStatus(false)
+                .WithStackable(true)
+                .WithType("")
+                .WithText("<keyword=mhcdc9.wildfrost.tokens.prism> <{a}>")
+                .FreeModify<StatusEffectPrism>(
+                    (data) =>
+                    {
+                        data.applyEqualAmount = true;
+                        data.applyToFlags = StatusEffectApplyX.ApplyToFlags.AlliesInRow;
+                        data.targetConstraints = new TargetConstraint[0];
                     })
             };
 
@@ -372,6 +422,13 @@ namespace Tokens
                 .WithTitle("Token")
                 .WithDescription("A clickable icon that can be assigned (and removed) from cards|Max 1 token per card")
                 .WithShowName(true),
+
+                new KeywordDataBuilder(this)
+                .Create("prism")
+                .WithTitle("Prism")
+                .WithDescription("Some effects will be copied to allies in row|Counts down when activated")
+                .WithShowName(true)
+                .WithCanStack(true)
             };
 
             preLoaded = true;

@@ -14,37 +14,37 @@ namespace RandomStat
         [ConfigManagerTitle("Base HP (%)")]
         [ConfigManagerDesc("A card's minimum HP is determined will be a percentage of its original hp (default=0.5)")]
         [ConfigSlider(0, 1f)]
-        [ConfigItem(0.5f, "Base HP")]
+        [ConfigItem(0.5f,"", "Base HP")]
         public float hpBase = 0.5f;
 
         [ConfigManagerTitle("Random HP Multiplier")]
         [ConfigManagerDesc("A card's average random HP is this multiplier times its original hp (default=0.5)")]
         [ConfigSlider(0, 2f)]
-        [ConfigItem(0.5f, "HP Variance")]
+        [ConfigItem(0.5f,"", "HP Variance")]
         public float hpVariance = 0.5f;
 
         [ConfigManagerTitle("Base Attack (%)")]
         [ConfigManagerDesc("A card's minimum attack is determined will be a percentage of its original attack (default=0.2)")]
         [ConfigSlider(0, 1f)]
-        [ConfigItem(0.2f, "Base Attack")]
+        [ConfigItem(0.2f,"", "Base Attack")]
         public float attackBase = 0.2f;
 
         [ConfigManagerTitle("Random Attack Multiplier")]
         [ConfigManagerDesc("A card's average random attack is almost this multiplier times its original attack (default=1.0)")]
         [ConfigSlider(0, 2f)]
-        [ConfigItem(1f, "Attack Variance")]
+        [ConfigItem(1f, "", "Attack Variance")]
         public float attackVariance = 1f;
 
         [ConfigManagerTitle("Counter Variance")]
         [ConfigManagerDesc("Higher variance leads to more volatile counters (default=0.5, Be careful)")]
         [ConfigSlider(0, 0.95f)]
-        [ConfigItem(0.5f, "Counter Variance")]
+        [ConfigItem(0.5f, "", "Counter Variance")]
         public float counterVariance = 0.5f;
 
         [ConfigManagerTitle("Counter Skew")]
         [ConfigManagerDesc("Counter skew modifies the average change in counters. Lower skew leads to smaller counters (default=-0.3)")]
         [ConfigSlider(-1f, 1f)]
-        [ConfigItem(-0.3f, "Counter Skew")]
+        [ConfigItem(-0.3f, "", "Counter Skew")]
         public float counterSkew = -0.3f;
 
 
@@ -56,7 +56,11 @@ namespace RandomStat
         public override string GUID => "mhcdc9.wildfrost.randomizestats";
         public override string[] Depends => new string[] { };
         public override string Title => "Randomized Stats";
-        public override string Description => "On average, the stats are the same. In reality...";
+        public override string Description => "On average, the stats are the same. In reality...\n\n\n\n" +
+            "the health, attack, and counter of all units with such stats are randomized. " +
+            "You may change some parameters of the randomization in the options menu (have the Config Manager mod on)." +
+            "If the parameters don't seem to be doing anything, try deleting config.cfg in the local files and restart the mod." +
+            "\n\n -Michael";
 
         protected override void Load()
         {

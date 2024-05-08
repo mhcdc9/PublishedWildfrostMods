@@ -36,7 +36,9 @@ namespace UnreliableCounters
         public override string Title => "Probabilistic Counters";
 
         public override string Description => "Counters no longer count down conventionally. In the options menu, switch from the different flavors between runs, battles, or even turns. \n\n\n\n" +
-            "Flavours:\r\nAll or Nothing: The unit either triggers or it doesn't. No counting down.\r\nTime is Relative: The unit will count down (sometimes) but not necessarily by 1.\r\nTwo Steps Forward (One Step Back): The unit typically counts down by 2 but sometimes counts up by 1.\r\nUniform Chaos (!): The unit chooses a random number (uniformly from available options) to count down to.\r\nBoring: Cards count down by 1.\r\n\r\nEnjoy!\r\n-Michael";
+            "Flavours:\r\nAll or Nothing: The unit either triggers or it doesn't. No counting down.\r\nTime is Relative: The unit will count down (sometimes) but not necessarily by 1.\r\nTwo Steps Forward (One Step Back): The unit typically counts down by 2 but sometimes counts up by 1.\r\nUniform Chaos (!): The unit chooses a random number (uniformly from available options) to count down to.\r\nBoring: Cards count down by 1.\r\n\r\nEnjoy!" +
+            "\n\n Note: if the options don't seem to be updating correctly, try deleting config.cfg and restarting the mod." +
+            "\n\nEnjoy!\n-Michael";
 
         protected override void Load()
         {

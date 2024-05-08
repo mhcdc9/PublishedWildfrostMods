@@ -120,6 +120,7 @@ namespace Tokens
 
             }
             yield return Run(GetTargets(), fixedAmount);
+            target.display.promptUpdateDescription = true;
             yield return PostClick();
         }
 
@@ -341,7 +342,7 @@ namespace Tokens
                 case Container.Hand:
                     return References.Player.handContainer;
             }
-            throw new Exception("Did you forget to declare toContainer when creating the StatusEffect?");
+            throw new Exception("Did you forget to declare toContainer when building the StatusEffect?");
         }
 
         public IEnumerator ButtonClicked()
@@ -385,7 +386,7 @@ namespace Tokens
             {
                 cc.TweenChildPositions();
             }
-            //yield return PostClick();
+            yield return PostClick();
         }
 
         public void ButtonCreate(StatusIconExt icon)
@@ -394,6 +395,7 @@ namespace Tokens
         }
     }
 
+    //Ordinary Status Effects
     public class StatusEffectGiveUpgradeOnDeath : StatusEffectData
     {
         public List<CardUpgradeData> data;
@@ -414,6 +416,30 @@ namespace Tokens
                 actualData.Add(token);
             }
             yield break;
+        }
+    }
+
+    public class StatusEffectPrism : StatusEffectApplyX
+    {
+        public override void Init()
+        {
+            base.PostApplyStatus += Refract;
+            base.Init();
+        }
+
+        private IEnumerator Refract(StatusEffectApply apply)
+        {
+            if (apply.count == 0 || apply.target != target)
+            {
+                yield break;
+            }
+            if (!apply.effectData.type.IsNullOrWhitespace() || apply.effectData.isStatus)
+            {
+                effectToApply = apply.effectData;
+                yield return Run(GetTargets(),apply.count);
+                yield return CountDown(target,1);
+                target.display.promptUpdateDescription = true;
+            }
         }
     }
 }
