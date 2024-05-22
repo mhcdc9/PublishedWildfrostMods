@@ -9,11 +9,13 @@ using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
 using static Building;
+using CardPlaces = Tokens.Extensions.CardPlaces;
 
 namespace Tokens
 {
     public interface IStatusToken
     {
+        CardPlaces ValidPlaces { get; }
         void ButtonCreate(StatusIconExt icon);
 
         void RunButtonClicked();
@@ -29,7 +31,7 @@ namespace Tokens
         public ButtonExt button;
         private IStatusToken effectToken;
 
-        
+
 
         public override void Assign(Entity entity)
         {
@@ -60,41 +62,19 @@ namespace Tokens
     public class StatusTokenApplyX : StatusEffectApplyX, IStatusToken
     {
         //Standard Code I wish I can put into IStatusToken
-        public bool fromBoard = true;
-        public bool fromHand = false;
-        public bool fromDraw = false;
-        public bool fromDiscard = false;
-        public bool finiteUses = false;
+        public CardPlaces validPlaces = CardPlaces.Board | CardPlaces.Hand;
+        public CardPlaces ValidPlaces { get => validPlaces; }
+        public bool finiteUses = true;
         public bool endTurn = false;
         public float timing = 0.2f;
+        public bool snowOverride = false;
 
         public virtual void RunButtonClicked()
         {
-            if ((bool)References.Battle && References.Battle.phase == Battle.Phase.Play && CorrectPlace() && !target.IsSnowed && target.owner == References.Player)
+            if ((bool)References.Battle && References.Battle.phase == Battle.Phase.Play && this.CorrectPlace(target) && (!target.IsSnowed || snowOverride) && target.owner == References.Player)
             {
                 target.StartCoroutine(ButtonClicked());
             }
-        }
-
-        public virtual bool CorrectPlace()
-        {
-            if (fromBoard && Battle.IsOnBoard(target))
-            {
-                return true;
-            }
-            if (fromHand && References.Player.handContainer.Contains(target))
-            {
-                return true;
-            }
-            if (fromDraw && target.preContainers.Contains(References.Player.drawContainer))
-            {
-                return true;
-            }
-            if (fromDiscard && target.preContainers.Contains(References.Player.discardContainer))
-            {
-                return true;
-            }
-            return false;
         }
 
         //Main Code
@@ -265,41 +245,18 @@ namespace Tokens
     public class StatusTokenMoveContainer : StatusEffectData, IStatusToken
     {
         //Standard Code
-        public bool fromBoard = true;
-        public bool fromHand = false;
-        public bool fromDraw = false;
-        public bool fromDiscard = false;
-        public bool finiteUses = false;
+        public CardPlaces validPlaces;
+        public CardPlaces ValidPlaces { get => validPlaces; }
+        public bool finiteUses = true;
         public bool endTurn = false;
         public float timing = 0.2f;
 
         public virtual void RunButtonClicked()
         {
-            if ((bool)References.Battle && References.Battle.phase == Battle.Phase.Play && CorrectPlace() && !target.IsSnowed && target.owner == References.Player)
+            if ((bool)References.Battle && References.Battle.phase == Battle.Phase.Play && this.CorrectPlace(target) && !target.IsSnowed && target.owner == References.Player)
             {
                 target.StartCoroutine(ButtonClicked());
             }
-        }
-
-        public virtual bool CorrectPlace()
-        {
-            if (fromBoard && Battle.IsOnBoard(target))
-            {
-                return true;
-            }
-            if (fromHand && References.Player.handContainer.Contains(target))
-            {
-                return true;
-            }
-            if (fromDraw && target.preContainers.Contains(References.Player.drawContainer))
-            {
-                return true;
-            }
-            if (fromDiscard && target.preContainers.Contains(References.Player.discardContainer))
-            {
-                return true;
-            }
-            return false;
         }
 
         public virtual IEnumerator PostClick()
@@ -333,7 +290,7 @@ namespace Tokens
 
         public CardContainer FindContainer()
         {
-            switch(toContainer)
+            switch (toContainer)
             {
                 case Container.DrawPile:
                     return References.Player.drawContainer;
@@ -353,7 +310,7 @@ namespace Tokens
             CardPocketSequence.Card card = null;
             if (sequence != null)
             {
-                for(int i=0; sequence.cards.Count > 0; i++)
+                for (int i = 0; sequence.cards.Count > 0; i++)
                 {
                     if (sequence.cards[i].entity == target)
                     {
@@ -378,11 +335,11 @@ namespace Tokens
                 index = 0;
             }
             yield return Sequences.CardMove(target, new CardContainer[1] { cc }, index);
-            foreach(CardContainer c in target.preContainers) 
+            foreach (CardContainer c in target.preContainers)
             {
                 c.TweenChildPositions();
             }
-            if(!target.preContainers.Contains(cc))
+            if (!target.preContainers.Contains(cc))
             {
                 cc.TweenChildPositions();
             }
@@ -427,19 +384,91 @@ namespace Tokens
             base.Init();
         }
 
-        private IEnumerator Refract(StatusEffectApply apply)
+        public override bool RunPostApplyStatusEvent(StatusEffectApply apply)
         {
             if (apply.count == 0 || apply.target != target)
             {
-                yield break;
+                return false;
+            }
+            if (apply.applier != target && apply.applier.FindStatus("prism") != null)
+            {
+                return false;
             }
             if (!apply.effectData.type.IsNullOrWhitespace() || apply.effectData.isStatus)
             {
-                effectToApply = apply.effectData;
-                yield return Run(GetTargets(),apply.count);
-                yield return CountDown(target,1);
-                target.display.promptUpdateDescription = true;
+                return true;
             }
+            return false;
+        }
+        private IEnumerator Refract(StatusEffectApply apply)
+        {
+            effectToApply = apply.effectData;
+            yield return Run(GetTargets(), apply.count);
+            int amount = 1;
+            Events.InvokeStatusEffectCountDown(this, ref amount);
+            yield return CountDown(target, amount);
+            target.display.promptUpdateDescription = true;
+            target.PromptUpdate();
+        }
+    }
+
+    public class StatusEffectConvertDamage : StatusEffectApplyX
+    {
+        public override void Init()
+        {
+            base.Init();
+            base.OnHit += ConvertDamage;
+        }
+
+        public override bool RunHitEvent(Hit hit)
+        {
+            if (hit.attacker == target)
+            {
+                return true;
+            }
+            return false;
+        }
+
+        protected IEnumerator ConvertDamage(Hit hit)
+        {
+            int damage = hit.damage;
+            hit.damage = 0;
+            if (damage > 0)
+            {
+                hit.AddStatusEffect(new CardData.StatusEffectStacks(effectToApply, damage));
+            }
+            int amount = 1;
+            Events.InvokeStatusEffectCountDown(this, ref amount);
+            yield return CountDown(target, amount);
+            target.display.promptUpdateDescription = true;
+            target.PromptUpdate();
+        }
+    }
+
+    public class StatusEffectInstantConvertDebuffs : StatusEffectInstantCleanse
+    {
+        public StatusEffectData effectToApply;
+        public int initialStacks = 0;
+        public override IEnumerator Process()
+        {
+            int stacks = initialStacks;
+            int num = target.statusEffects.Count;
+            for (int i = num - 1; i >= 0; i--)
+            {
+                StatusEffectData statusEffectData = target.statusEffects[i];
+                if (statusEffectData.offensive && statusEffectData.visible && statusEffectData.isStatus)
+                {
+                    stacks += statusEffectData.count;
+                    yield return statusEffectData.Remove();
+                }
+            }
+            yield return StatusEffectSystem.Apply(target, target, effectToApply, stacks);
+            target.display.promptUpdateDescription = true;
+            target.PromptUpdate();
+            yield return base.Process();
         }
     }
 }
+
+
+

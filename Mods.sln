@@ -29,6 +29,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VolatileDeck", "VolatileDec
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tokens", "Tokens\Tokens.csproj", "{A7303724-47CA-43F5-A7A9-6AACC945CAEF}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AlwaysAscended", "AlwaysAscended\AlwaysAscended.csproj", "{2936FCBB-F1EC-4184-8E54-ADACCF6B9595}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -87,6 +89,10 @@ Global
 		{A7303724-47CA-43F5-A7A9-6AACC945CAEF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A7303724-47CA-43F5-A7A9-6AACC945CAEF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A7303724-47CA-43F5-A7A9-6AACC945CAEF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2936FCBB-F1EC-4184-8E54-ADACCF6B9595}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2936FCBB-F1EC-4184-8E54-ADACCF6B9595}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2936FCBB-F1EC-4184-8E54-ADACCF6B9595}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2936FCBB-F1EC-4184-8E54-ADACCF6B9595}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
