@@ -29,13 +29,17 @@ namespace Tokens
 
         public override string[] Depends => new string[0];
 
-        public override string Title => "Tokens v1.0";
+        public override string Title => "Tokens v2.0";
 
-        public override string Description => "Tokens are a new type of card upgrade (token icons are clickable!). They can be obtained by asking Goblings nicely for them.";
+        public override string Description => "Tokens are a new type of card upgrade (token icons are clickable!). They can be obtained by asking Goblings nicely for them.\n\n\n" +
+            "Think of tokens as equipment/consumables." +
+            "Clicking a token during a battle will provide a small effect." +
+            "There are 11 different tokens (8 general, 3 class-exclusive) that have varied effects (see icon picture)." +
+            "Tokens may be a free action or end your turn.";
 
         public static bool OverrideDrag = false;
 
-        public static readonly List<CardUpgradeData> tokenList = new List<CardUpgradeData>();
+        public static readonly Dictionary<string, List<CardUpgradeData>> TokenRewards = new Dictionary<string, List<CardUpgradeData>>();
 
         public CardData.StatusEffectStacks SStack(string name, int count) => new CardData.StatusEffectStacks(Get<StatusEffectData>(name), count);
 
@@ -88,171 +92,146 @@ namespace Tokens
         {
             if (tokenKeyword == null)
             {
-                tokenKeyword = Extensions.CreateBasicKeyword(instance, "token", "Token", "A clickable icon that can be assigned to and removed from cards|1 token per card\n(blocked by snow)")
+                tokenKeyword = Extensions.CreateBasicKeyword(instance, "token", "Token", "A clickable icon that can be assigned to and removed from cards|1 token per card\n(blocked by snow and ink)")
                     .RegisterKeyword();
             }
             return tokenKeyword;
         }
+
         private void CreateModAssets()
         {
             upgrades = new List<CardUpgradeDataBuilder>()
             {
                 new CardUpgradeDataBuilder(this)
-                .Create("CardUpgradePotion")
-                .SetCanBeRemoved(true)
+                .CreateToken("CardUpgradePotion", "Potion Token")
                 .WithImage("potionToken.png")
                 .WithText("Equip <keyword=mhcdc9.wildfrost.tokens.potiontoken>")
-                .WithTier(2)
-                .WithTitle("Potion Token")
-                .WithType(CardUpgradeData.Type.Token)
+                .AddTokenPool("General")
                 .SubscribeToAfterAllBuildEvent(
                     (data) =>
                     {
                         data.targetConstraints = new TargetConstraint[]{ OnlyUnits(), HasHealth() };
                         data.effects = new CardData.StatusEffectStacks[]{new CardData.StatusEffectStacks(Get<StatusEffectData>("Potion Token"),4)};
-                        tokenList.Add(data);
                     }),
 
                 new CardUpgradeDataBuilder(this)
-                .Create("CardUpgradeSword")
-                .SetCanBeRemoved(true)
+                .CreateToken("CardUpgradeSword", "Sword Token")
                 .WithImage("swordToken.png")
                 .WithText("Equip <keyword=mhcdc9.wildfrost.tokens.swordtoken>")
-                .WithTier(2)
-                .WithTitle("Sword Token")
-                .WithType(CardUpgradeData.Type.Token)
+                .AddTokenPool("General")
                 .SubscribeToAfterAllBuildEvent(
                     (data) =>
                     {
                         data.targetConstraints = new TargetConstraint[]{ OnlyUnits() };
                         data.effects = new CardData.StatusEffectStacks[]{new CardData.StatusEffectStacks(Get<StatusEffectData>("Sword Token"),2)};
-                        tokenList.Add(data);
                     }),
 
                 new CardUpgradeDataBuilder(this)
-                .Create("CardUpgradeLumin")
-                .SetCanBeRemoved(true)
+                .CreateToken("CardUpgradeLumin", "Lumin Token")
                 .WithImage("luminToken.png")
                 .WithText("Equip <keyword=mhcdc9.wildfrost.tokens.lumintoken>")
-                .WithTier(2)
-                .WithTitle("Lumin Token")
-                .WithType(CardUpgradeData.Type.Token)
+                .AddTokenPool("General")
                 .SubscribeToAfterAllBuildEvent(
                     (data) =>
                     {
                         data.targetConstraints = new TargetConstraint[]{ IsBoostable() };
                         data.effects = new CardData.StatusEffectStacks[]{new CardData.StatusEffectStacks(Get<StatusEffectData>("Lumin Token"),2)};
-                        tokenList.Add(data);
                     }),
 
                 new CardUpgradeDataBuilder(this)
-                .Create("CardUpgradeBow")
-                .SetCanBeRemoved(true)
+                .CreateToken("CardUpgradeBow", "Bow Token")
                 .WithImage("bowToken.png")
                 .WithText("Equip <keyword=mhcdc9.wildfrost.tokens.bowtoken>")
-                .WithTier(2)
-                .WithTitle("Bow Token")
-                .WithType(CardUpgradeData.Type.Token)
+                .AddTokenPool("General")
                 .SubscribeToAfterAllBuildEvent(
                     (data) =>
                     {
                         data.targetConstraints = new TargetConstraint[]{ OnlyUnits(), DoesAttacks() };
                         data.effects = new CardData.StatusEffectStacks[]{new CardData.StatusEffectStacks(Get<StatusEffectData>("Bow Token"),1)};
-                        tokenList.Add(data);
                     }),
 
                 new CardUpgradeDataBuilder(this)
-                .Create("CardUpgradeFist")
-                .SetCanBeRemoved(true)
+                .CreateToken("CardUpgradeFist", "Fist Token")
                 .WithImage("fistToken.png")
                 .WithText("Equip <keyword=mhcdc9.wildfrost.tokens.fisttoken>")
-                .WithTier(2)
-                .WithTitle("Fist Token")
-                .WithType(CardUpgradeData.Type.Token)
+                .AddTokenPool("General")
                 .SubscribeToAfterAllBuildEvent(
                     (data) =>
                     {
                         data.targetConstraints = new TargetConstraint[]{ OnlyUnits(), DoesAttacks() };
                         data.effects = new CardData.StatusEffectStacks[]{new CardData.StatusEffectStacks(Get<StatusEffectData>("Fist Token"),1)};
-                        tokenList.Add(data);
                     }),
 
                 new CardUpgradeDataBuilder(this)
                 .CreateToken("CardUpgradeDeck","Deck Token")
                 .WithImage("deckToken.png")
                 .WithText("Equip <keyword=mhcdc9.wildfrost.tokens.decktoken>")
-                .WithTier(2)
+                .AddTokenPool("General")
                 .SubscribeToAfterAllBuildEvent(
                     (data) =>
                     {
                         data.targetConstraints = new TargetConstraint[]{ OnlyItems() };
                         data.effects = new CardData.StatusEffectStacks[]{SStack("Deck Token",1)};
-                        tokenList.Add(data);
                     }),
 
                 new CardUpgradeDataBuilder(this)
                 .CreateToken("CardUpgradePrism","Prism Token")
                 .WithImage("prismToken.png")
                 .WithText("Equip <keyword=mhcdc9.wildfrost.tokens.prismtoken>")
-                .WithTier(2)
+                .AddTokenPool("General")
                 .SubscribeToAfterAllBuildEvent(
                     (data) =>
                     {
                         data.targetConstraints = new TargetConstraint[]{ OnlyUnits() };
                         data.effects = new CardData.StatusEffectStacks[]{SStack("Prism Token",1)};
-                        tokenList.Add(data);
                     }),
 
                 new CardUpgradeDataBuilder(this)
                 .CreateToken("CardUpgradeFrost","Frost Token")
                 .WithImage("frostToken.png")
                 .WithText("Equip <keyword=mhcdc9.wildfrost.tokens.frosttoken>")
-                .WithTier(2)
+                .AddTokenPool("General")
                 .SubscribeToAfterAllBuildEvent(
                     (data) =>
                     {
                         data.targetConstraints = new TargetConstraint[]{ DoesAttacks() };
                         data.effects = new CardData.StatusEffectStacks[]{SStack("Frost Token",2)};
-                        tokenList.Add(data);
                     }),
 
                 new CardUpgradeDataBuilder(this)
                 .CreateToken("CardUpgradeSpice","Spice Token")
                 .WithImage("spiceToken.png")
                 .WithText("Equip <keyword=mhcdc9.wildfrost.tokens.spicetoken>")
-                .WithTier(2)
+                .AddTokenPool("Player (Basic)")
                 .SubscribeToAfterAllBuildEvent(
                     (data) =>
                     {
                         data.targetConstraints = new TargetConstraint[]{ OnlyUnits(), DoesAttacks() };
                         data.effects = new CardData.StatusEffectStacks[]{SStack("Spice Token",1)};
-                        tokenList.Add(data);
                     }),
 
                 new CardUpgradeDataBuilder(this)
                 .CreateToken("CardUpgradeTeeth","Teeth Token")
                 .WithImage("teethToken.png")
                 .WithText("Equip <keyword=mhcdc9.wildfrost.tokens.teethtoken>")
-                .WithTier(2)
+                .AddTokenPool("Player (Magic)")
                 .SubscribeToAfterAllBuildEvent(
                     (data) =>
                     {
                         data.targetConstraints = new TargetConstraint[]{ HasHealth() };
                         data.effects = new CardData.StatusEffectStacks[]{SStack("Teeth Token",1)};
-                        tokenList.Add(data);
                     }),
 
                 new CardUpgradeDataBuilder(this)
                 .CreateToken("CardUpgradeJunk","Junk Token")
                 .WithImage("junkToken.png")
                 .WithText("Equip <keyword=mhcdc9.wildfrost.tokens.junktoken>")
-                .WithTier(2)
+                .AddTokenPool("Player (Clunk)")
                 .SubscribeToAfterAllBuildEvent(
                     (data) =>
                     {
                         data.targetConstraints = new TargetConstraint[]{ OnlyUnits() };
                         data.effects = new CardData.StatusEffectStacks[]{SStack("Junk Token",1)};
-                        tokenList.Add(data);
                     }),
             };
 
@@ -262,17 +241,17 @@ namespace Tokens
 
                 Extensions.CreateBasicKeyword(this, "swordtoken", "Trusty Sword", "<Free Action>: Deal <2> damage to front enemey|Uses per battle: 2").AddToIcons("swordToken"),
 
-                Extensions.CreateBasicKeyword(this, "lumimtoken", "Lumin Juice", "<Free Action>: Increase all effects by <1> until end of turn|Uses per battle: 2").AddToIcons("luminToken"),
+                Extensions.CreateBasicKeyword(this, "lumintoken", "Lumin Juice", "<Free Action>: Increase all effects by <1> until end of turn|Uses per battle: 2").AddToIcons("luminToken"),
 
                 Extensions.CreateBasicKeyword(this, "bowtoken", "Berrywood Bow", "<Free Action>: Gain <keyword=longshot> until end of turn|Unlimited uses!").AddToIcons("bowToken"),
 
                 Extensions.CreateBasicKeyword(this, "fisttoken", "Fighter's Mark", "<End Turn>: Gain <keyword=smackback> until end of turn|Uses per battle: 1").AddToIcons("fistToken"),
 
-                Extensions.CreateBasicKeyword(this, "decktoken", "Hidden Ace", "<Free Action>: Move this item (from anywhere!) to the top of your draw pile|Uses per battle: 1").AddToIcons("deckToken"),
+                Extensions.CreateBasicKeyword(this, "decktoken", "Hidden Ace", "<Free Action>: Move (from anywhere!) to top of draw pile|Uses per battle: 1").AddToIcons("deckToken"),
 
-                Extensions.CreateBasicKeyword(this, "prismtoken", "Prism Stone", "<End Turn>: The next buff is copied to allies in row|Uses per battle: 1").AddToIcons("prismToken"),
+                Extensions.CreateBasicKeyword(this, "prismtoken", "Prism Stone", "<End Turn>: Copy the next (valid) effect to allies in row|Uses per battle: 1").AddToIcons("prismToken"),
 
-                Extensions.CreateBasicKeyword(this, "frosttoken", "Frost Spike", "<Free Action>: The next attack is dealt as <keyword=frost> instead|Uses per battle: 2").AddToIcons("frostToken"),
+                Extensions.CreateBasicKeyword(this, "frosttoken", "Frost Spike", "<Free Action>: Deal <keyword=frost> instead of damage for next attack|Uses per battle: 2").AddToIcons("frostToken"),
 
                 Extensions.CreateBasicKeyword(this, "spicetoken", "Pepper Flip", "<Free Action>:\nGain <2><keyword=spice> and convert all debuffs into <keyword=spice>|Uses per battle: 1\n(Snow immune!)").AddToIcons("spiceToken"),
 
@@ -302,13 +281,7 @@ namespace Tokens
             effects = new List<StatusEffectDataBuilder>()
             {
                 new StatusEffectDataBuilder(this)
-                .Create<StatusTokenApplyX>("Potion Token")
-                .WithCanBeBoosted(false)
-                .WithIconGroupName("counter")
-                .WithIsStatus(true)
-                .WithStackable(false)
-                .WithType("potionToken")
-                .WithVisible(true)
+                .CreateStatusToken <StatusTokenApplyX>("Potion Token", "potionToken")
                 .FreeModify<StatusTokenApplyX>(
                     (data) =>
                     {
@@ -321,13 +294,7 @@ namespace Tokens
                     }),
 
                 new StatusEffectDataBuilder(this)
-                .Create<StatusTokenApplyX>("Sword Token")
-                .WithCanBeBoosted(false)
-                .WithIconGroupName("counter")
-                .WithIsStatus(true)
-                .WithStackable(false)
-                .WithType("swordToken")
-                .WithVisible(true)
+                .CreateStatusToken <StatusTokenApplyX>("Sword Token", "swordToken")
                 .FreeModify<StatusTokenApplyX>(
                     (data) =>
                     {
@@ -342,13 +309,7 @@ namespace Tokens
                     }),
 
                 new StatusEffectDataBuilder(this)
-                .Create<StatusTokenApplyX>("Lumin Token")
-                .WithCanBeBoosted(false)
-                .WithIconGroupName("counter")
-                .WithIsStatus(true)
-                .WithStackable(false)
-                .WithType("luminToken")
-                .WithVisible(true)
+                .CreateStatusToken<StatusTokenApplyX>("Lumin Token", "luminToken")
                 .FreeModify<StatusTokenApplyX>(
                     (data) =>
                     {
@@ -381,13 +342,7 @@ namespace Tokens
                     }),
 
                 new StatusEffectDataBuilder(this)
-                .Create<StatusTokenApplyX>("Bow Token")
-                .WithCanBeBoosted(false)
-                .WithIconGroupName("counter")
-                .WithIsStatus(true)
-                .WithStackable(false)
-                .WithType("bowToken")
-                .WithVisible(true)
+                .CreateStatusToken<StatusTokenApplyX>("Bow Token", "bowToken")
                 .FreeModify<StatusTokenApplyX>(
                     (data) =>
                     {
@@ -407,13 +362,7 @@ namespace Tokens
                     }),
 
                 new StatusEffectDataBuilder(this)
-                .Create<StatusTokenApplyX>("Fist Token")
-                .WithCanBeBoosted(false)
-                .WithIconGroupName("counter")
-                .WithIsStatus(true)
-                .WithStackable(false)
-                .WithType("fistToken")
-                .WithVisible(true)
+                .CreateStatusToken<StatusTokenApplyX>("Fist Token", "fistToken")
                 .FreeModify<StatusTokenApplyX>(
                     (data) =>
                     {
@@ -603,6 +552,7 @@ namespace Tokens
                     {
                         data.validPlaces = Extensions.CardPlaces.BoardAndHand;
                         data.endTurn = false;
+                        data.doPing = false;
                         data.fixedAmount = 2;
                         data.applyEqualAmount = true;
                         data.targetConstraints = new TargetConstraint[0];
@@ -658,6 +608,7 @@ namespace Tokens
             CreateTokenHolder();
             Events.OnCardDataCreated += Gobling;
             Events.OnSceneLoaded += SceneLoaded;
+            Events.OnPreCampaignPopulate += ResetPool;
             DisableDrag();
         }
 
@@ -668,6 +619,12 @@ namespace Tokens
             Holder.Destroy();
             Events.OnCardDataCreated -= Gobling;
             Events.OnSceneLoaded -= SceneLoaded;
+            Events.OnPreCampaignPopulate -= ResetPool;
+        }
+
+        public void ResetPool()
+        {
+            StatusEffectGiveUpgradeOnDeath.data.Clear();
         }
 
         public void DisableDrag()
@@ -768,15 +725,7 @@ namespace Tokens
                 button.onClick.SetPersistentListenerState(0, UnityEngine.Events.UnityEventCallState.Off);
                 button.onClick.AddListener(TakeToken);
 
-                //Randomize token list
-                for(int i=tokenList.Count-1; i>=0; i--)
-                {
-                    if (tokenList[i] == null)
-                    {
-                        tokenList.RemoveAt(i);
-                    }
-                }
-                ((StatusEffectGiveUpgradeOnDeath)Get<StatusEffectData>("Give Token When Destroyed")).data = tokenList.InRandomOrder().ToList();
+                
             }
         }
 

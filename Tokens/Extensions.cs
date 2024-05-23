@@ -24,13 +24,35 @@ namespace Tokens
             Everywhere = 15
         }
 
+        public static CardUpgradeDataBuilder AddTokenPool(this CardUpgradeDataBuilder builder, string @class)
+        {
+            return builder.SubscribeToAfterAllBuildEvent(
+                (data) =>
+                {
+                    AddTokenPool(data, @class);
+                });
+        }
+
+        public static void AddTokenPool(this CardUpgradeData data, string @class)
+        {
+            if (!TokenMain.TokenRewards.ContainsKey(@class))
+            {
+                TokenMain.TokenRewards[@class] = new List<CardUpgradeData> { data };
+            }
+            else
+            {
+                TokenMain.TokenRewards[@class].Add(data);
+            }
+        }
+
         public static bool Includes(this IStatusToken token, CardPlaces cardPlace) => (token.ValidPlaces & cardPlace) != 0;
-        public static CardUpgradeDataBuilder CreateToken(this CardUpgradeDataBuilder b, string name, string title)
+        public static CardUpgradeDataBuilder CreateToken(this CardUpgradeDataBuilder b, string name, string title, int tier = 2)
         {
             return b.Create(name)
                 .WithTitle(title)
                 .SetCanBeRemoved(true)
-                .WithType(CardUpgradeData.Type.Token);
+                .WithType(CardUpgradeData.Type.Token)
+                .WithTier(tier);
         }
 
         public static bool CorrectPlace(this IStatusToken token, Entity target)

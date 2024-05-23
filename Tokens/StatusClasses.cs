@@ -7,6 +7,7 @@ using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using static Building;
 using CardPlaces = Tokens.Extensions.CardPlaces;
@@ -71,7 +72,7 @@ namespace Tokens
 
         public virtual void RunButtonClicked()
         {
-            if ((bool)References.Battle && References.Battle.phase == Battle.Phase.Play && this.CorrectPlace(target) && (!target.IsSnowed || snowOverride) && target.owner == References.Player)
+            if ((bool)References.Battle && References.Battle.phase == Battle.Phase.Play && this.CorrectPlace(target) && (!target.IsSnowed || snowOverride) && (!target.silenced) && target.owner == References.Player)
             {
                 target.StartCoroutine(ButtonClicked());
             }
@@ -250,10 +251,11 @@ namespace Tokens
         public bool finiteUses = true;
         public bool endTurn = false;
         public float timing = 0.2f;
+        public bool snowOverride = false;
 
         public virtual void RunButtonClicked()
         {
-            if ((bool)References.Battle && References.Battle.phase == Battle.Phase.Play && this.CorrectPlace(target) && !target.IsSnowed && target.owner == References.Player)
+            if ((bool)References.Battle && References.Battle.phase == Battle.Phase.Play && this.CorrectPlace(target) && (!target.IsSnowed || snowOverride) && (!target.silenced) && target.owner == References.Player)
             {
                 target.StartCoroutine(ButtonClicked());
             }
@@ -355,7 +357,7 @@ namespace Tokens
     //Ordinary Status Effects
     public class StatusEffectGiveUpgradeOnDeath : StatusEffectData
     {
-        public List<CardUpgradeData> data;
+        public static List<CardUpgradeData> data = new List<CardUpgradeData>();
         public override void Init()
         {
             base.OnEntityDestroyed += EntityDestroyed;
@@ -364,15 +366,40 @@ namespace Tokens
 
         private IEnumerator EntityDestroyed(Entity entity, DeathType deathType)
         {
-            if (entity == target && data.Count > 0)
+            if (entity == target)
             {
-                List<CardUpgradeData> actualData = AddressableLoader.Get<StatusEffectGiveUpgradeOnDeath>("StatusEffectData", name).data;
-                CardUpgradeData token = actualData[0];
-                References.PlayerData.inventory.upgrades.Add(token.Clone());
-                actualData.RemoveAt(0);
-                actualData.Add(token);
+                if (data.Count == 0)
+                {
+                    LoadTokens();
+                }
+                References.PlayerData.inventory.upgrades.Add(data[0].Clone());
+                data.RemoveAt(0);
             }
             yield break;
+        }
+
+        protected void LoadTokens()
+        {
+            Debug.Log($"Is the player in References already {References.Player != null}");
+            //Randomize token list
+            List<CardUpgradeData> tokenList = new List<CardUpgradeData>();
+            foreach (string key in TokenMain.TokenRewards.Keys)
+            {
+                Debug.Log(key);
+                if (key == "General" || key == References.Player.title)
+                {
+                    for (int i = TokenMain.TokenRewards[key].Count - 1; i >= 0; i--)
+                    {
+                        Debug.Log(i);
+                        if (TokenMain.TokenRewards[key][i] == null)
+                        {
+                            TokenMain.TokenRewards[key].RemoveAt(i);
+                        }
+                    }
+                    tokenList.AddRange(TokenMain.TokenRewards[key]);
+                }
+            }
+            data = tokenList.InRandomOrder().ToList();
         }
     }
 
