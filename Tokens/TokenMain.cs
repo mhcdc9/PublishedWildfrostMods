@@ -111,7 +111,7 @@ namespace Tokens
                     (data) =>
                     {
                         data.targetConstraints = new TargetConstraint[]{ OnlyUnits(), HasHealth() };
-                        data.effects = new CardData.StatusEffectStacks[]{new CardData.StatusEffectStacks(Get<StatusEffectData>("Potion Token"),4)};
+                        data.effects = new CardData.StatusEffectStacks[]{SStack("Potion Token",4)};
                     }),
 
                 new CardUpgradeDataBuilder(this)
@@ -123,7 +123,7 @@ namespace Tokens
                     (data) =>
                     {
                         data.targetConstraints = new TargetConstraint[]{ OnlyUnits() };
-                        data.effects = new CardData.StatusEffectStacks[]{new CardData.StatusEffectStacks(Get<StatusEffectData>("Sword Token"),2)};
+                        data.effects = new CardData.StatusEffectStacks[]{SStack("Sword Token",2)};
                     }),
 
                 new CardUpgradeDataBuilder(this)
@@ -135,7 +135,7 @@ namespace Tokens
                     (data) =>
                     {
                         data.targetConstraints = new TargetConstraint[]{ IsBoostable() };
-                        data.effects = new CardData.StatusEffectStacks[]{new CardData.StatusEffectStacks(Get<StatusEffectData>("Lumin Token"),2)};
+                        data.effects = new CardData.StatusEffectStacks[]{SStack("Lumin Token", 2) };
                     }),
 
                 new CardUpgradeDataBuilder(this)
@@ -147,7 +147,7 @@ namespace Tokens
                     (data) =>
                     {
                         data.targetConstraints = new TargetConstraint[]{ OnlyUnits(), DoesAttacks() };
-                        data.effects = new CardData.StatusEffectStacks[]{new CardData.StatusEffectStacks(Get<StatusEffectData>("Bow Token"),1)};
+                        data.effects = new CardData.StatusEffectStacks[]{SStack("Bow Token", 1) };
                     }),
 
                 new CardUpgradeDataBuilder(this)
@@ -159,7 +159,7 @@ namespace Tokens
                     (data) =>
                     {
                         data.targetConstraints = new TargetConstraint[]{ OnlyUnits(), DoesAttacks() };
-                        data.effects = new CardData.StatusEffectStacks[]{new CardData.StatusEffectStacks(Get<StatusEffectData>("Fist Token"),1)};
+                        data.effects = new CardData.StatusEffectStacks[]{SStack("Fist Token", 1) };
                     }),
 
                 new CardUpgradeDataBuilder(this)
@@ -455,7 +455,7 @@ namespace Tokens
                 .WithIsStatus(false)
                 .WithStackable(true)
                 .WithType("prism")
-                .WithText("<keyword=mhcdc9.wildfrost.tokens.prism> <{a}>")
+                .WithText("<keyword=mhcdc9.wildfrost.tokens.prism>")
                 .FreeModify<StatusEffectPrism>(
                     (data) =>
                     {
