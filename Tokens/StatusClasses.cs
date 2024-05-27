@@ -133,12 +133,27 @@ namespace Tokens
     {
         public override void Init()
         {
-            base.OnTurnEnd += Remove;
+            base.OnCardMove += CheckPosition;
+            Events.OnBattleTurnEnd += Remove;
         }
 
-        public virtual IEnumerator Remove(Entity entity)
+        public void OnDestroy()
         {
-            return Remove();
+            Events.OnBattleTurnEnd -= Remove;
+        }
+
+        public IEnumerator CheckPosition(Entity entity)
+        {
+            if (entity == target && (target.containers.Contains(References.Player.drawContainer) || target.containers.Contains(References.Player.discardContainer)) )
+            {
+                yield return Remove();
+            }
+            yield break;
+        }
+
+        public virtual void Remove(int _)
+        {
+            target.StartCoroutine(Remove());
         }
 
         public override IEnumerator Process()
@@ -162,7 +177,6 @@ namespace Tokens
 
         public override void Init()
         {
-
             base.Init();
         }
 
@@ -236,10 +250,10 @@ namespace Tokens
             return base.RunStackEvent(stacks);
         }
 
-        public override IEnumerator Remove(Entity entity)
+        public override void Remove(int _)
         {
             target.effectBonus -= GetAmount();
-            return base.Remove(entity);
+            base.Remove(_);
         }
     }
 

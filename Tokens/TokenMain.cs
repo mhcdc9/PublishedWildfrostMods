@@ -29,7 +29,7 @@ namespace Tokens
 
         public override string[] Depends => new string[0];
 
-        public override string Title => "Tokens v2.0";
+        public override string Title => "Tokens v2.0.1";
 
         public override string Description => "Tokens are a new type of card upgrade (token icons are clickable!). They can be obtained by asking Goblings nicely for them.\n\n\n" +
             "Think of tokens as equipment/consumables." +

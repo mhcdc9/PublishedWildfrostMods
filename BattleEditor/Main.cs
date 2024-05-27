@@ -48,6 +48,7 @@ namespace BattleEditor
         private bool newBattle = false;
         private List<CardData> enemies = new List<CardData>();
         private Dictionary<char, CardData> dictionary = new Dictionary<char, CardData>();
+        private Dictionary<char, >
         private int wavePoolIndex = 0;
 
         public readonly string[] VanillaBattles =
@@ -101,6 +102,8 @@ namespace BattleEditor
                 newBattle = true;
             }
         }
+
+
 
         /// <summary>
         /// Sets the sprite seen on the map.
