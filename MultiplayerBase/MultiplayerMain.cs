@@ -114,7 +114,6 @@ namespace MultiplayerBase
                 References.instance.StartCoroutine(matchmaker.EndLobby());
                 GameObject gameObject = new GameObject("Multiplayer Dashboard");
                 dashboard = gameObject.AddComponent<Dashboard>();
-                dashboard.Init();
                 ToggleMatchmaking();
                 Debug.Log("[Multiplayer] Finalized.");
                 return;

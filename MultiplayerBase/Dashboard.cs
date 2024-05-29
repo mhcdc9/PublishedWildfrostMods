@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
 using Color = UnityEngine.Color;
+using MultiplayerBase.Handlers;
 
 namespace MultiplayerBase
 {
@@ -22,9 +23,7 @@ namespace MultiplayerBase
         Dictionary<Friend, Button> buttons;
 
         InspectSystem inspectsystem;
-
-        public static float refreshRate = 0.1f;
-        public void Init()
+        public void Start()
         {
             transform.SetParent(GameObject.Find("CameraContainer/CameraMover/MinibossZoomer/CameraPositioner/CameraPointer/Animator/Rumbler/Shaker/InspectSystem").transform);
             transform.position = defaultPosition;
@@ -42,7 +41,10 @@ namespace MultiplayerBase
                 buttons[friend].onClick.AddListener(() => FriendIconPressed(friend));
             }
             SteamNetworking.OnP2PSessionRequest += SessionRequest;
-            StartCoroutine(ListenLoop());
+            HandlerSystem.HandlerRoutines.Add("CHT", HandlerSystem.CHT_Handler);
+            GameObject gameObject = new GameObject("HandlerInspect");
+            gameObject.AddComponent<HandlerInspect>();
+            StartCoroutine(HandlerSystem.ListenLoop());
             Debug.Log("[Multiplayer] Dashboard is set up!");
         }
 
@@ -50,15 +52,17 @@ namespace MultiplayerBase
         {
             Debug.Log($"[Multiplayer] Sending Message to {friend.Name}");
             String s;
-            if (inspectsystem.isActiveAndEnabled)
+            if (InspectSystem.IsActive())
             {
-                s = $"{MultiplayerMain.self.Name}: {inspectsystem.inspect.data.title}";
+                HandlerInspect.instance.SelectDisp(inspectsystem.inspect);
             }
             else
             {
-                s = $"{MultiplayerMain.self.Name}: {Dead.PettyRandom.Range(0f,1f)}";
+                s = $"CHT|{MultiplayerMain.self.Name}|{Dead.PettyRandom.Range(0f,1f)}";
+                SteamNetworking.SendP2PPacket(friend.Id, Encoding.UTF8.GetBytes(s));
+                HandlerInspect.instance.Clear();
             }
-            SteamNetworking.SendP2PPacket(friend.Id, Encoding.UTF8.GetBytes(s));
+            
         }
 
         public void SessionRequest(SteamId id)
@@ -75,25 +79,6 @@ namespace MultiplayerBase
             }
         }
 
-        public IEnumerator ListenLoop()
-        {
-            while (true)
-            {
-                TryReadMessage();
-                yield return new WaitForSeconds(refreshRate);
-            }
-        }
-
-        public bool TryReadMessage()
-        {
-            Steamworks.Data.P2Packet? packet = SteamNetworking.ReadP2PPacket();
-            if (packet is P2Packet p)
-            {
-                string s = Encoding.UTF8.GetString(p.Data);
-                MultiplayerMain.textElement.text = s;
-                return true;
-            }
-            return false;
-        }
+        
     }
 }

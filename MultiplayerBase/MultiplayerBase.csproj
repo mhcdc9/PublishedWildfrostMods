@@ -439,6 +439,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Dashboard.cs" />
+    <Compile Include="Handlers\HandlerInspect.cs" />
+    <Compile Include="Handlers\HandlerSystem.cs" />
     <Compile Include="HelperUI.cs" />
     <Compile Include="Matchmaking.cs" />
     <Compile Include="MultiplayerMain.cs" />

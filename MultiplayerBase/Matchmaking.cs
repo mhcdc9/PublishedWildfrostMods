@@ -35,7 +35,7 @@ namespace MultiplayerBase
         {
             transform.SetAsFirstSibling();
 
-            background = HelperUI.Background(transform, new Color(0f, 0f, 0f, .75f));
+            background = HelperUI.Background(transform, new Color(0f, 0f, 0f, .9f));
 
             createLobbyButton = HelperUI.ButtonTemplate(transform,new Vector2(2,0.8f), new Vector3(-1.5f, -3, 0), "Create", Color.white);
             findLobbyButton = HelperUI.ButtonTemplate(transform, new Vector2(2, 0.8f), new Vector3(-1.5f, -4, 0), "Find", Color.white);
