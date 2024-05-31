@@ -61,5 +61,20 @@ namespace MultiplayerBase
             gameObject.transform.SetParent(transform, false);
             return gameObject;
         }
+
+        public static OtherCardViewer OtherCardViewer(string name, Transform transform, CardController cc)
+        {
+            GameObject gameObject = new GameObject(name);
+            gameObject.transform.SetParent(transform);
+            Image image = gameObject.AddComponent<Image>();
+            image.color = new Color(0f, 0f, 0f, 0.25f);
+            gameObject.GetComponent<RectTransform>().sizeDelta = new Vector2(1f, 1f);
+            OtherCardViewer ocv = gameObject.AddComponent<OtherCardViewer>();
+            ocv.AssignController(cc);
+            ocv.holder = gameObject.GetComponent<RectTransform>();
+            ocv.onAdd = new UnityEventEntity();
+            ocv.onRemove = new UnityEventEntity();
+            return ocv;
+        }
     }
 }

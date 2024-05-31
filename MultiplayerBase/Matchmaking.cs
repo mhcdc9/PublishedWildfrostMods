@@ -10,7 +10,6 @@ using UnityEngine;
 using UnityEngine.UI;
 using Image = UnityEngine.UI.Image;
 using Color = UnityEngine.Color;
-using NexPlugin;
 using Steamworks;
 using System.Collections;
 
@@ -44,7 +43,7 @@ namespace MultiplayerBase
             leaveLobbyButton = HelperUI.ButtonTemplate(transform, new Vector2(2, 0.8f), new Vector3(1.5f, -3, 0), "Leave", Color.white);
             leaveLobbyButton.interactable = false;
             finalizeButton = HelperUI.ButtonTemplate(transform, new Vector2(3, 0.8f), new Vector3(0f, -5, 0), "Finalize", Color.white);
-            finalizeButton.interactable = false;
+            //finalizeButton.interactable = false;
 
             createLobbyButton.onClick.AddListener(CreateLobby);
             findLobbyButton.onClick.AddListener(FindLobby);
@@ -77,6 +76,10 @@ namespace MultiplayerBase
             {
                 lob.SetPrivate();
                 MultiplayerMain.SendMessage("AndSoThePartyIsFinallyFinalized");
+            }
+            else
+            {
+                MultiplayerMain.instance.DebugMode();
             }
         }
 

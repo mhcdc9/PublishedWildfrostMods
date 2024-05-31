@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
-using UnityEngine.Localization.Pseudo;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 namespace MultiplayerBase.Handlers
@@ -15,14 +15,15 @@ namespace MultiplayerBase.Handlers
     internal class HandlerInspect : MonoBehaviour
     {
         Vector3 defaultPosition = new Vector3(-10, 3, 2);
-        CardControllerSelectCard cc;
-        CardLane lane;
-        Friend friend;
-        ulong id;
+        private CardControllerSelectCard cc;
+        OtherCardViewer lane;
+        //Friend friend;
+        //ulong id;
         public static HandlerInspect instance;
 
         protected void Start()
         {
+
             instance = this;
             Debug.Log("[Multiplayer] Initializing Inspection Handler...");
 
@@ -41,11 +42,14 @@ namespace MultiplayerBase.Handlers
 
             GetComponent<RectTransform>().sizeDelta = new Vector2(1, 1);
 
-            lane = gameObject.AddComponent<CardLane>();
+            lane = gameObject.AddComponent<OtherCardViewer>();
             lane.holder = GetComponent<RectTransform>();
             lane.onAdd = new UnityEventEntity();
             lane.onRemove = new UnityEventEntity();
             lane.gap = new Vector3(0f, 0f, 0f);
+
+            cc.hoverEvent.AddListener(lane.Hover);
+            cc.unHoverEvent.AddListener(lane.Unhover);
 
             HandlerSystem.HandlerRoutines.Add("INS", HandleMessage);
             Debug.Log("[Multiplayer] Inspection Handler Online!");
@@ -53,13 +57,31 @@ namespace MultiplayerBase.Handlers
 
         public void SelectPing(Entity entity)
         {
+            (Friend friend, ulong id) = lane.Find(entity);
             string s = $"INS|{MultiplayerMain.self.Name}|PING!{friend.Name}!{id}";
             SteamNetworking.SendP2PPacket(friend.Id, Encoding.UTF8.GetBytes(s));
         }
 
         public void SelectDisp(Entity entity)
         {
-            string s = $"INS|{MultiplayerMain.self.Name}|DISP!{entity.data.id}!{entity.data.name}!";
+            Friend friend = MultiplayerMain.self;
+            ulong id = entity.data.id;
+            if (entity.preContainers != null)
+            {
+                foreach (CardContainer c in entity.preContainers)
+                {
+                    if (c is OtherCardViewer ocv)
+                    {
+                        if (ocv == lane)
+                        {
+                            return;
+                        }
+                        (friend, id) = ocv.Find(entity);
+                        break;
+                    }
+                }
+            }
+            string s = $"INS|{MultiplayerMain.self.Name}|DISP!{friend.Name}!{id}!{entity.data.name}!";
             string upgradeString = "";
             foreach(CardUpgradeData upgrade in entity.data.upgrades)
             {
@@ -67,9 +89,9 @@ namespace MultiplayerBase.Handlers
             }
             upgradeString = upgradeString.IsNullOrEmpty() ? upgradeString : upgradeString.Remove(upgradeString.Length - 1);
             s += upgradeString + "!";
-            foreach(Friend friend in MultiplayerMain.friends)
+            foreach(Friend f in MultiplayerMain.friends)
             {
-                SteamNetworking.SendP2PPacket(friend.Id, Encoding.UTF8.GetBytes(s));
+                SteamNetworking.SendP2PPacket(f.Id, Encoding.UTF8.GetBytes(s));
             }     
         }
 
@@ -103,23 +125,32 @@ namespace MultiplayerBase.Handlers
             lane.SetSize(1, 0.5f);
             Clear();
 
-            id = ulong.Parse(messages[1]); //1 -> id
-            this.friend = friend;
+            Friend owner;
+            if (HandlerSystem.FindFriend(messages[1]) is Friend f)//1 -> owner
+            {
+                owner = f;
+            }
+            else
+            {
+                owner = friend;
+            }
 
-            CardData cardData = AddressableLoader.Get<CardData>("CardData", messages[2]).Clone(false); //2 -> Carddata
-            if (!messages[3].IsNullOrWhitespace())
+            ulong id = ulong.Parse(messages[2]); //2 -> id
+
+            CardData cardData = AddressableLoader.Get<CardData>("CardData", messages[3]).Clone(false); //3 -> Carddata
+            if (!messages[4].IsNullOrWhitespace())
             {
                 Debug.Log("[Multiplayer] Has Upgrades.");
-                string[] upgrades = messages[3].Split(new char[] { ',' }); //3 -> Upgrades
+                string[] upgrades = messages[4].Split(new char[] { ',' }); //4 -> Upgrades
                 foreach (string upgrade in upgrades)
                 {
                     CardUpgradeData upgradeData = AddressableLoader.Get<CardUpgradeData>("CardUpgradeData", upgrade).Clone();
                     upgradeData.Assign(cardData);
                 }
             }
-            Card card = CardManager.Get(cardData, cc, null, inPlay: false, isPlayerCard: true);
+            Card card = CardManager.Get(cardData, cc, References.Player, inPlay: false, isPlayerCard: true);
             card.entity.flipper.FlipDownInstant();
-            lane.Add(card.entity);
+            lane.Add(card.entity,owner, id);
             lane.SetChildPositions();
             yield return card.UpdateData();
             card.entity.flipper.FlipUp(force: true);

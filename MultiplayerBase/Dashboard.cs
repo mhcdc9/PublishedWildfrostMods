@@ -42,8 +42,10 @@ namespace MultiplayerBase
             }
             SteamNetworking.OnP2PSessionRequest += SessionRequest;
             HandlerSystem.HandlerRoutines.Add("CHT", HandlerSystem.CHT_Handler);
-            GameObject gameObject = new GameObject("HandlerInspect");
+            GameObject gameObject = new GameObject("Inspect Handler");
             gameObject.AddComponent<HandlerInspect>();
+            gameObject = new GameObject("Battle Handler");
+            gameObject.AddComponent<HandlerBattle>();
             StartCoroutine(HandlerSystem.ListenLoop());
             Debug.Log("[Multiplayer] Dashboard is set up!");
         }
@@ -55,6 +57,11 @@ namespace MultiplayerBase
             if (InspectSystem.IsActive())
             {
                 HandlerInspect.instance.SelectDisp(inspectsystem.inspect);
+            }
+            else if(SceneManager.ActiveSceneName == "Battle")
+            {
+                //HandlerBattle.instance.CreateController();
+                HandlerBattle.instance.ToggleViewer();
             }
             else
             {
@@ -78,7 +85,5 @@ namespace MultiplayerBase
                 }
             }
         }
-
-        
     }
 }

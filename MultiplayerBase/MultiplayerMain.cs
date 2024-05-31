@@ -11,6 +11,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using Image = UnityEngine.UI.Image;
+using HarmonyLib;
 
 namespace MultiplayerBase
 {
@@ -40,7 +41,7 @@ namespace MultiplayerBase
 
         public override string Description => "This mod provides barebones matchmaking and helpful functions.";
 
-        protected override void Load()
+        public override void Load()
         {
             base.Load();
             GameObject gameobject = new GameObject("Matchmaker");
@@ -77,7 +78,7 @@ namespace MultiplayerBase
             gameobject.transform.localPosition = new Vector3(0, 5, 0);
         }
 
-        protected override void Unload()
+        public override void Unload()
         {
             base.Unload();
             matchmaker.gameObject.Destroy();
@@ -121,6 +122,15 @@ namespace MultiplayerBase
             textElement.text = $"{friend.Name}: {message}";
         }
 
+        public void DebugMode()
+        {
+            friends = new Friend[1] { self };
+            GameObject gameObject = new GameObject("Multiplayer Dashboard");
+            dashboard = gameObject.AddComponent<Dashboard>();
+            ToggleMatchmaking();
+            Debug.Log("[Multiplayer] Finalized.");
+        }
+
         public static void SendMessage(string message)
         {
             if (Matchmaking.lobby is Lobby lob)
@@ -140,4 +150,42 @@ namespace MultiplayerBase
             matchmaker.gameObject.SetActive(!matchmaker.gameObject.activeSelf);
         }
     }
+
+    [HarmonyPatch(typeof(ScriptBattleSetUp), "CreatePlayerCards", new Type[3]
+    {
+        typeof(Character),
+        typeof(CardController),
+        typeof(IList<Entity>),
+    })]
+    internal static class PatchBattleScript1
+    {
+        internal static CardControllerBattle battleController;
+        internal static void Prefix(Character player, ref CardController cardController, IList<Entity> entities)
+        {
+            if (battleController == null)
+            {
+                battleController = GameObject.FindObjectOfType<CardControllerBattle>();
+            }
+            cardController = battleController;
+        }
+    }
+
+    [HarmonyPatch(typeof(ScriptBattleSetUp), "CreateEnemyCards", new Type[3]
+    {
+        typeof(Character),
+        typeof(CardController),
+        typeof(IList<Entity>),
+    })]
+    internal static class PatchBattleScript2
+    {
+        internal static void Prefix(Character enemy, ref CardController cardController, IList<Entity> entities)
+        {
+            if (PatchBattleScript1.battleController == null)
+            {
+                PatchBattleScript1.battleController = GameObject.FindObjectOfType<CardControllerBattle>();
+            }
+            cardController = PatchBattleScript1.battleController;
+        }
+    }
+
 }
