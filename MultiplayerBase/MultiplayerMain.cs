@@ -12,15 +12,16 @@ using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using Image = UnityEngine.UI.Image;
 using HarmonyLib;
+using MultiplayerBase.Handlers;
+using UnityEngine.Events;
 
 namespace MultiplayerBase
 {
     public class MultiplayerMain : WildfrostMod
     {
+        public static UnityAction Finalized;
 
         public static bool isHost = false;
-        public static Friend self;
-        public static Friend[] friends;
         public static MultiplayerMain instance;
 
         internal static Matchmaking matchmaker;
@@ -54,7 +55,7 @@ namespace MultiplayerBase
             Debug.Log("[Multiplayer] 4");
             gameobject.SetActive(false);
 
-            self = new Friend(SteamClient.SteamId);
+            HandlerSystem.self = new Friend(SteamClient.SteamId);
 
             gameobject = new GameObject("Start Button");
             UnityEngine.Object.DontDestroyOnLoad(gameobject);
@@ -111,10 +112,11 @@ namespace MultiplayerBase
         {
             if(message == "AndSoThePartyIsFinallyFinalized")
             {
-                friends = lobby.Members.ToArray();
+                HandlerSystem.friends = lobby.Members.ToArray();
                 References.instance.StartCoroutine(matchmaker.EndLobby());
                 GameObject gameObject = new GameObject("Multiplayer Dashboard");
                 dashboard = gameObject.AddComponent<Dashboard>();
+                Finalized?.Invoke();
                 ToggleMatchmaking();
                 Debug.Log("[Multiplayer] Finalized.");
                 return;
@@ -124,9 +126,10 @@ namespace MultiplayerBase
 
         public void DebugMode()
         {
-            friends = new Friend[1] { self };
+            HandlerSystem.friends = new Friend[1] { HandlerSystem.self };
             GameObject gameObject = new GameObject("Multiplayer Dashboard");
             dashboard = gameObject.AddComponent<Dashboard>();
+            Finalized?.Invoke();
             ToggleMatchmaking();
             Debug.Log("[Multiplayer] Finalized.");
         }
@@ -188,4 +191,20 @@ namespace MultiplayerBase
         }
     }
 
+    [HarmonyPatch(typeof(Battle), "IsOnBoard", new Type[]
+    {
+        typeof(Entity)
+    })]
+    internal static class PatchEntityOnBoard
+    {
+        internal static bool Prefix(ref bool __result, Entity entity)
+        {
+            if (entity.owner == null)
+            {
+                __result = false;
+                return false;
+            }
+            return true;
+        }
+    }
 }

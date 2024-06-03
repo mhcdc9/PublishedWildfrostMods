@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{8BE3889F-91BD-4CE2-B4B1-3DB5027B0737}</ProjectGuid>
+    <ProjectGuid>{88550A93-08C1-45D3-8968-1C26A986B774}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>MultiplayerBase</RootNamespace>
-    <AssemblyName>MultiplayerBase</AssemblyName>
+    <RootNamespace>Sync</RootNamespace>
+    <AssemblyName>Sync</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
@@ -21,7 +21,6 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -40,9 +39,6 @@
     </Reference>
     <Reference Include="Assembly-CSharp-firstpass">
       <HintPath>..\..\..\..\Desktop\Managed\Assembly-CSharp-firstpass.dll</HintPath>
-    </Reference>
-    <Reference Include="Assembly-CSharp-Publicized">
-      <HintPath>..\..\..\..\Desktop\Managed\Assembly-CSharp-Publicized.dll</HintPath>
     </Reference>
     <Reference Include="DeadExtensions">
       <HintPath>..\..\..\..\Desktop\Managed\DeadExtensions.dll</HintPath>
@@ -89,27 +85,8 @@
     <Reference Include="MonoMod.Utils">
       <HintPath>..\..\..\..\Desktop\Managed\MonoMod.Utils.dll</HintPath>
     </Reference>
-    <Reference Include="NaughtyAttributes.Core">
-      <HintPath>..\..\..\..\Desktop\Managed\NaughtyAttributes.Core.dll</HintPath>
-    </Reference>
-    <Reference Include="NaughtyAttributes.Test">
-      <HintPath>..\..\..\..\Desktop\Managed\NaughtyAttributes.Test.dll</HintPath>
-    </Reference>
-    <Reference Include="netstandard">
-      <HintPath>..\..\..\..\Desktop\Managed\netstandard.dll</HintPath>
-    </Reference>
-    <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\Desktop\Managed\Newtonsoft.Json.dll</HintPath>
-    </Reference>
-    <Reference Include="Rewired_Core">
-      <HintPath>..\..\..\..\Desktop\Managed\Rewired_Core.dll</HintPath>
-    </Reference>
-    <Reference Include="Rewired_Windows">
-      <HintPath>..\..\..\..\Desktop\Managed\Rewired_Windows.dll</HintPath>
-    </Reference>
-    <Reference Include="Rewired_Windows_Functions">
-      <HintPath>..\..\..\..\Desktop\Managed\Rewired_Windows_Functions.dll</HintPath>
+    <Reference Include="MultiplayerBase">
+      <HintPath>..\MultiplayerBase\bin\Debug\MultiplayerBase.dll</HintPath>
     </Reference>
     <Reference Include="Steamworks">
       <HintPath>..\..\..\..\Desktop\Managed\Steamworks.dll</HintPath>
@@ -122,36 +99,6 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Xml" />
-    <Reference Include="Unity.2D.Animation.Runtime">
-      <HintPath>..\..\..\..\Desktop\Managed\Unity.2D.Animation.Runtime.dll</HintPath>
-    </Reference>
-    <Reference Include="Unity.2D.Common.Runtime">
-      <HintPath>..\..\..\..\Desktop\Managed\Unity.2D.Common.Runtime.dll</HintPath>
-    </Reference>
-    <Reference Include="Unity.2D.IK.Runtime">
-      <HintPath>..\..\..\..\Desktop\Managed\Unity.2D.IK.Runtime.dll</HintPath>
-    </Reference>
-    <Reference Include="Unity.2D.PixelPerfect">
-      <HintPath>..\..\..\..\Desktop\Managed\Unity.2D.PixelPerfect.dll</HintPath>
-    </Reference>
-    <Reference Include="Unity.2D.SpriteShape.Runtime">
-      <HintPath>..\..\..\..\Desktop\Managed\Unity.2D.SpriteShape.Runtime.dll</HintPath>
-    </Reference>
-    <Reference Include="Unity.Addressables">
-      <HintPath>..\..\..\..\Desktop\Managed\Unity.Addressables.dll</HintPath>
-    </Reference>
-    <Reference Include="Unity.Burst">
-      <HintPath>..\..\..\..\Desktop\Managed\Unity.Burst.dll</HintPath>
-    </Reference>
-    <Reference Include="Unity.Burst.Unsafe">
-      <HintPath>..\..\..\..\Desktop\Managed\Unity.Burst.Unsafe.dll</HintPath>
-    </Reference>
-    <Reference Include="Unity.InternalAPIEngineBridge.001">
-      <HintPath>..\..\..\..\Desktop\Managed\Unity.InternalAPIEngineBridge.001.dll</HintPath>
-    </Reference>
-    <Reference Include="Unity.InternalAPIEngineBridge.013">
-      <HintPath>..\..\..\..\Desktop\Managed\Unity.InternalAPIEngineBridge.013.dll</HintPath>
-    </Reference>
     <Reference Include="Unity.Localization">
       <HintPath>..\..\..\..\Desktop\Managed\Unity.Localization.dll</HintPath>
     </Reference>
@@ -442,15 +389,9 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Dashboard.cs" />
-    <Compile Include="Handlers\HandlerBattle.cs" />
-    <Compile Include="Handlers\HandlerInspect.cs" />
-    <Compile Include="Handlers\HandlerSystem.cs" />
-    <Compile Include="HelperUI.cs" />
-    <Compile Include="Matchmaking.cs" />
-    <Compile Include="MultiplayerMain.cs" />
-    <Compile Include="Network.cs" />
-    <Compile Include="OtherCardViewer.cs" />
+    <Compile Include="Extensions.cs" />
+    <Compile Include="StatusEffectSync.cs" />
+    <Compile Include="SyncMain.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

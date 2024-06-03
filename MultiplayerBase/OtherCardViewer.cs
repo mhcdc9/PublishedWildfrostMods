@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
+using MultiplayerBase.Handlers;
 
 namespace MultiplayerBase
 {
@@ -14,7 +15,7 @@ namespace MultiplayerBase
         Dictionary<Entity, (Friend, ulong)> decorations = new Dictionary<Entity, (Friend, ulong)>();
 
         public Vector3 startTextPosition = new Vector3(0f, -3f, 0f);
-        public Vector3 defaultTextPosition = new Vector3(0f, -2f, 0f);
+        public Vector3 defaultTextPosition = new Vector3(0f, -4f, 0f);
 
         public void Add(Entity entity, Friend friend, ulong id)
         {
@@ -29,7 +30,7 @@ namespace MultiplayerBase
         {
             if(!decorations.ContainsKey(entity))
             {
-                decorations[entity] = (MultiplayerMain.self, entity.data.id);
+                decorations[entity] = (HandlerSystem.self, entity.data.id);
                 base.Add(entity);
             }
         }
@@ -60,10 +61,14 @@ namespace MultiplayerBase
                 GameObject obj = new GameObject("Owner Text");
                 obj.transform.SetParent(entity.canvas.transform, false);
                 obj.transform.localPosition = startTextPosition;
-                LeanTween.moveLocal(obj, defaultTextPosition, 0.5f);
+                LeanTween.moveLocal(obj, defaultTextPosition, 0.5f).setEaseInQuart();
                 TextMeshProUGUI textElement = obj.AddComponent<TextMeshProUGUI>();
-                textElement.fontSize = 0.3f;
+                textElement.fontSize = 0.4f;
+                textElement.horizontalAlignment = HorizontalAlignmentOptions.Center;
                 textElement.text = decorations[entity].Item1.Name;
+                textElement.outlineColor = Color.black;
+                textElement.outlineWidth = 0.06f;
+                obj.GetComponent<RectTransform>().sizeDelta = new Vector2(4f, 1f);
             }
         }
 
@@ -96,7 +101,7 @@ namespace MultiplayerBase
             {
                 return decorations[entity];
             }
-            return (MultiplayerMain.self, entity.data.id);
+            return (HandlerSystem.self, entity.data.id);
         }
     }
 }

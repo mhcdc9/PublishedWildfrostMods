@@ -11,16 +11,18 @@ using UnityEngine;
 using UnityEngine.UI;
 using Color = UnityEngine.Color;
 using MultiplayerBase.Handlers;
+using UnityEngine.SceneManagement;
 
 namespace MultiplayerBase
 {
     //After the party is finalized, the dashboard will be the main means of communication. It lives in front of the inspection system.
     public class Dashboard : MonoBehaviour
     {
+
         GameObject background;
         Vector3 defaultPosition = new Vector3(7, 5, 0);
-        GameObject buttonGroup;
-        Dictionary<Friend, Button> buttons;
+        public static GameObject buttonGroup;
+        public static List<Button> buttons = new List<Button>();
 
         InspectSystem inspectsystem;
         public void Start()
@@ -32,58 +34,45 @@ namespace MultiplayerBase
 
             inspectsystem = GameObject.FindObjectOfType<InspectSystem>(true);
 
-            float totalSize = MultiplayerMain.friends.Length*(1.2f) - 0.2f;
+            float totalSize = HandlerSystem.friends.Length*(1.2f) - 0.2f;
             buttonGroup = HelperUI.HorizontalGroup("Friend Icons", transform, new Vector2(totalSize,1f));
-            buttons = new Dictionary<Friend, Button>();
-            foreach (Friend friend in MultiplayerMain.friends)
+            buttons.Clear();
+            foreach (Friend friend in HandlerSystem.friends)
             {
-                buttons.Add(friend, HelperUI.ButtonTemplate(buttonGroup.transform, new Vector2(1, 1), Vector3.zero, "42", friend.Id == MultiplayerMain.self.Id ? Color.white : Color.gray ));
-                buttons[friend].onClick.AddListener(() => FriendIconPressed(friend));
+                buttons.Add(HelperUI.ButtonTemplate(buttonGroup.transform, new Vector2(1, 1), Vector3.zero, "42", friend.Id == HandlerSystem.self.Id ? Color.white : Color.gray ));
+                buttons[buttons.Count()-1].onClick.AddListener(() => FriendIconPressed(friend));
             }
-            SteamNetworking.OnP2PSessionRequest += SessionRequest;
-            HandlerSystem.HandlerRoutines.Add("CHT", HandlerSystem.CHT_Handler);
-            GameObject gameObject = new GameObject("Inspect Handler");
-            gameObject.AddComponent<HandlerInspect>();
-            gameObject = new GameObject("Battle Handler");
-            gameObject.AddComponent<HandlerBattle>();
-            StartCoroutine(HandlerSystem.ListenLoop());
+            
+            HandlerSystem.Initialize();
             Debug.Log("[Multiplayer] Dashboard is set up!");
+        }
+
+        public static void AddToButtons(Button button)
+        {
+            buttons.Add(button);
+            button.GetComponent<RectTransform>().sizeDelta = new Vector2(buttons.Count(), 1);
         }
 
         public void FriendIconPressed(Friend friend)
         {
             Debug.Log($"[Multiplayer] Sending Message to {friend.Name}");
-            String s;
             if (InspectSystem.IsActive())
             {
-                HandlerInspect.instance.SelectDisp(inspectsystem.inspect);
+                HandlerInspect.SelectDisp(inspectsystem.inspect);
             }
-            else if(SceneManager.ActiveSceneName == "Battle")
+            else if (HandlerSystem.friendStates[friend] == PlayerState.Battle)
             {
                 //HandlerBattle.instance.CreateController();
-                HandlerBattle.instance.ToggleViewer();
+                HandlerBattle.instance.ToggleViewer(friend);
             }
             else
             {
-                s = $"CHT|{MultiplayerMain.self.Name}|{Dead.PettyRandom.Range(0f,1f)}";
-                SteamNetworking.SendP2PPacket(friend.Id, Encoding.UTF8.GetBytes(s));
+                HandlerSystem.SendMessage("CHT", friend, Dead.PettyRandom.Range(0f, 1f).ToString());
                 HandlerInspect.instance.Clear();
             }
             
         }
 
-        public void SessionRequest(SteamId id)
-        {
-            foreach(Friend friend in MultiplayerMain.friends)
-            {
-                if (friend.Id == id)
-                {
-                    if (SteamNetworking.AcceptP2PSessionWithUser(id))
-                    {
-                        Debug.Log("[Multiplayer] Accepted Session");
-                    }
-                }
-            }
-        }
+        
     }
 }

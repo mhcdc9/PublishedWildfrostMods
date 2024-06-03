@@ -12,6 +12,7 @@ using Image = UnityEngine.UI.Image;
 using Color = UnityEngine.Color;
 using Steamworks;
 using System.Collections;
+using MultiplayerBase.Handlers;
 
 namespace MultiplayerBase
 {
@@ -63,7 +64,7 @@ namespace MultiplayerBase
             lobbyButtons = new Button[lobbies.Length];
             for (int i = 0; i < lobbies.Length; i++)
             {
-                lobbyButtons[i] = HelperUI.ButtonTemplate(transform, new Vector2(5, 1.3f), new Vector3(0, 3 - 1.5f*i, 0), $"Lobby: {lobbies[i].Owner.Name}", Color.white);
+                lobbyButtons[i] = HelperUI.ButtonTemplate(transform, new Vector2(5, 1.3f), new Vector3(0, 3 - 1.5f*i, 0), $"{lobbies[i].GetData("name")}", Color.white);
                 lobbyButtons[i].GetComponentInChildren<TextMeshProUGUI>().fontSize = 0.6f;
                 int j = i;
                 lobbyButtons[i].onClick.AddListener(() => SelectLobby(j));
@@ -117,6 +118,7 @@ namespace MultiplayerBase
             lobby = await SteamMatchmaking.CreateLobbyAsync(2);
             if (lobby is Lobby lob)
             {
+                lob.SetData("name", $"{HandlerSystem.self.Name}");
                 lob.SetPublic();
                 MultiplayerMain.instance.HookToChatRoom();
                 leaveLobbyButton.interactable = true;

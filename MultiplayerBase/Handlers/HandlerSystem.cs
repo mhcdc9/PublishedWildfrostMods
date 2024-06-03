@@ -7,24 +7,99 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
+using static MultiplayerBase.Dashboard;
+using UnityEngine.SceneManagement;
 
 //Battle/Canvas
 
 
 namespace MultiplayerBase.Handlers
 {
-    internal static class HandlerSystem
+    public enum PlayerState
+    {
+        MainMenu,
+        Map,
+        Event,
+        Battle,
+        Other = 0
+    }
+    public static class HandlerSystem
     {
         public static float refreshRate = 0.1f;
+        public static Friend self;
+        public static Friend[] friends;
+        public static Dictionary<Friend, PlayerState> friendStates = new Dictionary<Friend, PlayerState>();
+
+        public static bool initialized = false;
 
         public static Dictionary<string, Action<Friend, string>> HandlerRoutines = new Dictionary<string, Action<Friend, string>>();
 
-        public static IEnumerator ListenLoop()
+        public static Character playerDummy;
+        public static Character enemyDummy;
+        public static void Initialize()
+        {
+            friendStates = new Dictionary<Friend, PlayerState>();
+            foreach(Friend friend in friends)
+            {
+                friendStates[friend] = PlayerState.Other;
+            }
+            SceneChanged(SceneManager.GetActive());
+
+            playerDummy = new Character();
+            enemyDummy = new Character
+            {
+                team = 2
+            };
+
+            if (initialized)
+            {
+                return;
+            }
+
+            SteamNetworking.OnP2PSessionRequest += SessionRequest;
+            HandlerRoutines.Add("CHT", CHT_Handler);
+            HandlerRoutines.Add("MSC", MSC_Handler);
+            GameObject gameObject = new GameObject("Inspect Handler");
+            gameObject.AddComponent<HandlerInspect>();
+            gameObject = new GameObject("Battle Handler");
+            gameObject.AddComponent<HandlerBattle>();
+            Events.OnSceneChanged += SceneChanged;
+            References.instance.StartCoroutine(ListenLoop());
+        }
+
+        private static IEnumerator ListenLoop()
         {
             while (true)
             {
                 TryReadMessage();
                 yield return new WaitForSeconds(refreshRate);
+            }
+        }
+
+        public static void SendMessage(string handler, Friend to, string message)
+        {
+            string s = $"{handler}|{self.Name}|{message}";
+            SteamNetworking.SendP2PPacket(to.Id, Encoding.UTF8.GetBytes(s));
+        }
+
+        public static void SendMessageToAll(string handler, string message)
+        {
+            string s = $"{handler}|{self.Name}|{message}";
+            foreach (Friend friend in friends)
+            {
+                SteamNetworking.SendP2PPacket(friend.Id, Encoding.UTF8.GetBytes(s));
+            }
+        }
+
+        public static void SendMessageToAllOthers(string handler, string message)
+        {
+            string s = $"{handler}|{self.Name}|{message}";
+            foreach (Friend friend in friends)
+            {
+                if (friend.Name != self.Name)
+                {
+                    SteamNetworking.SendP2PPacket(friend.Id, Encoding.UTF8.GetBytes(s));
+                }
             }
         }
 
@@ -61,7 +136,7 @@ namespace MultiplayerBase.Handlers
 
         public static Friend? FindFriend(string id)
         {
-            foreach(Friend friend in MultiplayerMain.friends)
+            foreach(Friend friend in friends)
             {
                 if (friend.Name == id)
                 {
@@ -74,6 +149,65 @@ namespace MultiplayerBase.Handlers
         public static void CHT_Handler(Friend friend, string message)
         {
             MultiplayerMain.textElement.text = message;
+        }
+
+        public static void MSC_Handler(Friend friend, string message)
+        {
+            string[] messages = message.Split('!');
+            switch(messages[0])
+            {
+                case "SCENE":
+                    FriendSceneChanged(friend, messages[1]);
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        private static void FriendSceneChanged(Friend friend, string scene)
+        {
+            switch(scene)
+            {
+                case "Battle":
+                    friendStates[friend] = PlayerState.Battle;
+                    if (friend.Id == self.Id)
+                    {
+                        References.instance.StartCoroutine(HandlerBattle.instance.BattleRoutine());
+                    }
+                    break;
+                case "MapNew":
+                    friendStates[friend] = PlayerState.Map;
+                    break;
+                case "Event":
+                    friendStates[friend] = PlayerState.Event;
+                    break;
+                case "MainMenu":
+                case "Town":
+                    friendStates[friend] = PlayerState.MainMenu;
+                    break;
+                default:
+                    friendStates[friend] = PlayerState.Other;
+                    break;
+            }
+        }
+
+        private static void SessionRequest(SteamId id)
+        {
+            foreach (Friend friend in HandlerSystem.friends)
+            {
+                if (friend.Id == id)
+                {
+                    if (SteamNetworking.AcceptP2PSessionWithUser(id))
+                    {
+                        Debug.Log("[Multiplayer] Accepted Session");
+                    }
+                }
+            }
+        }
+        private static void SceneChanged(Scene scene)
+        {
+            SendMessageToAllOthers("MSC", $"SCENE!{scene.name}");
+            FriendSceneChanged(self, scene.name);
         }
     }
 }
