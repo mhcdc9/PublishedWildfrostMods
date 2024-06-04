@@ -16,10 +16,14 @@ namespace MultiplayerBase.Handlers
     {
         Vector3 defaultPosition = new Vector3(-10, 3, 2);
         private CardControllerSelectCard cc;
-        OtherCardViewer lane;
         //Friend friend;
         //ulong id;
         public static HandlerInspect instance;
+
+        public List<OtherCardViewer> lanes = new List<OtherCardViewer>();
+        public int laneIndex = 0;
+        public Vector3 offset = new Vector3(0,-2,0);
+        protected Vector3 gap = new Vector3(1f, 0, 0);
 
         protected void Start()
         {
@@ -42,17 +46,24 @@ namespace MultiplayerBase.Handlers
 
             GetComponent<RectTransform>().sizeDelta = new Vector2(1, 1);
 
-            lane = gameObject.AddComponent<OtherCardViewer>();
-            lane.holder = GetComponent<RectTransform>();
-            lane.onAdd = new UnityEventEntity();
-            lane.onRemove = new UnityEventEntity();
-            lane.gap = new Vector3(0f, 0f, 0f);
-
-            cc.hoverEvent.AddListener(lane.Hover);
-            cc.unHoverEvent.AddListener(lane.Unhover);
+            SetLane(0);
 
             HandlerSystem.HandlerRoutines.Add("INS", HandleMessage);
             Debug.Log("[Multiplayer] Inspection Handler Online!");
+        }
+
+        private void SetLane(int index)
+        {
+            for(int i=lanes.Count(); i<=index; i++)
+            {
+                OtherCardViewer lane = HelperUI.OtherCardViewer($"Lane {lanes.Count()}", transform, cc);
+                lane.gap = gap;
+                lane.transform.localPosition = lanes.Count() * offset;
+                cc.hoverEvent.AddListener(lane.Hover);
+                cc.unHoverEvent.AddListener(lane.Unhover);
+                lanes.Add(lane);
+            }
+            laneIndex = index;
         }
 
         public static void SelectPing(Entity entity)
@@ -113,9 +124,13 @@ namespace MultiplayerBase.Handlers
 
         public void Clear()
         {
-            Debug.Log("[Multiplayer] " + lane.ToArray());
-            lane.ClearAndDestroyAllImmediately();
-            GetComponent<Image>().color = new Color(0f, 0f, 0f, 0f);
+            foreach (OtherCardViewer ocv in lanes)
+            {
+                //Debug.Log("[Multiplayer] " + lanes[laneIndex].ToArray());
+                ocv.ClearAndDestroyAllImmediately();
+                ocv.GetComponent<Image>().color = new Color(0f, 0f, 0f, 0f);
+            }
+            
         }
 
         /*
@@ -147,11 +162,15 @@ namespace MultiplayerBase.Handlers
          * flipped
          * attackEffects
          */
-        public IEnumerator DispCard(Friend friend, string[] messages)
+        public IEnumerator DispCard(Friend friend, string[] messages, int index = 0, bool clear = true)
         {
             GetComponent<Image>().color = Color.black;
-            lane.SetSize(1, 0.5f);
-            Clear();
+            SetLane(index);
+            lanes[laneIndex].SetSize(1, 0.5f);
+            if (clear)
+            {
+                Clear();
+            }
 
             Friend owner;
             if (HandlerSystem.FindFriend(messages[1]) is Friend f)//1 -> owner
@@ -164,8 +183,8 @@ namespace MultiplayerBase.Handlers
             }
             ulong id = ulong.Parse(messages[2]); //2 -> id
             Card card = CreateDisplayCard(cc, messages.Skip(3).ToArray());
-            lane.Add(card.entity,owner, id);
-            lane.SetChildPositions();
+            lanes[laneIndex].Add(card.entity,owner, id);
+            lanes[laneIndex].SetChildPositions();
             yield return card.UpdateData();
             card.entity.flipper.FlipUp(force: true);
         }

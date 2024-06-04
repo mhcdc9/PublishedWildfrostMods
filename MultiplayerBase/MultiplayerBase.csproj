@@ -444,6 +444,7 @@
   <ItemGroup>
     <Compile Include="Dashboard.cs" />
     <Compile Include="Handlers\HandlerBattle.cs" />
+    <Compile Include="Handlers\HandlerEvent.cs" />
     <Compile Include="Handlers\HandlerInspect.cs" />
     <Compile Include="Handlers\HandlerSystem.cs" />
     <Compile Include="HelperUI.cs" />

@@ -65,6 +65,10 @@ namespace MultiplayerBase
                 //HandlerBattle.instance.CreateController();
                 HandlerBattle.instance.ToggleViewer(friend);
             }
+            else if (HandlerSystem.friendStates[friend] == PlayerState.Event)
+            {
+                HandlerEvent.instance.AskForData(friend);
+            }
             else
             {
                 HandlerSystem.SendMessage("CHT", friend, Dead.PettyRandom.Range(0f, 1f).ToString());
