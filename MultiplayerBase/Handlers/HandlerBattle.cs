@@ -189,34 +189,6 @@ namespace MultiplayerBase.Handlers
             card.entity.flipper.FlipUp(force: true);
         }
 
-        public IEnumerator PopulateRows()
-        {
-            yield return new WaitForSeconds(0.5f);
-            CardData cardData = AddressableLoader.Get<CardData>("CardData", "Flash");
-            foreach( OtherCardViewer ocv in playerLanes)
-            {
-                for (int i=0; i<3; i++)
-                {
-                    Card card = CardManager.Get(cardData, cc, null, false, true);
-                    ocv.Add(card.entity);
-                    ocv.SetChildPositions();
-                    yield return card.UpdateData();
-                    card.entity.flipper.FlipUp(force: true);
-                }
-            }
-            foreach (OtherCardViewer ocv in enemyLanes)
-            {
-                for (int i = 0; i < 3; i++)
-                {
-                    Card card = CardManager.Get(cardData, cc, null, false, false);
-                    ocv.Add(card.entity);
-                    ocv.SetChildPositions();
-                    yield return card.UpdateData();
-                    card.entity.flipper.FlipUp(force: true);
-                }
-            }
-        }
-
         public void CreateController()
         {
             if (cc == null)

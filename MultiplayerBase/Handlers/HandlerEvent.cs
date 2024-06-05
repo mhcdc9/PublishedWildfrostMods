@@ -38,8 +38,10 @@ namespace MultiplayerBase.Handlers
                 foreach(CardContainer container in eventRoutine.gameObject.GetComponentsInChildren<CardContainer>())
                 {
                     Debug.Log($"[Multiplayer] {container.name}");
-                    foreach(Entity entity in container.ToArray())
+                    Entity[] entities = container.ToArray();
+                    for(int j=entities.Length-1; j>=0; j--)
                     {
+                        Entity entity = entities[j];
                         s = $"DISP!{i}!{flag}!{HandlerInspect.EncodeEntity(entity, entity.data.id)}";
                         HandlerSystem.SendMessage("EVE", friend, s);
                         flag = "F";

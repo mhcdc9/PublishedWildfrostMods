@@ -62,6 +62,21 @@ namespace MultiplayerBase
             return gameObject;
         }
 
+        public static GameObject VerticalGroup(string name, Transform transform, Vector2 scale, float spacing = 0.2f)
+        {
+            GameObject gameObject = new GameObject(name);
+            VerticalLayoutGroup layout = gameObject.AddComponent<VerticalLayoutGroup>();
+            layout.childAlignment = TextAnchor.MiddleCenter;
+            layout.spacing = spacing;
+            layout.childControlHeight = false;
+            layout.childControlWidth = false;
+            layout.childForceExpandHeight = false;
+            layout.childForceExpandWidth = false;
+            gameObject.GetComponent<RectTransform>().sizeDelta = scale;
+            gameObject.transform.SetParent(transform, false);
+            return gameObject;
+        }
+
         public static OtherCardViewer OtherCardViewer(string name, Transform transform, CardController cc)
         {
             GameObject gameObject = new GameObject(name);

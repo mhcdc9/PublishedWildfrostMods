@@ -65,6 +65,8 @@ namespace MultiplayerBase.Handlers
             gameObject.AddComponent<HandlerBattle>();
             gameObject = new GameObject("Event Handler");
             gameObject.AddComponent<HandlerEvent>();
+            gameObject = new GameObject("Map Handler");
+            gameObject.AddComponent<HandlerMap>();
             Events.OnSceneChanged += SceneChanged;
             References.instance.StartCoroutine(ListenLoop());
         }

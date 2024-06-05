@@ -69,6 +69,10 @@ namespace MultiplayerBase
             {
                 HandlerEvent.instance.AskForData(friend);
             }
+            else if (HandlerSystem.friendStates[friend] == PlayerState.Map)
+            {
+                HandlerMap.instance.ToggleViewer(friend);
+            }
             else
             {
                 HandlerSystem.SendMessage("CHT", friend, Dead.PettyRandom.Range(0f, 1f).ToString());

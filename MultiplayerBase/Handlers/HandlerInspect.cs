@@ -22,8 +22,8 @@ namespace MultiplayerBase.Handlers
 
         public List<OtherCardViewer> lanes = new List<OtherCardViewer>();
         public int laneIndex = 0;
-        public Vector3 offset = new Vector3(0,-2,0);
-        protected Vector3 gap = new Vector3(1f, 0, 0);
+        public Vector3 offset = new Vector3(0,-3f,0);
+        protected Vector3 gap = new Vector3(0.3f, 0, 0);
 
         protected void Start()
         {

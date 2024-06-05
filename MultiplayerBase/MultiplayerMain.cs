@@ -207,4 +207,19 @@ namespace MultiplayerBase
             return true;
         }
     }
+
+    [HarmonyPatch(typeof(CheckAchievements), "Start", new Type[] { })]
+    internal static class PatchAchievements
+    {
+        internal static void Prefix()
+        {
+            if (!CheckAchievements.AchievementChallenge.ContainsKey("ACHIEVEMENT_16"))
+            {
+                for(int i=16; i<27; i++)
+                {
+                    CheckAchievements.AchievementChallenge.Add($"ACHIEVEMENT_{i}", $"Challenge Charm {i+1}");
+                }
+            }
+        }
+    }
 }

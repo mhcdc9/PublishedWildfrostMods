@@ -88,6 +88,11 @@ namespace Sync
                 synced[HandlerSystem.self] = true;
                 Net.SendMessageToAllOthers("SYNC", "T");
             }
+            else if (synced[Net.self] == true)
+            {
+                synced[HandlerSystem.self] = false;
+                Net.SendMessageToAllOthers("SYNC", "F");
+            }
         }
 
         internal static void SYNC_Handler(Friend friend, string message)
@@ -113,7 +118,12 @@ namespace Sync
                     }
                     break;
             }
+        }
 
+        internal static void SYNC_Status(Friend friend)
+        {
+            string s = synced[Net.self] ? "T" : "F";
+            Net.SendMessage("SYNC", friend, s);
         }
 
         internal static bool CheckChangedToFalse()

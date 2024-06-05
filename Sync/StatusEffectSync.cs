@@ -13,9 +13,11 @@ namespace Sync
         public static int SyncOnScreen = 0;
 
         protected bool effectActive = false;
+        protected List<Entity> entities = new List<Entity>();
         protected override void Init()
         {
             base.Init();
+            base.OnEntityDestroyed += Destroyed;
         }
 
         public override bool RunTurnEndEvent(Entity entity)
@@ -31,8 +33,19 @@ namespace Sync
         {
             if (!effectActive)
             {
+                entities = GetTargets();
                 yield return Run(GetTargets(),amount);
             }
+        }
+
+        public override bool RunEntityDestroyedEvent(Entity entity, DeathType deathType)
+        {
+            return entity == target;
+        }
+
+        public IEnumerator Destroyed(Entity entity, DeathType deathType)
+        {
+            return Deactivate();
         }
 
         public IEnumerator Deactivate()
@@ -40,19 +53,29 @@ namespace Sync
             if (effectActive)
             {
                 StatusEffectData targetStatus = null;
-                foreach (StatusEffectData status in target.statusEffects)
+                foreach (Entity entity in entities)
                 {
-                    if (status.name == effectToApply.name)
+                    if (!entity.IsAliveAndExists())
                     {
-                        targetStatus = status;
-                        break;
+                        continue;
                     }
+                    foreach (StatusEffectData status in entity.statusEffects)
+                    {
+                        if (status.name == effectToApply.name)
+                        {
+                            targetStatus = status;
+                            break;
+                        }
+                    }
+                    if (targetStatus != null)
+                    {
+                        yield return targetStatus.RemoveStacks(count, true);
+                        targetStatus = null;
+                    }
+                    entity.display.promptUpdateDescription = true;
+                    entity.PromptUpdate();
                 }
-                if (targetStatus != null)
-                {
-                    yield return targetStatus.RemoveStacks(count, true);
-                }
-                target.PromptUpdate();
+                entities.Clear();
             }
         }
     }
