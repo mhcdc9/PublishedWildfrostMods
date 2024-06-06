@@ -16,33 +16,58 @@ using UnityEngine.SceneManagement;
 namespace MultiplayerBase
 {
     //After the party is finalized, the dashboard will be the main means of communication. It lives in front of the inspection system.
+    //SetInsetAndSizeFromParentEdge
     public class Dashboard : MonoBehaviour
     {
 
         GameObject background;
-        Vector3 defaultPosition = new Vector3(7, 5, 0);
+        Vector3 buttonPosition = new Vector3(7, 5, 0);
+        Vector3 friendIconPosition = new Vector3(-10, 4.5f, 0);
         public static GameObject buttonGroup;
         public static List<Button> buttons = new List<Button>();
+        public static GameObject friendIconGroup;
+        public static Button visibleButton;
+        public static Dictionary<Friend, Button> friendIcons = new Dictionary<Friend, Button>();
+        
 
         InspectSystem inspectsystem;
         public void Start()
         {
             transform.SetParent(GameObject.Find("CameraContainer/CameraMover/MinibossZoomer/CameraPositioner/CameraPointer/Animator/Rumbler/Shaker/InspectSystem").transform);
-            transform.position = defaultPosition;
             background = HelperUI.Background(transform, new Color(0f, 0f, 0f, .75f));
+            gameObject.AddComponent<RectTransform>();
             background.SetActive(false);
+            gameObject.AddComponent<WorldSpaceCanvasSafeArea>().parent = transform.parent.GetComponent<RectTransform>();
 
             inspectsystem = GameObject.FindObjectOfType<InspectSystem>(true);
 
-            float totalSize = HandlerSystem.friends.Length*(1.2f) - 0.2f;
-            buttonGroup = HelperUI.HorizontalGroup("Friend Icons", transform, new Vector2(totalSize,1f));
-            buttons.Clear();
+            //float totalSize = HandlerSystem.friends.Length*(1.2f) - 0.2f;
+            friendIconGroup = HelperUI.VerticalGroup("Friend Icons", transform, new Vector2(0f, 0f));
+            friendIconGroup.transform.position = friendIconPosition;
+            friendIconGroup.GetComponent<VerticalLayoutGroup>().childAlignment = TextAnchor.UpperCenter;
+            friendIconGroup.GetComponent<RectTransform>().SetInsetAndSizeFromParentEdge(RectTransform.Edge.Left, 0.2f, 1);
+            visibleButton = HelperUI.ButtonTemplate(friendIconGroup.transform, new Vector2(1f, 0.3f), Vector3.zero, "", Color.white);
+            visibleButton.transform.SetParent(friendIconGroup.transform, false);
+            visibleButton.onClick.AddListener(ToggleVisibility);
             foreach (Friend friend in HandlerSystem.friends)
             {
-                buttons.Add(HelperUI.ButtonTemplate(buttonGroup.transform, new Vector2(1, 1), Vector3.zero, "42", friend.Id == HandlerSystem.self.Id ? Color.white : Color.gray ));
-                buttons[buttons.Count()-1].onClick.AddListener(() => FriendIconPressed(friend));
+                friendIcons.Add(friend, HelperUI.ButtonTemplate(transform, new Vector2(1, 1), Vector3.zero, "42", friend.Id == HandlerSystem.self.Id ? Color.white : Color.gray ));
+                friendIcons[friend].transform.SetParent(friendIconGroup.transform, false);
+                friendIcons[friend].onClick.AddListener(() => FriendIconPressed(friend));
             }
-            
+
+            buttonGroup = HelperUI.HorizontalGroup("Friend Icons", transform, new Vector2(0f, 0f));
+            buttonGroup.GetComponent<HorizontalLayoutGroup>().childAlignment = TextAnchor.MiddleRight;
+            buttonGroup.transform.position = buttonPosition;
+            buttonGroup.GetComponent<RectTransform>().SetInsetAndSizeFromParentEdge(RectTransform.Edge.Right, 4, 1);
+            buttons.Clear();
+            buttons.Add(HelperUI.ButtonTemplate(transform, new Vector2(1, 1), Vector3.zero, "DP", Color.gray)); //Display
+            buttons[0].transform.SetParent(buttonGroup.transform, false);
+            buttons.Add(HelperUI.ButtonTemplate(transform, new Vector2(1, 1), Vector3.zero, "0", Color.gray)); //Update
+            buttons[1].transform.SetParent(buttonGroup.transform, false);
+            buttons.Add(HelperUI.ButtonTemplate(transform, new Vector2(1, 1), Vector3.zero, "FT", Color.gray)); //Fetch
+            buttons[2].transform.SetParent(buttonGroup.transform, false);
+
             HandlerSystem.Initialize();
             Debug.Log("[Multiplayer] Dashboard is set up!");
         }
@@ -79,6 +104,14 @@ namespace MultiplayerBase
                 HandlerInspect.instance.Clear();
             }
             
+        }
+
+        public static void ToggleVisibility()
+        {
+            foreach (Friend friend in HandlerSystem.friends)
+            {
+                friendIcons[friend].gameObject.SetActive(!friendIcons[friend].gameObject.activeSelf);
+            }
         }
 
         

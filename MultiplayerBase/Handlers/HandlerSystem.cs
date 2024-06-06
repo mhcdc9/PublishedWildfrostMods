@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using UnityEngine;
 using static MultiplayerBase.Dashboard;
 using UnityEngine.SceneManagement;
+using TMPro;
 
 //Battle/Canvas
 
@@ -174,22 +175,27 @@ namespace MultiplayerBase.Handlers
             {
                 case "Battle":
                     friendStates[friend] = PlayerState.Battle;
+                    Dashboard.friendIcons[friend].GetComponentInChildren<TextMeshProUGUI>(true).text = "42";
                     if (friend.Id == self.Id)
                     {
                         References.instance.StartCoroutine(HandlerBattle.instance.BattleRoutine());
                     }
                     break;
                 case "MapNew":
+                    Dashboard.friendIcons[friend].GetComponentInChildren<TextMeshProUGUI>(true).text = "92";
                     friendStates[friend] = PlayerState.Map;
                     break;
                 case "Event":
+                    Dashboard.friendIcons[friend].GetComponentInChildren<TextMeshProUGUI>(true).text = "25";
                     friendStates[friend] = PlayerState.Event;
                     break;
                 case "MainMenu":
                 case "Town":
+                    Dashboard.friendIcons[friend].GetComponentInChildren<TextMeshProUGUI>(true).text = "00";
                     friendStates[friend] = PlayerState.MainMenu;
                     break;
                 default:
+                    Dashboard.friendIcons[friend].GetComponentInChildren<TextMeshProUGUI>(true).text = "??";
                     friendStates[friend] = PlayerState.Other;
                     break;
             }

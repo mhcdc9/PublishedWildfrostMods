@@ -9,13 +9,17 @@ using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
-using static CampaignGenerator;
 using TMPro;
+using UnityEngine.Events;
+using UnityEngine.UIElements;
+using Button = UnityEngine.UI.Button;
 
 namespace MultiplayerBase.Handlers
 {
     public class HandlerBattle : MonoBehaviour
     {
+        public static UnityAction<Friend> OnFetch;
+
         public static HandlerBattle instance;
         public static readonly List<PlayAction> actions = new List<PlayAction>();
 
@@ -30,12 +34,19 @@ namespace MultiplayerBase.Handlers
         Vector3 viewerPosition = new Vector3(0, 0, 2);
 
         static Button refreshButton;
+        static Button fetchButton;
 
         protected void Start()
         {
             //Events.OnSceneUnload += DisableController;
             
             instance = this;
+
+            refreshButton = Dashboard.buttons[1];
+            refreshButton.onClick.AddListener(QueueActions);
+
+            fetchButton = Dashboard.buttons[2];
+            fetchButton.onClick.AddListener(Fetch);
 
             cc = gameObject.AddComponent<CardControllerSelectCard>();
             cc.pressEvent = new UnityEventEntity();
@@ -46,11 +57,16 @@ namespace MultiplayerBase.Handlers
             transform.SetParent(GameObject.Find("CameraContainer/CameraMover/MinibossZoomer/CameraPositioner/CameraPointer/Animator/Rumbler/Shaker/InspectSystem").transform);
             transform.SetAsFirstSibling();
             transform.position = defaultPosition;
+            CreateBattleViewer();
+            HandlerSystem.HandlerRoutines.Add("BAT", HandleMessage);
+        }
 
+        private void CreateBattleViewer()
+        {
             background = HelperUI.Background(transform, new Color(1f, 1f, 1f, 0.75f));
 
             playerLanes = new OtherCardViewer[lanes];
-            for (int i=0; i<playerLanes.Length; i++)
+            for (int i = 0; i < playerLanes.Length; i++)
             {
                 playerLanes[i] = HelperUI.OtherCardViewer($"Player Row {i + 1}", background.transform, cc);
                 playerLanes[i].transform.localPosition = new Vector3(-0.47f, 0.26f - 0.43f * i, 0);
@@ -74,11 +90,14 @@ namespace MultiplayerBase.Handlers
                 cc.unHoverEvent.AddListener(enemyLanes[i].Unhover);
             }
             background.SetActive(false);
-            HandlerSystem.HandlerRoutines.Add("BAT", HandleMessage);
         }
 
         public void ToggleViewer(Friend friend)
         {
+            if (background == null)
+            {
+                CreateBattleViewer();
+            }
             if (background.activeSelf)
             {
                 background.SetActive(false);
@@ -89,7 +108,10 @@ namespace MultiplayerBase.Handlers
             {
                 Clear();
                 AskForData(friend);
-                background.transform.SetParent(GameObject.Find("Battle/Canvas/CardController/Board/Canvas").transform);
+                if (Battle.instance != null)
+                {
+                    background.transform.SetParent(GameObject.Find("Battle/Canvas/CardController/Board/Canvas").transform);
+                }
                 background.transform.localPosition = defaultPosition;
                 background.SetActive(true);
                 LeanTween.moveLocal(background, viewerPosition, 0.75f).setEase(LeanTweenType.easeInOutQuart);
@@ -143,6 +165,9 @@ namespace MultiplayerBase.Handlers
                                 HandlerSystem.SendMessage("BAT", friend, s);
                             }
                         }
+                        break;
+                    case "INFO":
+                        OnFetch?.Invoke(friend);
                         break;
                     default:
                         break;
@@ -210,9 +235,7 @@ namespace MultiplayerBase.Handlers
 
         public IEnumerator BattleRoutine()
         {
-            refreshButton = HelperUI.ButtonTemplate(Dashboard.buttonGroup.transform,new Vector2(1,1),Vector3.zero, "0", Color.white);
-            Dashboard.AddToButtons(refreshButton);
-            refreshButton.onClick.AddListener(QueueActions);
+
             Battle.Phase phase = Battle.instance.phase;
             while (true)
             {
@@ -231,15 +254,18 @@ namespace MultiplayerBase.Handlers
                     case Battle.Phase.Play:
                         break;
                     case Battle.Phase.End:
-                        Dashboard.buttons.Remove(refreshButton);
-                        refreshButton.gameObject.Destroy();
+
                         break;
                 }
             }
         }
 
-        public static void TryAction(PlayAction action)
+        public static bool TryAction(PlayAction action)
         {
+            if (Battle.instance == null)
+            {
+                return false;
+            }
             if (Battle.instance.phase == Battle.Phase.Battle)
             {
                 ActionQueue.Add(action);
@@ -249,16 +275,33 @@ namespace MultiplayerBase.Handlers
                 actions.Add(action);
                 refreshButton.GetComponentInChildren<TextMeshProUGUI>().text = actions.Count().ToString();
             }
+            return true;
         }
 
         private static void QueueActions()
         {
+            if (Battle.instance == null)
+            {
+                return;
+            }
             foreach (PlayAction action in actions)
             {
                 ActionQueue.Add(action);
             }
             actions.Clear();
             refreshButton.GetComponentInChildren<TextMeshProUGUI>().text = actions.Count().ToString();
+        }
+
+        public void Fetch()
+        {
+            if (background != null && background.activeSelf)
+            {
+                HandlerSystem.SendMessageToAllOthers("BAT", "ASK!INFO!PLAYER!ENEMY!");
+            }
+            else
+            {
+                HandlerSystem.SendMessageToAllOthers("BAT", "ASK!INFO!");
+            }
         }
     }
 }

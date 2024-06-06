@@ -85,6 +85,13 @@ namespace MultiplayerBase.Handlers
 
         public static void SelectDisp(Entity entity)
         {
+            foreach(OtherCardViewer ocv in instance.lanes)
+            {
+                if(ocv.Contains(entity))
+                {
+                    return;
+                }
+            }
             Friend friend = HandlerSystem.self;
             ulong id = entity.data.id;
             string s = $"DISP!{friend.Name}!";

@@ -57,6 +57,10 @@ namespace MultiplayerBase
             HorizontalLayoutGroup layout = gameObject.AddComponent<HorizontalLayoutGroup>();
             layout.childAlignment = TextAnchor.MiddleCenter;
             layout.spacing = spacing;
+            layout.childControlHeight = false;
+            layout.childControlWidth = false;
+            layout.childForceExpandHeight = false;
+            layout.childForceExpandWidth = false;
             gameObject.GetComponent<RectTransform>().sizeDelta = scale;
             gameObject.transform.SetParent(transform, false);
             return gameObject;
