@@ -9,6 +9,7 @@ using MultMain = MultiplayerBase.MultiplayerMain;
 using Net = MultiplayerBase.Handlers.HandlerSystem;
 using MultiplayerBase.Handlers;
 using static CombineCardSystem;
+using UnityEngine;
 
 namespace Sync
 {
@@ -46,6 +47,7 @@ namespace Sync
             CreateModAssets();
             Events.OnBattleStart += ApplySync;
             Events.OnBattlePreTurnStart += CheckSync;
+            Events.OnEntityOffered += ApplySyncItem;
             Net.HandlerRoutines.Add("SYNC", SYNC_Handler);
             base.Load();
         }
@@ -54,6 +56,7 @@ namespace Sync
         {
             Events.OnBattleStart -= ApplySync;
             Events.OnBattlePreTurnStart -= CheckSync;
+            Events.OnEntityOffered -= ApplySyncItem;
             Net.HandlerRoutines.Remove("SYNC");
             base.Unload();
         }
@@ -126,6 +129,36 @@ namespace Sync
                     return keywords.Cast<T>().ToList();
                 default:
                     return null;
+            }
+        }
+
+        internal void ApplySyncItem(Entity entity)
+        {
+            if (entity.data.cardType.name == "Item")
+            {
+                Debug.Log($"[Multiplayer] Entity Offered: {entity.data.title}");
+                if (Dead.Random.Range(0f,1f) < itemSyncChance)
+                {
+                    TryAddSyncEffectItem(entity);
+                }
+            }
+        }
+
+        internal void TryAddSyncEffectItem(Entity e)
+        {
+            if (e == null)
+                return;
+            foreach ((string, int) stack in ItemSyncEffects.InRandomOrder())
+            {
+                StatusEffectData effect = Get<StatusEffectData>(stack.Item1).InstantiateKeepName();
+                if (effect.CanPlayOn(e))
+                {
+                    effect.Apply(stack.Item2, e, null);
+                    StatusEffectSystem.activeEffects.Add(effect);
+                    e.display.promptUpdateDescription = true;
+                    e.PromptUpdate();
+                    break;
+                }
             }
         }
 
