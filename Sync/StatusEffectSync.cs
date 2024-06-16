@@ -28,6 +28,7 @@ namespace Sync
         {
             if (entity == target && !SyncMain.sentSyncMessage)
             {
+                Debug.Log($"[Sync]{target.data.title}");
                 SyncMain.SyncOthers();
             }
             return false;
@@ -112,11 +113,11 @@ namespace Sync
             SyncMain.syncCombo = combo;
             if (combo == 0)
             {
-                Net.CHT_Handler(Net.self, "");
+                Net.CHT_Handler(Net.self, "Not Synched...");
             }
             else
             {
-                Net.CHT_Handler(Net.self, $"Sync (x{combo})");
+                Net.CHT_Handler(Net.self, $"<size=0.55><color=#FC5>Synched!</color></size>");
             }
             SyncMain.sync = !endSync;
             StatusEffectSystem.activeEffects.Freeze();

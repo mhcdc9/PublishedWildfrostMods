@@ -8,7 +8,7 @@ using TMPro;
 using UnityEngine;
 using MultiplayerBase.Handlers;
 
-namespace MultiplayerBase
+namespace MultiplayerBase.UI
 {
     public class OtherCardViewer : CardLane
     {

@@ -13,6 +13,7 @@ using UnityEngine.UI;
 using Image = UnityEngine.UI.Image;
 using HarmonyLib;
 using MultiplayerBase.Handlers;
+using MultiplayerBase.UI;
 using UnityEngine.Events;
 
 namespace MultiplayerBase
@@ -56,27 +57,41 @@ namespace MultiplayerBase
             gameobject.SetActive(false);
 
             HandlerSystem.self = new Friend(SteamClient.SteamId);
+            Task<Steamworks.Data.Image?> imageTask = HandlerSystem.self.GetSmallAvatarAsync();
 
             gameobject = new GameObject("Start Button");
             UnityEngine.Object.DontDestroyOnLoad(gameobject);
             Image image = gameobject.AddComponent<Image>();
-            image.color = new UnityEngine.Color(Dead.PettyRandom.Range(0f, 1f), Dead.PettyRandom.Range(0f, 1f), Dead.PettyRandom.Range(0f, 1f));
+            //image.color = new UnityEngine.Color(Dead.PettyRandom.Range(0f, 1f), Dead.PettyRandom.Range(0f, 1f), Dead.PettyRandom.Range(0f, 1f));
+            ChangeColor(image);
             openMatchmaking = gameobject.AddComponent<Button>();
             openMatchmaking.onClick.AddListener(ToggleMatchmaking);
             gameobject.GetComponent<RectTransform>().sizeDelta = new Vector2(1, 1);
             gameobject.transform.SetParent(GameObject.Find("Canvas/SafeArea/Buttons").transform);
             gameobject.transform.localPosition = new Vector3(-11, 5, 0);
 
-            gameobject = new GameObject("Start Button");
+            gameobject = new GameObject("Top Text");
             UnityEngine.Object.DontDestroyOnLoad(gameobject);
             textElement = gameobject.AddComponent<TextMeshProUGUI>();
             textElement.horizontalAlignment = HorizontalAlignmentOptions.Center;
             textElement.verticalAlignment = VerticalAlignmentOptions.Middle;
             textElement.fontSize = 0.4f;
+            textElement.outlineWidth = 0.1f;
             textElement.color = UnityEngine.Color.white;
             gameobject.GetComponent<RectTransform>().sizeDelta = new Vector2(100, 1);
             gameobject.transform.SetParent(GameObject.Find("Canvas/SafeArea").transform);
             gameobject.transform.localPosition = new Vector3(0, 5, 0);
+        }
+
+        public async void ChangeColor(Image image)
+        {
+            Steamworks.Data.Image? i = await HandlerSystem.self.GetMediumAvatarAsync();
+            if (i is Steamworks.Data.Image steamImage)
+            {
+                int x = Dead.PettyRandom.Range(0, (int) steamImage.Width-1);
+                int y = Dead.PettyRandom.Range(0, (int) steamImage.Height - 1);
+                image.color = FriendIcon.GetColor(steamImage.GetPixel(x,y));
+            }  
         }
 
         public override void Unload()
@@ -205,21 +220,6 @@ namespace MultiplayerBase
                 return false;
             }
             return true;
-        }
-    }
-
-    [HarmonyPatch(typeof(CheckAchievements), "Start", new Type[] { })]
-    internal static class PatchAchievements
-    {
-        internal static void Prefix()
-        {
-            if (!CheckAchievements.AchievementChallenge.ContainsKey("ACHIEVEMENT_16"))
-            {
-                for(int i=16; i<27; i++)
-                {
-                    CheckAchievements.AchievementChallenge.Add($"ACHIEVEMENT_{i}", $"Challenge Charm {i+1}");
-                }
-            }
         }
     }
 }

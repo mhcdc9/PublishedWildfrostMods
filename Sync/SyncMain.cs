@@ -10,18 +10,23 @@ using Net = MultiplayerBase.Handlers.HandlerSystem;
 using MultiplayerBase.Handlers;
 using static CombineCardSystem;
 using UnityEngine;
+using HarmonyLib;
+
+using Wave = BattleWaveManager.Wave;
+using System.Collections;
 
 namespace Sync
 {
     public class SyncMain : WildfrostMod
     {
+        internal static SyncMain Instance;
         //public static Dictionary<Friend, bool> synced;
         public static bool sync = false;
         public static int syncNextTurn = 0;
         public static bool sentSyncMessage = false;
         public static int syncCombo = 0;
 
-        public static float enemySyncChance = 0.5f;
+        public static int enemyPerWave = 1;
         public static float itemSyncChance = 0.33f;
 
         private List<StatusEffectDataBuilder> effects = new List<StatusEffectDataBuilder>();
@@ -44,30 +49,38 @@ namespace Sync
 
         protected override void Load()
         {
-            CreateModAssets();
-            Events.OnBattleStart += ApplySync;
+            Instance = this;
+            CreateStatuses();
             Events.OnBattlePreTurnStart += CheckSync;
             Events.OnEntityOffered += ApplySyncItem;
+            Events.OnCampaignGenerated += SyncStartingInventory;
             Net.HandlerRoutines.Add("SYNC", SYNC_Handler);
             base.Load();
+            CreateModifierData();
         }
 
         protected override void Unload()
         {
-            Events.OnBattleStart -= ApplySync;
             Events.OnBattlePreTurnStart -= CheckSync;
             Events.OnEntityOffered -= ApplySyncItem;
+            Events.OnCampaignGenerated -= SyncStartingInventory;
             Net.HandlerRoutines.Remove("SYNC");
             base.Unload();
         }
 
-        public void CreateModAssets()
+        public void CreateModifierData()
+        {
+            GameModifierDataBuilder syncModifier = new GameModifierDataBuilder()
+                .Create("SyncModifier");
+        }
+
+        public void CreateStatuses()
         {
             keywords.Add(Extensions.CreateBasicKeyword(this, "sync", "Sync", "Gain an effect as long as conditions are met..."));
 
             effects.Add( new StatusEffectDataBuilder(this)
                 .CreateSyncEffect<StatusEffectSync>("Sync Attack", "<keyword=mhcdc9.wildfrost.sync.sync>: <+{a}><keyword=attack>", "", Get<StatusEffectData>("Ongoing Increase Attack"))
-                .WithConstraints(Extensions.DoesAttack())
+                .WithConstraints(Extensions.DoesDamage())
                 );
 
             effects.Add(new StatusEffectDataBuilder(this)
@@ -77,6 +90,7 @@ namespace Sync
 
             effects.Add(new StatusEffectDataBuilder(this)
                 .CreateSyncEffect<StatusEffectSync>("Sync Frenzy", "<keyword=mhcdc9.wildfrost.sync.sync>: <+{a}><keyword=frenzy>", "", Get<StatusEffectData>("MultiHit"))
+                .WithConstraints()   
                 );
 
             effects.Add(new StatusEffectDataBuilder(this)
@@ -90,7 +104,7 @@ namespace Sync
                 );
 
             effects.Add(new StatusEffectDataBuilder(this)
-                .CreateSyncEffect<StatusEffectSync>("Sync Counter", "<keyword=mhcdc9.wildfrost.sync.sync>: Reduce <keyword=counter> by <{a}>", "", Get<StatusEffectData>("Reduce Counter"), ongoing: false)
+                .CreateSyncEffect<StatusEffectSync>("Sync Counter", "<keyword=mhcdc9.wildfrost.sync.sync>: Count down <keyword=counter> by <{a}>", "", Get<StatusEffectData>("Reduce Counter"), ongoing: false)
                 .WithConstraints(Extensions.HasCounter())
                 );
 
@@ -99,18 +113,9 @@ namespace Sync
                 );
         }
 
-        public static (string, int)[] EnemySyncEffects = new (string, int)[]
+        static (string, int)[] ItemSyncEffects = new (string, int)[]
         {
-            ("Sync Attack", 2),
-            ("Sync Effect", 2),
-            ("Sync Frenzy", 1),
-            ("Sync Barrage", 1),
-            ("Sync Heal", 2),
-            ("Sync Counter", 1)
-        };
-
-        public static (string, int)[] ItemSyncEffects = new (string, int)[]
-        {
+            ("Sync Attack", 1),
             ("Sync Attack", 2),
             ("Sync Effect", 1),
             ("Sync Frenzy", 1),
@@ -132,37 +137,33 @@ namespace Sync
             }
         }
 
+        public async Task SyncStartingInventory()
+        {
+            if (References.PlayerData?.inventory?.deck != null)
+            {
+                foreach (CardData data in References.PlayerData.inventory.deck)
+                {
+                    if (Dead.Random.Range(0f, 1f) < itemSyncChance && data.cardType.name == "Item")
+                    {
+                        Extensions.TryAddSync(data, ItemSyncEffects);
+                    }
+                }
+            }
+        }
+
         internal void ApplySyncItem(Entity entity)
         {
             if (entity.data.cardType.name == "Item")
             {
-                Debug.Log($"[Multiplayer] Entity Offered: {entity.data.title}");
+                Debug.Log($"[Sync] Entity Offered: {entity.data.title}");
                 if (Dead.Random.Range(0f,1f) < itemSyncChance)
                 {
-                    TryAddSyncEffectItem(entity);
+                    Extensions.TryAddSync(entity, ItemSyncEffects);
                 }
             }
         }
 
-        internal void TryAddSyncEffectItem(Entity e)
-        {
-            if (e == null)
-                return;
-            foreach ((string, int) stack in ItemSyncEffects.InRandomOrder())
-            {
-                StatusEffectData effect = Get<StatusEffectData>(stack.Item1).InstantiateKeepName();
-                if (effect.CanPlayOn(e))
-                {
-                    effect.Apply(stack.Item2, e, null);
-                    StatusEffectSystem.activeEffects.Add(effect);
-                    e.display.promptUpdateDescription = true;
-                    e.PromptUpdate();
-                    break;
-                }
-            }
-        }
-
-        internal void ApplySync()
+        /*internal void ApplySync()
         {
             List<Entity> enemies = Battle.GetCards(Battle.instance.enemy);
             foreach (Entity e in enemies)
@@ -172,13 +173,14 @@ namespace Sync
                     TryAddSyncEffectEnemy(e);
                 }
             }
-        }
+        }*/
 
+        /*
         internal void TryAddSyncEffectEnemy(Entity e)
         {
             if (e == null)
                 return;
-            foreach((string,int) stack in EnemySyncEffects.InRandomOrder())
+            foreach ((string, int) stack in EnemySyncEffects.InRandomOrder())
             {
                 StatusEffectData effect = Get<StatusEffectData>(stack.Item1).InstantiateKeepName();
                 if (effect.CanPlayOn(e))
@@ -191,6 +193,7 @@ namespace Sync
                 }
             }
         }
+        */
 
         internal static void CheckSync(int turnCount)
         {
@@ -236,8 +239,43 @@ namespace Sync
 
         public static void SyncOthers()
         {
-            Net.SendMessageToAll("SYNC", $"{syncCombo + 1}");
-            sentSyncMessage = true; 
+            Net.SendMessageToAllOthers("SYNC", $"{syncCombo + 1}");
+            //sentSyncMessage = true; 
         }
+    }
+
+    [HarmonyPatch(typeof(ScriptBattleSetUp), "SetUpEnemyWaves")]
+    internal static class AddSyncToEnemies
+    {
+        static (string, int)[] EnemySyncEffects = new (string, int)[]
+        {
+            ("Sync Attack", 3),
+            ("Sync Effect", 2),
+            ("Sync Frenzy", 2),
+            ("Sync Barrage", 1),
+            ("Sync Heal", 4),
+            ("Sync Counter", 1)
+        };
+
+
+        static void Postfix(Character enemy)
+        {
+            BattleWaveManager component = enemy.GetComponent<BattleWaveManager>();
+            foreach(Wave wave in component.list)
+            {
+                int points = SyncMain.enemyPerWave;
+                foreach(CardData data in wave.units.InRandomOrder())
+                {
+                    if(points > 0 && Extensions.TryAddSync(data,EnemySyncEffects))
+                    {
+                        points--;
+                    }
+                }
+            }
+        }
+
+
+
+
     }
 }

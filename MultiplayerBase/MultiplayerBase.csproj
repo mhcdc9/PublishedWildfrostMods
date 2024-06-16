@@ -442,18 +442,19 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Dashboard.cs" />
+    <Compile Include="UI\Dashboard.cs" />
     <Compile Include="Handlers\HandlerBattle.cs" />
     <Compile Include="Handlers\HandlerDeck.cs" />
     <Compile Include="Handlers\HandlerEvent.cs" />
     <Compile Include="Handlers\HandlerInspect.cs" />
     <Compile Include="Handlers\HandlerMap.cs" />
     <Compile Include="Handlers\HandlerSystem.cs" />
-    <Compile Include="HelperUI.cs" />
+    <Compile Include="UI\FriendIcon.cs" />
+    <Compile Include="UI\HelperUI.cs" />
     <Compile Include="Matchmaking.cs" />
     <Compile Include="MultiplayerMain.cs" />
     <Compile Include="Network.cs" />
-    <Compile Include="OtherCardViewer.cs" />
+    <Compile Include="UI\OtherCardViewer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

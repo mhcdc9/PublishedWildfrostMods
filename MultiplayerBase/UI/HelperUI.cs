@@ -7,7 +7,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace MultiplayerBase
+namespace MultiplayerBase.UI
 {
     public static class HelperUI
     {

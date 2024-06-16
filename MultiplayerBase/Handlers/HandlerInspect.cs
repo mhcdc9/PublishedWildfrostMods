@@ -9,17 +9,22 @@ using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using MultiplayerBase.UI;
 
 namespace MultiplayerBase.Handlers
 {
     internal class HandlerInspect : MonoBehaviour
     {
-        Vector3 defaultPosition = new Vector3(-10, 3, 2);
+        Vector3 defaultPosition = new Vector3(-8.6f, 2.35f, 0);
         private CardControllerSelectCard cc;
         //Friend friend;
         //ulong id;
         public static HandlerInspect instance;
 
+
+        public Button hideButton;
+        public Button clearButton;
+        protected bool hidden = false;
         public List<OtherCardViewer> lanes = new List<OtherCardViewer>();
         public int laneIndex = 0;
         public Vector3 offset = new Vector3(0,-3f,0);
@@ -48,8 +53,36 @@ namespace MultiplayerBase.Handlers
 
             SetLane(0);
 
+            hideButton = HelperUI.ButtonTemplate(transform, new Vector2(1f, 0.3f), new Vector3(-0.5f, 2f, 0), "", Color.gray);
+            hideButton.onClick.AddListener(ToggleHide);
+            clearButton = HelperUI.ButtonTemplate(transform, new Vector2(1f, 0.3f), new Vector3(0.5f, 2f, 0), "", Color.red);
+            clearButton.onClick.AddListener(Clear);
+
             HandlerSystem.HandlerRoutines.Add("INS", HandleMessage);
             Debug.Log("[Multiplayer] Inspection Handler Online!");
+        }
+
+        private void ToggleHide()
+        {
+            if (hidden)
+            {
+                foreach(OtherCardViewer ocv in lanes)
+                {
+                    if (ocv.Count > 0)
+                    {
+                        ocv.gameObject.SetActive(true);
+                    }
+                }
+                hidden = false;
+            }
+            else
+            {
+                foreach (OtherCardViewer ocv in lanes)
+                {
+                    ocv.gameObject.SetActive(false);
+                }
+                hidden = true;
+            }
         }
 
         private void SetLane(int index)
@@ -57,6 +90,7 @@ namespace MultiplayerBase.Handlers
             for(int i=lanes.Count(); i<=index; i++)
             {
                 OtherCardViewer lane = HelperUI.OtherCardViewer($"Lane {lanes.Count()}", transform, cc);
+                lane.gameObject.SetActive(false);
                 lane.gap = gap;
                 lane.transform.localPosition = lanes.Count() * offset;
                 cc.hoverEvent.AddListener(lane.Hover);
@@ -136,6 +170,7 @@ namespace MultiplayerBase.Handlers
                 //Debug.Log("[Multiplayer] " + lanes[laneIndex].ToArray());
                 ocv.ClearAndDestroyAllImmediately();
                 ocv.GetComponent<Image>().color = new Color(0f, 0f, 0f, 0f);
+                ocv.gameObject.SetActive(false);
             }
             
         }
@@ -178,7 +213,10 @@ namespace MultiplayerBase.Handlers
             {
                 Clear();
             }
-
+            if (!hidden)
+            {
+                lanes[laneIndex].gameObject.SetActive(true);
+            }
             Friend owner;
             if (HandlerSystem.FindFriend(messages[1]) is Friend f)//1 -> owner
             {
@@ -216,6 +254,10 @@ namespace MultiplayerBase.Handlers
                 cardData.customData = References.PlayerData.inventory.deck.FirstOrDefault((deckcard) => deckcard.cardType.name == "Leader").customData;
             }
             Card card = CardManager.Get(cardData, cc, HandlerSystem.enemyDummy, inPlay: false, isPlayerCard: true);
+            if (References.Battle?.cards != null)
+            {
+                References.Battle.cards.Remove(card.entity);
+            }
             card.entity.flipper.FlipDownInstant();
             return card;
         }

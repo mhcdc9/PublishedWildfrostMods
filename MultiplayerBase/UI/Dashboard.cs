@@ -13,7 +13,7 @@ using Color = UnityEngine.Color;
 using MultiplayerBase.Handlers;
 using UnityEngine.SceneManagement;
 
-namespace MultiplayerBase
+namespace MultiplayerBase.UI
 {
     //After the party is finalized, the dashboard will be the main means of communication. It lives in front of the inspection system.
     //SetInsetAndSizeFromParentEdge
@@ -27,7 +27,7 @@ namespace MultiplayerBase
         public static List<Button> buttons = new List<Button>();
         public static GameObject friendIconGroup;
         public static Button visibleButton;
-        public static Dictionary<Friend, Button> friendIcons = new Dictionary<Friend, Button>();
+        public static Dictionary<Friend, FriendIcon> friendIcons = new Dictionary<Friend, FriendIcon>();
         
 
         InspectSystem inspectsystem;
@@ -51,9 +51,8 @@ namespace MultiplayerBase
             visibleButton.onClick.AddListener(ToggleVisibility);
             foreach (Friend friend in HandlerSystem.friends)
             {
-                friendIcons.Add(friend, HelperUI.ButtonTemplate(transform, new Vector2(1, 1), Vector3.zero, "42", friend.Id == HandlerSystem.self.Id ? Color.white : Color.gray ));
+                friendIcons.Add(friend, FriendIcon.Create(transform, Vector2.one, Vector3.zero, friend));
                 friendIcons[friend].transform.SetParent(friendIconGroup.transform, false);
-                friendIcons[friend].onClick.AddListener(() => FriendIconPressed(friend));
             }
 
             buttonGroup = HelperUI.HorizontalGroup("Friend Icons", transform, new Vector2(0f, 0f));
@@ -68,6 +67,8 @@ namespace MultiplayerBase
             buttons.Add(HelperUI.ButtonTemplate(transform, new Vector2(1, 1), Vector3.zero, "FT", Color.gray)); //Fetch
             buttons[2].transform.SetParent(buttonGroup.transform, false);
 
+            buttonGroup.SetActive(false);
+
             HandlerSystem.Initialize();
             Debug.Log("[Multiplayer] Dashboard is set up!");
         }
@@ -76,34 +77,6 @@ namespace MultiplayerBase
         {
             buttons.Add(button);
             button.GetComponent<RectTransform>().sizeDelta = new Vector2(buttons.Count(), 1);
-        }
-
-        public void FriendIconPressed(Friend friend)
-        {
-            Debug.Log($"[Multiplayer] Sending Message to {friend.Name}");
-            if (InspectSystem.IsActive())
-            {
-                HandlerInspect.SelectDisp(inspectsystem.inspect);
-            }
-            else if (HandlerSystem.friendStates[friend] == PlayerState.Battle)
-            {
-                //HandlerBattle.instance.CreateController();
-                HandlerBattle.instance.ToggleViewer(friend);
-            }
-            else if (HandlerSystem.friendStates[friend] == PlayerState.Event)
-            {
-                HandlerEvent.instance.AskForData(friend);
-            }
-            else if (HandlerSystem.friendStates[friend] == PlayerState.Map)
-            {
-                HandlerMap.instance.ToggleViewer(friend);
-            }
-            else
-            {
-                HandlerSystem.SendMessage("CHT", friend, Dead.PettyRandom.Range(0f, 1f).ToString());
-                HandlerInspect.instance.Clear();
-            }
-            
         }
 
         public static void ToggleVisibility()
