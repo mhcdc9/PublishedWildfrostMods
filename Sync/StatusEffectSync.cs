@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Steamworks.Data;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,7 +19,7 @@ namespace Sync
 
         protected bool effectActive = false;
         protected List<Entity> entities = new List<Entity>();
-        protected override void Init()
+        public override void Init()
         {
             base.Init();
             base.OnEntityDestroyed += Destroyed;
@@ -117,7 +118,9 @@ namespace Sync
             }
             else
             {
-                Net.CHT_Handler(Net.self, $"<size=0.55><color=#FC5>Synched!</color></size>");
+                string s = (combo > 1) ? "Synched!" : $"Synched (x{combo})!";
+                s = string.Concat("<size=0.55><color=#FC5>", s, "</color></size>");
+                Net.CHT_Handler(Net.self, s);
             }
             SyncMain.sync = !endSync;
             StatusEffectSystem.activeEffects.Freeze();

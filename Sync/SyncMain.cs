@@ -47,10 +47,11 @@ namespace Sync
 
 
 
-        protected override void Load()
+        public override void Load()
         {
             Instance = this;
             CreateStatuses();
+            Events.OnBattleStart += ClearSync;
             Events.OnBattlePreTurnStart += CheckSync;
             Events.OnEntityOffered += ApplySyncItem;
             Events.OnCampaignGenerated += SyncStartingInventory;
@@ -59,13 +60,19 @@ namespace Sync
             CreateModifierData();
         }
 
-        protected override void Unload()
+        public override void Unload()
         {
+            Events.OnBattleStart -= ClearSync;
             Events.OnBattlePreTurnStart -= CheckSync;
             Events.OnEntityOffered -= ApplySyncItem;
             Events.OnCampaignGenerated -= SyncStartingInventory;
             Net.HandlerRoutines.Remove("SYNC");
             base.Unload();
+        }
+
+        public void ClearSync()
+        {
+            syncNextTurn = 0;
         }
 
         public void CreateModifierData()
@@ -78,38 +85,53 @@ namespace Sync
         {
             keywords.Add(Extensions.CreateBasicKeyword(this, "sync", "Sync", "Gain an effect as long as conditions are met..."));
 
-            effects.Add( new StatusEffectDataBuilder(this)
-                .CreateSyncEffect<StatusEffectSync>("Sync Attack", "<keyword=mhcdc9.wildfrost.sync.sync>: <+{a}><keyword=attack>", "", Get<StatusEffectData>("Ongoing Increase Attack"))
-                .WithConstraints(Extensions.DoesDamage())
-                );
-
             effects.Add(new StatusEffectDataBuilder(this)
-                .CreateSyncEffect<StatusEffectSync>("Sync Effect", "<keyword=mhcdc9.wildfrost.sync.sync>: +{a} to effects", "", Get<StatusEffectData>("Ongoing Increase Effects"))
-                .WithConstraints(Extensions.CanBeBoosted())
-                );
-
-            effects.Add(new StatusEffectDataBuilder(this)
-                .CreateSyncEffect<StatusEffectSync>("Sync Frenzy", "<keyword=mhcdc9.wildfrost.sync.sync>: <+{a}><keyword=frenzy>", "", Get<StatusEffectData>("MultiHit"))
-                .WithConstraints()   
-                );
-
-            effects.Add(new StatusEffectDataBuilder(this)
-                .CreateSyncEffect<StatusEffectSync>("Sync Barrage", "<keyword=mhcdc9.wildfrost.sync.sync>: <keyword=barrage>", "", Get<StatusEffectData>("Temporary Barrage"))
+                .CreateTempTrait("Temporary Smackback", Get<TraitData>("Smackback"))
                 .WithConstraints(Extensions.DoesAttack())
                 );
 
             effects.Add( new StatusEffectDataBuilder(this)
-                .CreateSyncEffect<StatusEffectSync>("Sync Heal", "<keyword=mhcdc9.wildfrost.sync.sync>: Restore <{a}><keyword=health>", "", Get<StatusEffectData>("Heal"), ongoing:false)
+                .CreateSyncEffect<StatusEffectSync>("Sync Attack", "<keyword=mhcdc9.wildfrost.sync.sync>: <+{a}><keyword=attack>", "", "Ongoing Increase Attack")
+                .WithConstraints(Extensions.DoesDamage())
+                );
+
+            effects.Add(new StatusEffectDataBuilder(this)
+                .CreateSyncEffect<StatusEffectSync>("Sync Effect", "<keyword=mhcdc9.wildfrost.sync.sync>: +{a} to effects", "", "Ongoing Increase Effects")
+                .WithConstraints(Extensions.CanBeBoosted())
+                );
+
+            effects.Add(new StatusEffectDataBuilder(this)
+                .CreateSyncEffect<StatusEffectSync>("Sync Frenzy", "<keyword=mhcdc9.wildfrost.sync.sync>: <x{a}><keyword=frenzy>", "", "MultiHit")
+                .WithConstraints()   
+                );
+
+            effects.Add(new StatusEffectDataBuilder(this)
+                .CreateSyncEffect<StatusEffectSync>("Sync Barrage", "<keyword=mhcdc9.wildfrost.sync.sync>: <keyword=barrage>", "", "Temporary Barrage")
+                .WithConstraints(Extensions.DoesAttack(), Extensions.NotTrait("Barrage"))
+                );
+
+            effects.Add(new StatusEffectDataBuilder(this)
+                .CreateSyncEffect<StatusEffectSync>("Sync Zoomlin", "<keyword=mhcdc9.wildfrost.sync.sync>: <keyword=zoomlin>", "", "Temporary Zoomlin")
+                .WithConstraints(Extensions.NotTrait("Zoomlin"))
+                );
+
+            effects.Add(new StatusEffectDataBuilder(this)
+                .CreateSyncEffect<StatusEffectSync>("Sync Smackback", "<keyword=mhcdc9.wildfrost.sync.sync>: <keyword=zoomlin>", "", "mhcdc9.wildfrost.sync.Temporary Smackback")
+                .WithConstraints(Extensions.DoesAttack(), Extensions.NotTrait("Smackback"))
+                );
+
+            effects.Add( new StatusEffectDataBuilder(this)
+                .CreateSyncEffect<StatusEffectSync>("Sync Heal", "<keyword=mhcdc9.wildfrost.sync.sync>: Restore <{a}><keyword=health>", "", "Heal", ongoing:false)
                 .WithConstraints(Extensions.HasHealth())
                 );
 
             effects.Add(new StatusEffectDataBuilder(this)
-                .CreateSyncEffect<StatusEffectSync>("Sync Counter", "<keyword=mhcdc9.wildfrost.sync.sync>: Count down <keyword=counter> by <{a}>", "", Get<StatusEffectData>("Reduce Counter"), ongoing: false)
+                .CreateSyncEffect<StatusEffectSync>("Sync Counter", "<keyword=mhcdc9.wildfrost.sync.sync>: Count down <keyword=counter> by <{a}>", "", "Reduce Counter", ongoing: false)
                 .WithConstraints(Extensions.HasCounter())
                 );
 
             effects.Add(new StatusEffectDataBuilder(this)
-                .CreateSyncEffect<StatusEffectSync>("Sync Nothing", "<keyword=mhcdc9.wildfrost.sync.sync>: Do nothing?", "", null, ongoing:false)
+                .CreateSyncEffect<StatusEffectSync>("Sync Nothing", "<keyword=mhcdc9.wildfrost.sync.sync>: Do nothing?", "", "", ongoing:false)
                 );
         }
 
@@ -120,6 +142,7 @@ namespace Sync
             ("Sync Effect", 1),
             ("Sync Frenzy", 1),
             ("Sync Barrage", 1),
+            ("Sync Zoomlin", 1),
             ("Sync Nothing", 1)
         };
 
@@ -163,38 +186,6 @@ namespace Sync
             }
         }
 
-        /*internal void ApplySync()
-        {
-            List<Entity> enemies = Battle.GetCards(Battle.instance.enemy);
-            foreach (Entity e in enemies)
-            {
-                if (Dead.Random.Range(0f, 1f) < enemySyncChance)
-                {
-                    TryAddSyncEffectEnemy(e);
-                }
-            }
-        }*/
-
-        /*
-        internal void TryAddSyncEffectEnemy(Entity e)
-        {
-            if (e == null)
-                return;
-            foreach ((string, int) stack in EnemySyncEffects.InRandomOrder())
-            {
-                StatusEffectData effect = Get<StatusEffectData>(stack.Item1).InstantiateKeepName();
-                if (effect.CanPlayOn(e))
-                {
-                    effect.Apply(stack.Item2, e, null);
-                    StatusEffectSystem.activeEffects.Add(effect);
-                    e.display.promptUpdateDescription = true;
-                    e.PromptUpdate();
-                    break;
-                }
-            }
-        }
-        */
-
         internal static void CheckSync(int turnCount)
         {
             sentSyncMessage = false;
@@ -224,14 +215,16 @@ namespace Sync
         {
             if (sync && syncNextTurn == 0)
             {
+                syncCombo = 0;
                 sync = false;
                 ActionSync action = new ActionSync(0);
                 ActionQueue.Add(action);
             }
             if (syncNextTurn > 0)
             {
+                syncCombo++;
                 sync = true;
-                ActionSync action = new ActionSync(syncNextTurn);
+                ActionSync action = new ActionSync(syncCombo);
                 ActionQueue.Add(action);
                 syncNextTurn = 0;
             }
@@ -254,7 +247,8 @@ namespace Sync
             ("Sync Frenzy", 2),
             ("Sync Barrage", 1),
             ("Sync Heal", 4),
-            ("Sync Counter", 1)
+            ("Sync Counter", 1),
+            ("Sync Smackback",1)
         };
 
 

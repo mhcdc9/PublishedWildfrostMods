@@ -112,6 +112,11 @@ namespace MultiplayerBase.Handlers
                 if (Battle.instance != null)
                 {
                     background.transform.SetParent(GameObject.Find("Battle/Canvas/CardController/Board/Canvas").transform);
+                    background.transform.localScale = new Vector3(10f, 10f, 1);
+                }
+                else
+                {
+                    background.transform.localScale = new Vector3(3.5f, 3.5f, 1);
                 }
                 background.transform.localPosition = defaultPosition;
                 background.SetActive(true);

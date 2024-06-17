@@ -70,6 +70,8 @@ namespace MultiplayerBase.Handlers
             gameObject.AddComponent<HandlerMap>();
             Events.OnSceneChanged += SceneChanged;
             References.instance.StartCoroutine(ListenLoop());
+
+            initialized = true;
         }
 
         private static IEnumerator ListenLoop()
@@ -83,12 +85,16 @@ namespace MultiplayerBase.Handlers
 
         public static void SendMessage(string handler, Friend to, string message)
         {
+            if (!initialized) return;
+
             string s = $"{handler}|{self.Name}|{message}";
             SteamNetworking.SendP2PPacket(to.Id, Encoding.UTF8.GetBytes(s));
         }
 
         public static void SendMessageToAll(string handler, string message)
         {
+            if (!initialized) return;
+
             string s = $"{handler}|{self.Name}|{message}";
             foreach (Friend friend in friends)
             {
@@ -98,6 +104,8 @@ namespace MultiplayerBase.Handlers
 
         public static void SendMessageToAllOthers(string handler, string message)
         {
+            if (!initialized) return;
+
             string s = $"{handler}|{self.Name}|{message}";
             foreach (Friend friend in friends)
             {

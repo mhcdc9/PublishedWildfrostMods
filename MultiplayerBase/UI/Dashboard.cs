@@ -26,11 +26,10 @@ namespace MultiplayerBase.UI
         public static GameObject buttonGroup;
         public static List<Button> buttons = new List<Button>();
         public static GameObject friendIconGroup;
+        public static bool friendsHidden = false;
         public static Button visibleButton;
         public static Dictionary<Friend, FriendIcon> friendIcons = new Dictionary<Friend, FriendIcon>();
-        
 
-        InspectSystem inspectsystem;
         public void Start()
         {
             transform.SetParent(GameObject.Find("CameraContainer/CameraMover/MinibossZoomer/CameraPositioner/CameraPointer/Animator/Rumbler/Shaker/InspectSystem").transform);
@@ -38,8 +37,6 @@ namespace MultiplayerBase.UI
             gameObject.AddComponent<RectTransform>();
             background.SetActive(false);
             gameObject.AddComponent<WorldSpaceCanvasSafeArea>().parent = transform.parent.GetComponent<RectTransform>();
-
-            inspectsystem = GameObject.FindObjectOfType<InspectSystem>(true);
 
             //float totalSize = HandlerSystem.friends.Length*(1.2f) - 0.2f;
             friendIconGroup = HelperUI.VerticalGroup("Friend Icons", transform, new Vector2(0f, 0f));
@@ -85,6 +82,8 @@ namespace MultiplayerBase.UI
             {
                 friendIcons[friend].gameObject.SetActive(!friendIcons[friend].gameObject.activeSelf);
             }
+            friendsHidden = !friendIcons[HandlerSystem.self].gameObject.activeSelf;
+            visibleButton.GetComponent<UnityEngine.UI.Image>().color = friendsHidden ? Color.gray : Color.white;
         }
 
         

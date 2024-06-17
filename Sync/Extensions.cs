@@ -12,22 +12,31 @@ namespace Sync
 {
     public static class Extensions
     {
+        public static StatusEffectDataBuilder CreateTempTrait(this StatusEffectDataBuilder b, string name, TraitData trait)
+        {
+            return b.Create<StatusEffectTemporaryTrait>(name)
+                .WithType("")
+                .FreeModify<StatusEffectTemporaryTrait>(
+                (data) =>
+                {
+                    data.trait = trait;
+                });
+        }
 
-        public static StatusEffectDataBuilder CreateSyncEffect<T>(this StatusEffectDataBuilder b, string name, string desc, string textInsert, StatusEffectData effectToApply, string type = "", bool ongoing = true) where T : StatusEffectSync
+        public static StatusEffectDataBuilder CreateSyncEffect<T>(this StatusEffectDataBuilder b, string name, string desc, string textInsert, string effectToApply, string type = "", bool ongoing = true) where T : StatusEffectSync
         {
             return b.Create<T>(name)
                 .WithCanBeBoosted(true)
                 .WithText(desc)
                 .WithTextInsert(textInsert)
-                .WithIsStatus(false)
-                .WithStackable(true)
                 .WithType(type)
-                .FreeModify<T>(
+                .SubscribeToAfterAllBuildEvent(
                 (data) =>
                 {
-                    data.effectToApply = effectToApply;
-                    data.applyToFlags = StatusEffectApplyX.ApplyToFlags.Self;
-                    data.ongoing = ongoing;
+                    T syncData = data as T;
+                    syncData.effectToApply = AddressableLoader.Get<StatusEffectData>("StatusEffectData", effectToApply);
+                    syncData.applyToFlags = StatusEffectApplyX.ApplyToFlags.Self;
+                    syncData.ongoing = ongoing;
                 }
                 );
         }
@@ -109,6 +118,14 @@ namespace Sync
         public static TargetConstraint HasHealth() => ScriptableObject.CreateInstance<TargetConstraintHasHealth>();
         public static TargetConstraint HasCounter() => ScriptableObject.CreateInstance<TargetConstraintMaxCounterMoreThan>();
         public static TargetConstraint CanBeBoosted() => ScriptableObject.CreateInstance<TargetConstraintCanBeBoosted>();
+
+        public static TargetConstraint NotTrait(string traitName)
+        {
+            TargetConstraintHasTrait constraint = ScriptableObject.CreateInstance<TargetConstraintHasTrait>();
+            constraint.trait = SyncMain.Instance.Get<TraitData>(traitName);
+            constraint.not = true;
+            return constraint;
+        }
 
     }
 

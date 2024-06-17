@@ -38,7 +38,7 @@ namespace MultiplayerBase.Handlers
 
             transform.SetParent(GameObject.Find("CameraContainer/CameraMover/MinibossZoomer/CameraPositioner/CameraPointer/Animator/Rumbler/Shaker/InspectSystem").transform);
             transform.SetAsFirstSibling();
-            transform.position = defaultPosition;
+            //transform.position = defaultPosition;
 
             cc = gameObject.AddComponent<CardControllerSelectCard>();
             cc.pressEvent = new UnityEventEntity();
@@ -46,16 +46,16 @@ namespace MultiplayerBase.Handlers
             cc.unHoverEvent = new UnityEventEntity();
             cc.pressEvent.AddListener(SelectPing);
 
-            Image image = gameObject.AddComponent<Image>();
-            image.color = new Color(0f, 0f, 0f, 0.25f);
-
-            GetComponent<RectTransform>().sizeDelta = new Vector2(1, 1);
+            RectTransform rectTransform = gameObject.AddComponent<RectTransform>();
+            gameObject.AddComponent<WorldSpaceCanvasSafeArea>().parent = transform.parent.GetComponent<RectTransform>();
 
             SetLane(0);
 
-            hideButton = HelperUI.ButtonTemplate(transform, new Vector2(1f, 0.3f), new Vector3(-0.5f, 2f, 0), "", Color.gray);
+            hideButton = HelperUI.ButtonTemplate(transform, new Vector2(1f, 0.3f), new Vector3(-0.5f, 4.35f, 0), "", Color.gray);
+            hideButton.GetComponent<RectTransform>().SetInsetAndSizeFromParentEdge(RectTransform.Edge.Left, 1.5f, 1);
             hideButton.onClick.AddListener(ToggleHide);
-            clearButton = HelperUI.ButtonTemplate(transform, new Vector2(1f, 0.3f), new Vector3(0.5f, 2f, 0), "", Color.red);
+            clearButton = HelperUI.ButtonTemplate(transform, new Vector2(1f, 0.3f), new Vector3(0.5f, 4.35f, 0), "", Color.red);
+            clearButton.GetComponent<RectTransform>().SetInsetAndSizeFromParentEdge(RectTransform.Edge.Left, 2.5f, 1);
             clearButton.onClick.AddListener(Clear);
 
             HandlerSystem.HandlerRoutines.Add("INS", HandleMessage);
@@ -73,6 +73,7 @@ namespace MultiplayerBase.Handlers
                         ocv.gameObject.SetActive(true);
                     }
                 }
+                hideButton.GetComponent<Image>().color = Color.white;
                 hidden = false;
             }
             else
@@ -81,6 +82,7 @@ namespace MultiplayerBase.Handlers
                 {
                     ocv.gameObject.SetActive(false);
                 }
+                hideButton.GetComponent<Image>().color = Color.gray;
                 hidden = true;
             }
         }
@@ -92,7 +94,8 @@ namespace MultiplayerBase.Handlers
                 OtherCardViewer lane = HelperUI.OtherCardViewer($"Lane {lanes.Count()}", transform, cc);
                 lane.gameObject.SetActive(false);
                 lane.gap = gap;
-                lane.transform.localPosition = lanes.Count() * offset;
+                lane.transform.localPosition = new Vector3(0,2.7f,0) + lanes.Count() * offset;
+                lane.GetComponent<RectTransform>().SetInsetAndSizeFromParentEdge(RectTransform.Edge.Left, 6.5f, 1);
                 cc.hoverEvent.AddListener(lane.Hover);
                 cc.unHoverEvent.AddListener(lane.Unhover);
                 lanes.Add(lane);
@@ -206,7 +209,6 @@ namespace MultiplayerBase.Handlers
          */
         public IEnumerator DispCard(Friend friend, string[] messages, int index = 0, bool clear = true)
         {
-            GetComponent<Image>().color = Color.black;
             SetLane(index);
             lanes[laneIndex].SetSize(1, 0.5f);
             if (clear)
@@ -232,6 +234,10 @@ namespace MultiplayerBase.Handlers
             lanes[laneIndex].SetChildPositions();
             yield return card.UpdateData();
             card.entity.flipper.FlipUp(force: true);
+            if (hidden)
+            {
+                hideButton.GetComponent<Image>().color = Color.green;
+            }
         }
 
         public static Card CreateDisplayCard(CardController cc, string[] messages)
