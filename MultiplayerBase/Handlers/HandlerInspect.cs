@@ -240,6 +240,8 @@ namespace MultiplayerBase.Handlers
             }
         }
 
+        //CardData!customData!attackEffects!startWithEffects!traits!injuries!hp!damage!counter!upgrades!forceTitle!
+        //Entity!height!damageCurrent!damageMax!hpcurrent!hpMax!counterCurrent!counterMax!usesCurrent!usesMax!
         public static Card CreateDisplayCard(CardController cc, string[] messages)
         {
             Debug.Log("[Multiplayer] " + messages[0]);
