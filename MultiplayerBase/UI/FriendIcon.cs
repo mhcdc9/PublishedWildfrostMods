@@ -31,6 +31,7 @@ namespace MultiplayerBase.UI
             icon.textElement.color = Color.white;
             icon.textElement.outlineWidth = 0.1f;
             icon.textElement.transform.localScale *= 0.5f;
+            icon.textElement.alignment = TextAlignmentOptions.BottomRight;
             icon.textElement.transform.Translate(new Vector3(0.25f, -0.25f), icon.transform);
             SetSprite(image, imageTask);
             return icon;
@@ -59,6 +60,16 @@ namespace MultiplayerBase.UI
             }
             else if (HandlerSystem.friendStates[friend] == PlayerState.Event)
             {
+                if (friend.Id == HandlerSystem.self.Id)
+                {
+                    foreach(Friend friend in HandlerSystem.friends)
+                    {
+                        //if (friend.Id != HandlerSystem.self.Id)
+                        {
+                            HandlerEvent.instance.SendData(friend);
+                        }
+                    }
+                }
                 HandlerEvent.instance.AskForData(friend);
             }
             else if (HandlerSystem.friendStates[friend] == PlayerState.Map)

@@ -41,18 +41,20 @@ namespace MultiplayerBase.UI
             {
                 decorations.Remove(entity);
             }
+            entity.owner = null;
             base.Remove(entity);
         }
 
-        public override void RemoveAt(int index)
+        /*public override void RemoveAt(int index)
         {
             Entity entity = this[index];
             if (decorations.ContainsKey(entity))
             {
                 decorations.Remove(entity);
             }
+            entity.owner = null;
             base.RemoveAt(index);
-        }
+        }*/
 
         public void Hover(Entity entity)
         {
@@ -74,6 +76,8 @@ namespace MultiplayerBase.UI
 
         public void Unhover(Entity entity)
         {
+            if (entity == null) { return; }
+
             foreach(TextMeshProUGUI text in entity.gameObject.GetComponentsInChildren<TextMeshProUGUI>())
             {
                 if (text.gameObject.name == "Owner Text")

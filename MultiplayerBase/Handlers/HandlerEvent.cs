@@ -42,7 +42,7 @@ namespace MultiplayerBase.Handlers
                     for(int j=entities.Length-1; j>=0; j--)
                     {
                         Entity entity = entities[j];
-                        s = $"DISP!{i}!{flag}!{HandlerInspect.EncodeEntity(entity, entity.data.id)}";
+                        s = $"DISP!{i}!{flag}!{CardEncoder.Encode(entity.data, entity.data.id)}";
                         HandlerSystem.SendMessage("EVE", friend, s);
                         flag = "F";
                     }

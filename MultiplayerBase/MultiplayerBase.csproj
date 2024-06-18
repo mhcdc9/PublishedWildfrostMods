@@ -442,6 +442,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Handlers\CardControllerMultiplayerBattle.cs" />
+    <Compile Include="Handlers\CardEncoder.cs" />
     <Compile Include="UI\Dashboard.cs" />
     <Compile Include="Handlers\HandlerBattle.cs" />
     <Compile Include="Handlers\HandlerDeck.cs" />
@@ -453,7 +455,6 @@
     <Compile Include="UI\HelperUI.cs" />
     <Compile Include="Matchmaking.cs" />
     <Compile Include="MultiplayerMain.cs" />
-    <Compile Include="Network.cs" />
     <Compile Include="UI\OtherCardViewer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

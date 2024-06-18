@@ -182,7 +182,14 @@ namespace MultiplayerBase
         {
             if (battleController == null)
             {
-                battleController = GameObject.FindObjectOfType<CardControllerBattle>();
+                foreach (CardControllerBattle cc in GameObject.FindObjectsOfType<CardControllerBattle>())
+                {
+                    if (cc.name == "CardController")
+                    {
+                        battleController = cc;
+                        break;
+                    }
+                }
             }
             cardController = battleController;
         }
@@ -200,7 +207,14 @@ namespace MultiplayerBase
         {
             if (PatchBattleScript1.battleController == null)
             {
-                PatchBattleScript1.battleController = GameObject.FindObjectOfType<CardControllerBattle>();
+                foreach(CardControllerBattle cc in GameObject.FindObjectsOfType<CardControllerBattle>())
+                {
+                    if (cc.name == "CardController")
+                    {
+                        PatchBattleScript1.battleController = cc;
+                        break;
+                    }
+                }
             }
             cardController = PatchBattleScript1.battleController;
         }
@@ -220,6 +234,31 @@ namespace MultiplayerBase
                 return false;
             }
             return true;
+        }
+    }
+
+    [HarmonyPatch(typeof(NavigationStateBattle), "Begin")]
+    internal static class PatchBeginNav
+    {
+        static bool Prefix(NavigationStateBattle __instance)
+        {
+            foreach(CardContainer lane in References.Battle.rows.Values.SelectMany((List<CardContainer> a) => a).Cast<CardContainer>())
+            {
+                if (lane is CardSlotLane allRow)
+                {
+                    __instance.Disable(allRow.nav);
+                    foreach (CardSlot slot in allRow.slots)
+                    {
+                        __instance.Disable(slot.nav);
+                    }
+                }
+            }
+
+            if (References.Battle.playerCardController is CardControllerBattle cardControllerBattle)
+            {
+                __instance.Disable(cardControllerBattle.useOnHandAnchor);
+            }
+            return false;
         }
     }
 }

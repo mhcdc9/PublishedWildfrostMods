@@ -16,7 +16,7 @@ namespace MultiplayerBase.Handlers
     internal class HandlerInspect : MonoBehaviour
     {
         Vector3 defaultPosition = new Vector3(-8.6f, 2.35f, 0);
-        private CardControllerSelectCard cc;
+        internal CardControllerSelectCard cc;
         //Friend friend;
         //ulong id;
         public static HandlerInspect instance;
@@ -51,7 +51,7 @@ namespace MultiplayerBase.Handlers
 
             SetLane(0);
 
-            hideButton = HelperUI.ButtonTemplate(transform, new Vector2(1f, 0.3f), new Vector3(-0.5f, 4.35f, 0), "", Color.gray);
+            hideButton = HelperUI.ButtonTemplate(transform, new Vector2(1f, 0.3f), new Vector3(-0.5f, 4.35f, 0), "", Color.white);
             hideButton.GetComponent<RectTransform>().SetInsetAndSizeFromParentEdge(RectTransform.Edge.Left, 1.5f, 1);
             hideButton.onClick.AddListener(ToggleHide);
             clearButton = HelperUI.ButtonTemplate(transform, new Vector2(1f, 0.3f), new Vector3(0.5f, 4.35f, 0), "", Color.red);
@@ -95,7 +95,8 @@ namespace MultiplayerBase.Handlers
                 lane.gameObject.SetActive(false);
                 lane.gap = gap;
                 lane.transform.localPosition = new Vector3(0,2.7f,0) + lanes.Count() * offset;
-                lane.GetComponent<RectTransform>().SetInsetAndSizeFromParentEdge(RectTransform.Edge.Left, 6.5f, 1);
+                lane.GetComponent<RectTransform>().SetInsetAndSizeFromParentEdge(RectTransform.Edge.Left, 2f, 1);
+                lane.owner = HandlerSystem.playerDummy;
                 cc.hoverEvent.AddListener(lane.Hover);
                 cc.unHoverEvent.AddListener(lane.Unhover);
                 lanes.Add(lane);
@@ -132,7 +133,8 @@ namespace MultiplayerBase.Handlers
             Friend friend = HandlerSystem.self;
             ulong id = entity.data.id;
             string s = $"DISP!{friend.Name}!";
-            s += EncodeEntity(entity, id);
+            //s += EncodeEntity(entity, id);
+            s += CardEncoder.Encode(entity, id);
             HandlerSystem.SendMessageToAll("INS", s);    
         }
 
@@ -178,35 +180,6 @@ namespace MultiplayerBase.Handlers
             
         }
 
-        /*
-         * CardData:
-         * id
-         * name
-         * title
-         * hp
-         * damage
-         * counter
-         * random3
-         * upgrades
-         * customData
-         * attackEffects
-         * startWithEffects
-         * traits
-         * injuries
-         * 
-         * BattleEntity:
-         * height
-         * damage.current
-         * damage.max
-         * hp.current
-         * hp.max
-         * counter.current
-         * counter.max
-         * uses.current
-         * uses.max
-         * flipped
-         * attackEffects
-         */
         public IEnumerator DispCard(Friend friend, string[] messages, int index = 0, bool clear = true)
         {
             SetLane(index);
@@ -229,11 +202,12 @@ namespace MultiplayerBase.Handlers
                 owner = friend;
             }
             ulong id = ulong.Parse(messages[2]); //2 -> id
-            Card card = CreateDisplayCard(cc, messages.Skip(3).ToArray());
-            lanes[laneIndex].Add(card.entity,owner, id);
+
+            Entity entity = CardEncoder.DecodeEntity1(cc, lanes[laneIndex].owner, messages.Skip(3).ToArray());
+            yield return CardEncoder.DecodeEntity2(entity, messages.Skip(3).ToArray());
+            lanes[laneIndex].Add(entity,owner, id);
             lanes[laneIndex].SetChildPositions();
-            yield return card.UpdateData();
-            card.entity.flipper.FlipUp(force: true);
+            entity.flipper.FlipUp(force: true);
             if (hidden)
             {
                 hideButton.GetComponent<Image>().color = Color.green;
@@ -242,9 +216,10 @@ namespace MultiplayerBase.Handlers
 
         //CardData!customData!attackEffects!startWithEffects!traits!injuries!hp!damage!counter!upgrades!forceTitle!
         //Entity!height!damageCurrent!damageMax!hpcurrent!hpMax!counterCurrent!counterMax!usesCurrent!usesMax!
-        public static Card CreateDisplayCard(CardController cc, string[] messages)
+        public static Card CreateDisplayCard(CardController cc, CardContainer container, string[] messages)
         {
             Debug.Log("[Multiplayer] " + messages[0]);
+            /*
             CardData cardData = AddressableLoader.Get<CardData>("CardData", messages[0]).Clone(false); //3(0) -> Carddata
             if (!messages[1].IsNullOrWhitespace())
             {
@@ -261,7 +236,9 @@ namespace MultiplayerBase.Handlers
                 Debug.Log("[Multiplayer] Leader Detected.");
                 cardData.customData = References.PlayerData.inventory.deck.FirstOrDefault((deckcard) => deckcard.cardType.name == "Leader").customData;
             }
-            Card card = CardManager.Get(cardData, cc, HandlerSystem.enemyDummy, inPlay: false, isPlayerCard: true);
+            */
+            CardData cardData = CardEncoder.DecodeData(messages);
+            Card card = CardManager.Get(cardData, cc, container.owner, inPlay: false, isPlayerCard: true);
             if (References.Battle?.cards != null)
             {
                 References.Battle.cards.Remove(card.entity);

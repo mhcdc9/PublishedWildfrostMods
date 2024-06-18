@@ -116,7 +116,7 @@ namespace Sync
                 );
 
             effects.Add(new StatusEffectDataBuilder(this)
-                .CreateSyncEffect<StatusEffectSync>("Sync Smackback", "<keyword=mhcdc9.wildfrost.sync.sync>: <keyword=zoomlin>", "", "mhcdc9.wildfrost.sync.Temporary Smackback")
+                .CreateSyncEffect<StatusEffectSync>("Sync Smackback", "<keyword=mhcdc9.wildfrost.sync.sync>: <keyword=smackback>", "", "mhcdc9.wildfrost.sync.Temporary Smackback")
                 .WithConstraints(Extensions.DoesAttack(), Extensions.NotTrait("Smackback"))
                 );
 
