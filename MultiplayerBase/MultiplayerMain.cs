@@ -43,8 +43,19 @@ namespace MultiplayerBase
 
         public override string Description => "This mod provides barebones matchmaking and helpful functions.";
 
+        public void CreateModAssets()
+        {
+            AddressableLoader.AddToGroup("KeywordData",
+            new KeywordDataBuilder(this).Create("friend")
+                .WithTitle("Party Memebers")
+                .WithDescription("How did you find this")
+                .Build()
+                );
+        }
+
         public override void Load()
         {
+            CreateModAssets();
             base.Load();
             GameObject gameobject = new GameObject("Matchmaker");
             gameobject.transform.SetParent(GameObject.Find("Canvas/SafeArea").transform);
@@ -244,9 +255,9 @@ namespace MultiplayerBase
         {
             foreach(CardContainer lane in References.Battle.rows.Values.SelectMany((List<CardContainer> a) => a).Cast<CardContainer>())
             {
+                __instance.Disable(lane.nav);
                 if (lane is CardSlotLane allRow)
-                {
-                    __instance.Disable(allRow.nav);
+                {  
                     foreach (CardSlot slot in allRow.slots)
                     {
                         __instance.Disable(slot.nav);

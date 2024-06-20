@@ -14,6 +14,9 @@ using UnityEngine.Events;
 using UnityEngine.UIElements;
 using Button = UnityEngine.UI.Button;
 using MultiplayerBase.UI;
+using MultiplayerBase.Battles;
+using Steamworks.Data;
+using Color = UnityEngine.Color;
 
 namespace MultiplayerBase.Handlers
 {
@@ -23,11 +26,17 @@ namespace MultiplayerBase.Handlers
 
         public static HandlerBattle instance;
         public static readonly List<PlayAction> actions = new List<PlayAction>();
+        public static Friend friend;
 
         GameObject background;
 
+        //Use Blcoking for your PlayActions
+        public bool Blocking => background != null && background.activeSelf;
+
         private CardControllerSelectCard cc => HandlerInspect.instance.cc;
         private CardControllerBattle cb;
+
+        public CardControllerBattle CB => cb;
 
         int lanes = 2;
         OtherCardViewer[] playerLanes;
@@ -73,29 +82,80 @@ namespace MultiplayerBase.Handlers
             for (int i = 0; i < playerLanes.Length; i++)
             {
                 playerLanes[i] = HelperUI.OtherCardViewer($"Player Row {i + 1}", background.transform, cc);
-                playerLanes[i].transform.localPosition = new Vector3(-0.47f, 0.26f - 0.43f * i, 0);
+                playerLanes[i].transform.localPosition = new Vector3(-0.67f, 0.26f - 0.43f * i, 0);
                 //0.47, -0.17
                 //0.47, 0.26
-                playerLanes[i].owner = HandlerSystem.playerDummy;
                 playerLanes[i].dir = 1;
                 playerLanes[i].gap = new Vector3(1f, 0, 0);
                 playerLanes[i].SetSize(3, 0.6667f);
+                playerLanes[i].gameObject.AddComponent<UINavigationItem>();
                 cc.hoverEvent.AddListener(playerLanes[i].Hover);
                 cc.unHoverEvent.AddListener(playerLanes[i].Unhover);
+                playerLanes[i].AssignController(cb);
             }
 
             enemyLanes = new OtherCardViewer[lanes];
             for (int i = 0; i < enemyLanes.Length; i++)
             {
                 enemyLanes[i] = HelperUI.OtherCardViewer($"Enemy Row {i + 1}", background.transform, cc);
-                enemyLanes[i].transform.localPosition = new Vector3(0.47f, 0.26f - 0.43f * i, 0);
+                enemyLanes[i].transform.localPosition = new Vector3(0.67f, 0.26f - 0.43f * i, 0);
                 enemyLanes[i].gap = new Vector3(1f, 0, 0);
                 enemyLanes[i].SetSize(3, 0.6667f);
-                enemyLanes[i].owner = HandlerSystem.enemyDummy;
+                enemyLanes[i].gameObject.AddComponent<UINavigationItem>();
                 cc.hoverEvent.AddListener(enemyLanes[i].Hover);
                 cc.unHoverEvent.AddListener(enemyLanes[i].Unhover);
+                enemyLanes[i].AssignController(cb);
             }
             background.SetActive(false);
+        }
+
+        //BattleViewer should not be opened when interesting things can happen.
+        private void OpenBattleViewer(Friend friend)
+        {
+            if (!ActionQueue.Empty)
+            {
+                return;
+            }
+            if (Battle.instance != null)
+            {
+                if (Battle.instance.phase == Battle.Phase.Battle || References.Player.endTurn)
+                {
+                    return;
+                }
+                SetOwners(References.Player, Battle.GetOpponent(References.Player));
+                background.transform.SetParent(GameObject.Find("Battle/Canvas/CardController/Board/Canvas").transform);
+                background.transform.localScale = new Vector3(10f, 10f, 1);
+                cb.owner = References.Player;
+                cb.useOnHandAnchor = ((CardControllerBattle)References.Battle.playerCardController).useOnHandAnchor;
+                AddRowsToBattle();
+            }
+            else
+            {
+                SetOwners(HandlerSystem.playerDummy, HandlerSystem.enemyDummy);
+                background.transform.localScale = new Vector3(3.5f, 3.5f, 1);
+            }
+            Clear();
+            AskForData(friend);
+            background.transform.localPosition = defaultPosition;
+            background.SetActive(true);
+            LeanTween.moveLocal(background, viewerPosition, 0.75f).setEase(LeanTweenType.easeInOutQuart);
+            //StartCoroutine(PopulateRows());
+            HandlerBattle.friend = friend;
+        }
+
+        public void CloseBattleViewer()
+        {
+            if (Battle.instance != null)
+            {
+                if (!(NavigationState.PeekCurrentState() is NavigationStateBattle))
+                {
+                    return;
+                }
+                RemoveRowsFromBattle();
+            }
+            background.SetActive(false);
+            background.transform.SetParent(transform);
+            Clear();
         }
 
         public void ToggleViewer(Friend friend)
@@ -104,50 +164,61 @@ namespace MultiplayerBase.Handlers
             {
                 CreateBattleViewer();
             }
-            if (background.activeSelf)
+            if (Blocking)
             {
-                background.SetActive(false);
-                background.transform.SetParent(transform);
-                Clear();
+                CloseBattleViewer();
             }
             else
             {
-                Clear();
-                AskForData(friend);
-                if (Battle.instance != null)
-                {
-                    background.transform.SetParent(GameObject.Find("Battle/Canvas/CardController/Board/Canvas").transform);
-                    background.transform.localScale = new Vector3(10f, 10f, 1);
-                    cb.owner = References.Player;
-                    cb.useOnHandAnchor = ((CardControllerBattle)References.Battle.playerCardController).useOnHandAnchor;
-                    AddRowsToBattle();
-                }
-                else
-                {
-                    background.transform.localScale = new Vector3(3.5f, 3.5f, 1);
-                }
-                background.transform.localPosition = defaultPosition;
-                background.SetActive(true);
-                LeanTween.moveLocal(background, viewerPosition, 0.75f).setEase(LeanTweenType.easeInOutQuart);
-                //StartCoroutine(PopulateRows());
+                OpenBattleViewer(friend);
             }
         }
 
         public void AddRowsToBattle()
         {
             
-            if (!Battle.instance.rows.ContainsKey(HandlerSystem.playerDummy))
+            if (!Battle.instance.rows[References.Player].Contains(playerLanes[0]))
             {
-                Battle.instance.rows.Add(HandlerSystem.playerDummy, playerLanes.Select((row) => (CardContainer)row).ToList() );
-            }
-            if (!Battle.instance.rows.ContainsKey(HandlerSystem.enemyDummy))
-            {
-                Battle.instance.rows.Add(HandlerSystem.enemyDummy, enemyLanes.Select((row) => (CardContainer)row).ToList());
+                Battle.instance.rows[References.Player].AddRange(playerLanes.Select((row) => (CardContainer)row));
+                Battle.instance.rows[Battle.GetOpponent(References.Player)].AddRange(enemyLanes.Select((row) => (CardContainer)row));
             }
             foreach(Entity entity in References.Player.handContainer)
             {
                 entity.display.hover.controller = cb;
             }
+            Battle.instance.playerCardController.enabled = false;
+            References.Player.handContainer.AssignController(cb);
+        }
+
+        private void SetOwners(Character playerOwner, Character enemyOwner)
+        {
+            foreach(OtherCardViewer ocv in playerLanes)
+            {
+                ocv.owner = playerOwner;
+            }
+            foreach(OtherCardViewer ocv in  enemyLanes)
+            {
+                ocv.owner = enemyOwner;
+            }
+        }
+
+        public void RemoveRowsFromBattle()
+        {
+
+            foreach(CardContainer lane in playerLanes)
+            {
+                Battle.instance.rows[References.Player].Remove(lane);
+            }
+            foreach (CardContainer lane in enemyLanes)
+            {
+                Battle.instance.rows[Battle.GetOpponent(References.Player)].Remove(lane);
+            }
+            foreach (Entity entity in References.Player.handContainer)
+            {
+                entity.display.hover.controller = Battle.instance.playerCardController;
+            }
+            Battle.instance.playerCardController.enabled = true;
+            References.Player.handContainer.AssignController(References.Battle.playerCardController);
         }
 
         public void Clear()
@@ -225,7 +296,88 @@ namespace MultiplayerBase.Handlers
                 case "PLAYER":
                     StartCoroutine(PlacePlayerCard(friend, messages));
                     break;
+                case "PLAY":
+                    if(Battle.instance != null)
+                    {
+                        StartCoroutine(PlayCard(friend, messages));
+                    }
+                    break;
             }
+        }
+
+        public IEnumerator PlayCard(Friend friend, string[] messages)
+        {
+            string[] targets = messages[1].Split(' ');
+            Debug.Log($"[Multiplayer] {targets[0]}");
+            PlayAction action = null;
+            switch (targets[0])
+            {
+                case "NON":
+                    action = new ActionPlayOtherCard(messages.Skip(3).ToArray(), null, null);
+                    break;
+                case "ENT":
+                    ulong id = ulong.Parse(targets[1]);
+                    foreach (Entity entity in UnityEngine.Object.FindObjectsOfType<Entity>())
+                    {
+                        if (entity?.data?.id == id && Battle.IsOnBoard(entity))
+                        {
+                            action = new ActionPlayOtherCard(messages.Skip(3).ToArray(), entity, null);
+                            break;
+                        }
+                    }
+                    break;
+                case "ROW":
+                    id = ulong.Parse(targets[1]);
+                    CardContainer container = FindContainerID(id);
+                    if (container != null)
+                    {
+                        action = new ActionPlayOtherCard(messages.Skip(3).ToArray(), null, container);
+                    }
+                    break;
+            }
+            if (action != null)
+            {
+                yield return new WaitUntil(() => !Blocking);
+                ActionQueue.Add(action);
+            }
+            yield break;
+        }
+
+        public CardContainer FindContainerID(ulong id)
+        {
+            switch (id)
+            {
+                case 0:
+                    return References.Battle.GetRow(References.Player,0);
+                case 1:
+                    return References.Battle.GetRow(References.Player, 1);
+                case 2:
+                    return References.Battle.GetRow(Battle.GetOpponent(References.Player), 0);
+                case 3:
+                    return References.Battle.GetRow(Battle.GetOpponent(References.Player), 1);
+            }
+            return null;
+        }
+
+        public ulong ConvertToID(CardContainer container)
+        {
+            if (container == playerLanes[0])
+            {
+                return 0;
+            }
+            else if (container == playerLanes[1])
+            {
+                return 1;
+            }
+            else if (container == enemyLanes[0])
+            {
+                return 2;
+            }
+            else if (container == enemyLanes[1])
+            {
+                return 3;
+            }
+            return 42;
         }
 
         public IEnumerator PlacePlayerCard(Friend friend, string[] messages)
@@ -317,6 +469,11 @@ namespace MultiplayerBase.Handlers
             {
                 HandlerSystem.SendMessageToAllOthers("BAT", "ASK!INFO!");
             }
+        }
+
+        public static List<CardContainer> GetContainers()
+        {
+            return instance.playerLanes.Concat(instance.enemyLanes).Select((a) => (CardContainer)a).ToList();
         }
     }
 }

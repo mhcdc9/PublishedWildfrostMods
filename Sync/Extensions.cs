@@ -23,10 +23,10 @@ namespace Sync
                 });
         }
 
-        public static StatusEffectDataBuilder CreateSyncEffect<T>(this StatusEffectDataBuilder b, string name, string desc, string textInsert, string effectToApply, string type = "", bool ongoing = true) where T : StatusEffectSync
+        public static StatusEffectDataBuilder CreateSyncEffect<T>(this StatusEffectDataBuilder b, string name, string desc, string textInsert, string effectToApply, string type = "", bool boostable = false, bool ongoing = true) where T : StatusEffectSync
         {
             return b.Create<T>(name)
-                .WithCanBeBoosted(true)
+                .WithCanBeBoosted(boostable)
                 .WithText(desc)
                 .WithTextInsert(textInsert)
                 .WithType(type)

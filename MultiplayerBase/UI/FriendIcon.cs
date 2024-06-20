@@ -11,6 +11,10 @@ using UnityEngine.UI;
 using Steamworks;
 using MultiplayerBase.Handlers;
 using TMPro;
+using UnityEngine.EventSystems;
+using UnityEngine.Localization;
+using Deadpan.Enums.Engine.Components.Modding;
+using UnityEngine.Localization.Tables;
 
 namespace MultiplayerBase.UI
 {
@@ -18,8 +22,14 @@ namespace MultiplayerBase.UI
     {
         protected Friend friend;
         protected TextMeshProUGUI textElement;
+        protected static  KeywordData keyword;
+        protected bool popped = false;
         public static FriendIcon Create(Transform transform, Vector2 dim, Vector3 pos, Friend friend)
         {
+            if (keyword == null)
+            {
+                keyword = AddressableLoader.Get<KeywordData>("KeywordData", "mhcdc9.wildfrost.multiplayer.friend");
+            }
             Task<Steamworks.Data.Image?> imageTask = friend.GetLargeAvatarAsync();
             Button button = HelperUI.ButtonTemplate(transform, dim, pos, "", Color.white);
             FriendIcon icon = button.gameObject.AddComponent<FriendIcon>();
@@ -34,7 +44,45 @@ namespace MultiplayerBase.UI
             icon.textElement.alignment = TextAlignmentOptions.BottomRight;
             icon.textElement.transform.Translate(new Vector3(0.25f, -0.25f), icon.transform);
             SetSprite(image, imageTask);
+            EventTrigger trigger = button.gameObject.AddComponent<EventTrigger>();
+            EventTrigger.Entry pointerEnter = new EventTrigger.Entry();
+            pointerEnter.eventID = EventTriggerType.PointerEnter;
+            pointerEnter.callback.AddListener(b => { icon.Pop(); });
+            trigger.triggers.Add(pointerEnter);
+            EventTrigger.Entry pointerExit = new EventTrigger.Entry();
+            pointerExit.eventID = EventTriggerType.PointerExit;
+            pointerExit.callback.AddListener(b => { icon.Unpop(); });
+            trigger.triggers.Add(pointerExit);
             return icon;
+        }
+
+        public void Pop()
+        {
+            if (popped) { return; }
+            string[] adj = { "Hearty", "Wise", "Shady", "<sprite name=crown>'d", "Bootleg", 
+                "Greedy", "Wild", "<sprite name=enemy crown>'d", "Scrappy", "Sunny", 
+                "Spiced-up", "Frostblooded", "Hogheaded", "Zooming", "Faithful", 
+                "Furious", "Frenzied", "Overburnt", "Soulbound", "Toothy", "Shelled", 
+                "Sparked", "<sprite name=snow>'d", "Gnomish", "Datermined", "Charmless",
+                "High-rolling", "Ribbiting"};
+            string[] noun = { "Snowdweller", "Shademancer", "Clunkmaster", "Petmaster", "Bellringer", "Pengoon", "Makoko", "Gobling", "Gnomebot", "Woodhead", "Shopkeeper", "Sunbringer", "High Roller", "Frog"};
+            string title = (friend.Id == HandlerSystem.self.Id) ? $"{friend.Name} (:3)" : $"{friend.Name}";
+            StringTable collection = LocalizationHelper.GetCollection("Tooltips", SystemLanguage.English);
+            collection.SetString(keyword.name + "_title", title);
+            string text = $"The {adj.RandomItem()} {noun.RandomItem()}\n\n";
+            if (friend.Id == HandlerSystem.self.Id)
+            {
+                text += $"You enlisted the help of others on your journey through the storm";
+            }
+            CardPopUp.AssignTo((RectTransform)transform, 1f, 0.25f);
+            CardPopUp.AddPanel(keyword, text);
+            popped = true;
+        }
+
+        public void Unpop()
+        {
+            CardPopUp.RemovePanel(keyword.name);
+            popped = false;
         }
 
         public static async void SetSprite(Image image, Task<Steamworks.Data.Image?> imageTask)

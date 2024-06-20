@@ -121,6 +121,23 @@ namespace MultiplayerBase.Handlers
             }
         }
 
+        public static ulong FindTrueID(Entity entity)
+        {
+            if (entity?.containers == null)
+            {
+                return 0;
+            }
+            foreach (CardContainer container in entity.containers)
+            {
+                if (container is OtherCardViewer ocv)
+                {
+                    (_, ulong id) = ocv.Find(entity);
+                    return id;
+                }
+            }
+            return 0;
+        }
+
         public static void SelectDisp(Entity entity)
         {
             foreach(OtherCardViewer ocv in instance.lanes)

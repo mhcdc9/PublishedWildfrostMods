@@ -442,7 +442,10 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Handlers\CardControllerMultiplayerBattle.cs" />
+    <Compile Include="Battles\ActionSendCardToPlay.cs" />
+    <Compile Include="Battles\CardControllerMultiplayerBattle.cs" />
+    <Compile Include="Battles\ActionPlayOtherCard.cs" />
+    <Compile Include="Battles\NavigationStateMultiplayerCard.cs" />
     <Compile Include="Handlers\CardEncoder.cs" />
     <Compile Include="UI\Dashboard.cs" />
     <Compile Include="Handlers\HandlerBattle.cs" />

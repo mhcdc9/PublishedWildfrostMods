@@ -1,4 +1,5 @@
-﻿using Steamworks.Data;
+﻿using MultiplayerBase.Handlers;
+using Steamworks.Data;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -106,7 +107,7 @@ namespace Sync
 
         public override IEnumerator Run()
         {
-            yield return new WaitUntil(() => (Battle.instance == null || Battle.instance.phase == Battle.Phase.Play) );
+            yield return new WaitUntil(() => (Battle.instance == null || Battle.instance.phase != Battle.Phase.Battle || !HandlerBattle.instance.Blocking) );
             if (Battle.instance == null)
             {
                 yield break;
