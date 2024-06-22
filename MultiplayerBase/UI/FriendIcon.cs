@@ -115,12 +115,13 @@ namespace MultiplayerBase.UI
                     currentInfo = ExplanationText_Ally["Default"];
                 }
             }
-            currentInfo = currentInfo.Format(friend.Name);
-            switch(scene)
+            if (scene == "Battle")
             {
-                case "Battle":
-                    currentInfo = currentInfo.Format(friend.Name, "???");
-                    break;
+                currentInfo = currentInfo.Format(friend.Name, "???");
+            }
+            else
+            {
+                currentInfo = currentInfo.Format(friend.Name);
             }
         }
 
@@ -138,10 +139,7 @@ namespace MultiplayerBase.UI
             StringTable collection = LocalizationHelper.GetCollection("Tooltips", SystemLanguage.English);
             collection.SetString(keyword.name + "_title", title);
             string text = $"The {adj.RandomItem()} {noun.RandomItem()}\n\n";
-            if (friend.Id == HandlerSystem.self.Id)
-            {
-                text += currentInfo;
-            }
+            text += currentInfo;
             CardPopUp.AssignTo((RectTransform)transform, 1f, 0.25f);
             CardPopUp.AddPanel(keyword, text);
             popped = true;
