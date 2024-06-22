@@ -141,14 +141,7 @@ namespace MultiplayerBase
                 lobbies = new Lobby[0];
                 return;
             }
-            if (lobbyList.Length > 0)
-            {
-                MultiplayerMain.textElement.text = $"<size=0.55><color=#FC5>{lobbyList.Length} lobbies found!</color></size>";
-            }
-            else
-            {
-                MultiplayerMain.textElement.text = $"No lobbies found. :(";
-            }
+            MultiplayerMain.textElement.text = $"<size=0.55><color=#FC5>{lobbies.Length} lobbies found!</color></size>";
             foreach (Lobby lobby in lobbies)
             {
                 Debug.Log(lobby.Owner.Name);
