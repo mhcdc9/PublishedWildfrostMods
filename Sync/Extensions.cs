@@ -84,7 +84,7 @@ namespace Sync
                 return false;
             foreach ((string, int) stack in options.InRandomOrder())
             {
-                StatusEffectData effect = SyncMain.Instance.Get<StatusEffectData>(stack.Item1).InstantiateKeepName();
+                StatusEffectData effect = SyncMain.Instance.Get<StatusEffectData>(stack.Item1);
                 if (CheckConstraints(effect, data))
                 {
                     data.startWithEffects = CardData.StatusEffectStacks.Stack(data.startWithEffects, new CardData.StatusEffectStacks[]
@@ -98,6 +98,37 @@ namespace Sync
                     return true;
                 }
             }
+            return false;
+        }
+
+        public static bool TryAddMyst(Entity e)
+        {
+            if (TryAddMyst(e.data, e))
+            {
+                References.instance.StartCoroutine(e.display.UpdateData(true));
+                e.display.promptUpdateDescription = true;
+                e.PromptUpdate();
+                return true;
+            }
+            return false;
+        }
+
+        public static bool TryAddMyst(CardData data, Entity entity = null)
+        {
+            if (data == null) { return false; }
+            StatusEffectData effect = SyncMain.Instance.Get<StatusEffectData>("Mystical");
+            if (CheckConstraints(effect, data))
+            {
+                data.startWithEffects = CardData.StatusEffectStacks.Stack(data.startWithEffects, new CardData.StatusEffectStacks[]
+                {
+                    new CardData.StatusEffectStacks(effect, 1)
+                });
+                if (entity != null)
+                {
+                    effect.InstantiateKeepName().Apply(1, entity, null);
+                }
+                return true;
+                }
             return false;
         }
 
@@ -118,6 +149,15 @@ namespace Sync
         public static TargetConstraint HasHealth() => ScriptableObject.CreateInstance<TargetConstraintHasHealth>();
         public static TargetConstraint HasCounter() => ScriptableObject.CreateInstance<TargetConstraintMaxCounterMoreThan>();
         public static TargetConstraint CanBeBoosted() => ScriptableObject.CreateInstance<TargetConstraintCanBeBoosted>();
+
+        public static TargetConstraint IsItem() => ScriptableObject.CreateInstance<TargetConstraintIsItem>();
+
+        public static TargetConstraint IsPlay()
+        {
+            TargetConstraintPlayType play =  ScriptableObject.CreateInstance<TargetConstraintPlayType>();
+            play.targetPlayType = Card.PlayType.Play;
+            return play;
+        }
 
         public static TargetConstraint NotTrait(string traitName)
         {

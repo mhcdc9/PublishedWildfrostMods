@@ -24,6 +24,40 @@ namespace MultiplayerBase.UI
         protected TextMeshProUGUI textElement;
         protected static  KeywordData keyword;
         protected bool popped = false;
+
+
+        protected string currentScene = "";
+        protected string currentInfo = "";
+        public static Dictionary<string, string> ExplanationText_Ally = new Dictionary<string,string>(){ 
+            {"Battle", "Click to view <{0}'s> battle against <{1}>" },
+            {"MapNew", "Click to view <{0}'s> future map choices" },
+            {"Event", "Click to view <{0}'s> event choices" },
+            {"MainMenu", "<{0}> is enjoying the cliff-view"},
+            {"Town", "<{0}> is preparing for the journey ahead"},
+            {"CharacterSelect", "<{0}> is in the middle of self-reflection" },
+            {"Default", "Where did <{0}> go?" },
+        };
+
+        public static Dictionary<string, string> ExplanationText_Self = new Dictionary<string, string>(){
+            {"Battle", "Click to view... your own battle?" },
+            {"MapNew", "Click to view... a map of your map?" },
+            {"Event", "Click to ask for advice from your party" },
+            {"MainMenu", "You answered the call to end the storm"},
+            {"Town", "You answered the call to end the storm"},
+            {"CharacterSelect", "Time for some self-reflection. Who are you?" },
+            {"Default", "Where are you?" },
+        };
+
+        public static Dictionary<string, string> ExplanationText_Host = new Dictionary<string, string>(){
+            {"MainMenu", "<{0}> enlisted your help on this journey to the frostlands"},
+            {"Town", "<{0}> enlisted your help on this journey to the frostlands"}
+        };
+
+        public static Dictionary<string, string> ExplanationText_SelfHost = new Dictionary<string, string>(){
+            {"MainMenu", "<{1}> people answered your call to the frostlands"},
+            {"Town", "<{1}> people answered your call to the frostlands"}
+        };
+
         public static FriendIcon Create(Transform transform, Vector2 dim, Vector3 pos, Friend friend)
         {
             if (keyword == null)
@@ -56,23 +90,57 @@ namespace MultiplayerBase.UI
             return icon;
         }
 
+        public void SceneChanged(string scene)
+        {
+            currentScene = scene;
+            if (friend.Id == HandlerSystem.self.Id)
+            {
+                if (ExplanationText_Self.ContainsKey(scene))
+                {
+                    currentInfo = ExplanationText_Self[scene];
+                }
+                else
+                {
+                    currentInfo = ExplanationText_Self["Default"];
+                }
+            }
+            else
+            {
+                if (ExplanationText_Ally.ContainsKey(scene))
+                {
+                    currentInfo = ExplanationText_Ally[scene];
+                }
+                else
+                {
+                    currentInfo = ExplanationText_Ally["Default"];
+                }
+            }
+            currentInfo = currentInfo.Format(friend.Name);
+            switch(scene)
+            {
+                case "Battle":
+                    currentInfo = currentInfo.Format(friend.Name, "???");
+                    break;
+            }
+        }
+
         public void Pop()
         {
             if (popped) { return; }
-            string[] adj = { "Hearty", "Wise", "Shady", "<sprite name=crown>'d", "Bootleg", 
-                "Greedy", "Wild", "<sprite name=enemy crown>'d", "Scrappy", "Sunny", 
-                "Spiced-up", "Frostblooded", "Hogheaded", "Zooming", "Faithful", 
-                "Furious", "Frenzied", "Overburnt", "Soulbound", "Toothy", "Shelled", 
-                "Sparked", "<sprite name=snow>'d", "Gnomish", "Datermined", "Charmless",
-                "High-rolling", "Ribbiting"};
-            string[] noun = { "Snowdweller", "Shademancer", "Clunkmaster", "Petmaster", "Bellringer", "Pengoon", "Makoko", "Gobling", "Gnomebot", "Woodhead", "Shopkeeper", "Sunbringer", "High Roller", "Frog"};
+            string[] adj = { "<sprite name=crown>'d", "<sprite name=enemy crown>'d", "<sprite name=snow>'d", "Bootleg",  "Charmless", 
+                "Determined", "Gnomish", "Greedy", "Faithful", "Frostblooded", 
+                "Frenzied", "Furious", "Hearty", "High-rolling", "Hogheaded",
+                "Nyoooom", "Overburnt", "Ribbiting", "Scrappy", "Shady", 
+                "Shelled", "Soulbound", "Sparked", "Spiced-up", "Sunny", 
+                "Toothy", "Wild", "Wise", "Zoomin'"};
+            string[] noun = { "Snowdweller", "Shademancer", "Clunkmaster", "Petmaster", "Bellringer", "Pengoon", "Makoko", "Gobling", "Gnomebot", "Woodhead", "Shopkeeper", "Sunbringer", "High Roller", "Frog", "Combo Seeker", "Card Sharp", "Jimbo"};
             string title = (friend.Id == HandlerSystem.self.Id) ? $"{friend.Name} (:3)" : $"{friend.Name}";
             StringTable collection = LocalizationHelper.GetCollection("Tooltips", SystemLanguage.English);
             collection.SetString(keyword.name + "_title", title);
             string text = $"The {adj.RandomItem()} {noun.RandomItem()}\n\n";
             if (friend.Id == HandlerSystem.self.Id)
             {
-                text += $"You enlisted the help of others on your journey through the storm";
+                text += currentInfo;
             }
             CardPopUp.AssignTo((RectTransform)transform, 1f, 0.25f);
             CardPopUp.AddPanel(keyword, text);
@@ -112,13 +180,17 @@ namespace MultiplayerBase.UI
                 {
                     foreach(Friend friend in HandlerSystem.friends)
                     {
-                        //if (friend.Id != HandlerSystem.self.Id)
+                        if (friend.Id != HandlerSystem.self.Id)
                         {
                             HandlerEvent.instance.SendData(friend);
                         }
                     }
                 }
-                HandlerEvent.instance.AskForData(friend);
+                else
+                {
+                    HandlerEvent.instance.AskForData(friend);
+                }
+                
             }
             else if (HandlerSystem.friendStates[friend] == PlayerState.Map)
             {

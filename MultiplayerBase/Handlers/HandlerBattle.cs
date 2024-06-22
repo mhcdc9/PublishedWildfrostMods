@@ -22,6 +22,13 @@ namespace MultiplayerBase.Handlers
 {
     public class HandlerBattle : MonoBehaviour
     {
+        public static event UnityAction<Friend> OnBattleViewerOpen;
+        public static event UnityAction<Friend> OnBattleViewerClose;
+        public static event UnityAction<Friend, Entity> OnPlayOtherCard;
+        public static event UnityAction<Friend, Entity> OnPostPlayOtherCard;
+        public static event UnityAction<Friend, Entity> OnSendCardToPlay;
+        public static event UnityAction<Friend, Entity> OnPostSendCardToPlay;
+
         public static UnityAction<Friend> OnFetch;
 
         public static HandlerBattle instance;
@@ -141,7 +148,8 @@ namespace MultiplayerBase.Handlers
             LeanTween.moveLocal(background, viewerPosition, 0.75f).setEase(LeanTweenType.easeInOutQuart);
             //StartCoroutine(PopulateRows());
             HandlerBattle.friend = friend;
-        }
+            InvokeOnBattleViewerOpen(friend);
+    }
 
         public void CloseBattleViewer()
         {
@@ -156,6 +164,7 @@ namespace MultiplayerBase.Handlers
             background.SetActive(false);
             background.transform.SetParent(transform);
             Clear();
+            InvokeOnBattleViewerClose(friend);
         }
 
         public void ToggleViewer(Friend friend)
@@ -181,10 +190,6 @@ namespace MultiplayerBase.Handlers
             {
                 Battle.instance.rows[References.Player].AddRange(playerLanes.Select((row) => (CardContainer)row));
                 Battle.instance.rows[Battle.GetOpponent(References.Player)].AddRange(enemyLanes.Select((row) => (CardContainer)row));
-            }
-            foreach(Entity entity in References.Player.handContainer)
-            {
-                entity.display.hover.controller = cb;
             }
             Battle.instance.playerCardController.enabled = false;
             References.Player.handContainer.AssignController(cb);
@@ -212,10 +217,6 @@ namespace MultiplayerBase.Handlers
             foreach (CardContainer lane in enemyLanes)
             {
                 Battle.instance.rows[Battle.GetOpponent(References.Player)].Remove(lane);
-            }
-            foreach (Entity entity in References.Player.handContainer)
-            {
-                entity.display.hover.controller = Battle.instance.playerCardController;
             }
             Battle.instance.playerCardController.enabled = true;
             References.Player.handContainer.AssignController(References.Battle.playerCardController);
@@ -313,7 +314,7 @@ namespace MultiplayerBase.Handlers
             switch (targets[0])
             {
                 case "NON":
-                    action = new ActionPlayOtherCard(messages.Skip(3).ToArray(), null, null);
+                    action = new ActionPlayOtherCard(messages.Skip(3).ToArray(), friend, null, null);
                     break;
                 case "ENT":
                     ulong id = ulong.Parse(targets[1]);
@@ -321,7 +322,7 @@ namespace MultiplayerBase.Handlers
                     {
                         if (entity?.data?.id == id && Battle.IsOnBoard(entity))
                         {
-                            action = new ActionPlayOtherCard(messages.Skip(3).ToArray(), entity, null);
+                            action = new ActionPlayOtherCard(messages.Skip(3).ToArray(), friend, entity, null);
                             break;
                         }
                     }
@@ -331,7 +332,7 @@ namespace MultiplayerBase.Handlers
                     CardContainer container = FindContainerID(id);
                     if (container != null)
                     {
-                        action = new ActionPlayOtherCard(messages.Skip(3).ToArray(), null, container);
+                        action = new ActionPlayOtherCard(messages.Skip(3).ToArray(), friend, null, container);
                     }
                     break;
             }
@@ -474,6 +475,36 @@ namespace MultiplayerBase.Handlers
         public static List<CardContainer> GetContainers()
         {
             return instance.playerLanes.Concat(instance.enemyLanes).Select((a) => (CardContainer)a).ToList();
+        }
+
+        public static void InvokeOnBattleViewerOpen(Friend friend)
+        {
+            OnBattleViewerOpen?.Invoke(friend);
+        }
+
+        public static void InvokeOnBattleViewerClose(Friend friend)
+        {
+            OnBattleViewerClose?.Invoke(friend);
+        }
+
+        public static void InvokeOnPlayOtherCard(Friend friend, Entity entity)
+        {
+            OnPlayOtherCard?.Invoke(friend, entity);
+        }
+
+        public static void InvokeOnPostPlayOtherCard(Friend friend, Entity entity)
+        {
+            OnPostPlayOtherCard?.Invoke(friend, entity);
+        }
+
+        public static void InvokeOnSendCardToPlay(Friend friend, Entity entity)
+        {
+            OnSendCardToPlay?.Invoke(friend, entity);
+        }
+
+        public static void InvokeOnPostSendCardToPlay(Friend friend, Entity entity)
+        {
+            OnPostSendCardToPlay?.Invoke(friend, entity);
         }
     }
 }

@@ -17,11 +17,55 @@ namespace MultiplayerBase.Handlers
         //[X]!height!damageCurrent!damageMax!hpcurrent!hpMax!counterMax!counterCurrent [!usesCurrent!usesMax!]
         public static string Encode(Entity entity, ulong id)
         {
-            string s = Encode(entity.data, id) + "!";
+            string s = SubEncode(entity, id) + "!";
             s += $"{entity.height}!";
             s += $"{entity.damage.max}!" + $"{entity.damage.current}!";
             s += $"{entity.hp.max}!" + $"{entity.hp.current}!";
             s += $"{entity.counter.max}!" + $"{entity.counter.current}";
+            return s;
+        }
+
+        //CardData!customData!attackEffects!startWithEffects!traits!injuries!hp!damage!counter!upgrades!forceTitle
+        public static string SubEncode(Entity entity, ulong id)
+        {
+            CardData cardData = entity.data;
+            string s = $"{id}!{cardData.name}!"; //0.CardData (id doesn't count)
+            if (cardData.customData != null) //1. CustomData
+            {
+                Dictionary<string, object> customData = cardData.customData;
+                foreach (string key in customData.Keys)
+                {
+                    s += $"{key},";
+                }
+            }
+            s += "!";
+            foreach (EffectStack stack in entity.attackEffects) //2. attackEffects
+            {
+                s += $"{stack.count} {stack.data.name.Replace(",", ",:")}, ";
+            }
+            s += "!";
+            foreach (StatusEffectData effect in entity.statusEffects) //3. startWithEffects
+            {
+                s += $"{effect.count} {effect.name.Replace(",", ",:")}, ";
+            }
+            s += "!";
+            foreach (TraitStack stack in cardData.traits) //4. traits
+            {
+                s += $"{stack.count} {stack.data.name.Replace(",", ",:")}, ";
+            }
+            s += "!";
+            foreach (EffectStack stack in cardData.injuries) //5. injuries
+            {
+                s += $"{stack.count} {stack.data.name.Replace(",", ",:")}, ";
+            }
+            s += "!";
+            s += $"{IntOrNull(cardData.hp)}!" + $"{IntOrNull(cardData.damage)}!" + $"{IntOrNull(cardData.counter)}!"; //6-8. hp, damage, counter
+            foreach (CardUpgradeData upgrade in cardData.upgrades) //9. upgrades
+            {
+                s += $"{upgrade.name.Replace(",", ",:")}, ";
+            }
+            s += "!";
+            s += cardData.forceTitle.Replace('!', 'l').Replace('|', 'l'); //10. nickname
             return s;
         }
 

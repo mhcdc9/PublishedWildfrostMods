@@ -177,7 +177,8 @@ namespace MultiplayerBase.Handlers
 
         private static void FriendSceneChanged(Friend friend, string scene)
         {
-            switch(scene)
+            Dashboard.friendIcons[friend].SceneChanged(scene);
+            switch (scene)
             {
                 case "Battle":
                     friendStates[friend] = PlayerState.Battle;
@@ -201,7 +202,7 @@ namespace MultiplayerBase.Handlers
                     friendStates[friend] = PlayerState.MainMenu;
                     break;
                 default:
-                    Dashboard.friendIcons[friend].GetComponentInChildren<TextMeshProUGUI>(true).text = "??";
+                    Dashboard.friendIcons[friend].GetComponentInChildren<TextMeshProUGUI>(true).text = "99";
                     friendStates[friend] = PlayerState.Other;
                     break;
             }
@@ -222,6 +223,7 @@ namespace MultiplayerBase.Handlers
         }
         private static void SceneChanged(Scene scene)
         {
+            Dashboard.friendIcons[self].SceneChanged(scene.name);
             SendMessageToAllOthers("MSC", $"SCENE!{scene.name}");
             FriendSceneChanged(self, scene.name);
         }

@@ -38,12 +38,18 @@ namespace MultiplayerBase.Battles
             string s = CardEncoder.Encode(entity, id);
             HandlerBattle.instance.ToggleViewer(friend);
             yield return new WaitForSeconds(0.2f);
-            HandlerSystem.SendMessage("CHT", HandlerSystem.self, $"Playing {entity.data.title} on {friend.Name}'s Board!");
+            //HandlerSystem.SendMessage("CHT", HandlerSystem.self, $"Playing {entity.data.title} on {friend.Name}'s Board!");
             entity.curveAnimator.Ping();
+            HandlerBattle.InvokeOnSendCardToPlay(friend, entity);
+            foreach(StatusEffectData statuses in entity.statusEffects)
+            {
+                if (statuses is StatusEffectFreeAction f && f.RunCardPlayedEvent(entity, new Entity[0]))
+                {
+                    entity.StartCoroutine(f.CardPlayed(entity, new Entity[0]));
+                }
+            }
             yield return new WaitForSeconds(0.4f);
             yield return Sequences.CardDiscard(entity);
-            References.Player.handContainer.TweenChildPositions();
-            yield return new WaitForSeconds(0.5f);
             switch (type)
             {
                 case TargetType.None:
@@ -55,9 +61,13 @@ namespace MultiplayerBase.Battles
                 case TargetType.Container:
                     s = $"PLAY!ROW {id}!" + s;
                     break;
-
             }
+
             HandlerSystem.SendMessage("BAT", friend, s);
+            HandlerBattle.InvokeOnPostSendCardToPlay(friend, entity);
+            References.Player.handContainer.TweenChildPositions();
+            yield return new WaitForSeconds(0.5f);
+            ActionQueue.Add(new ActionEndTurn(References.Player));
         }
     }
 }
