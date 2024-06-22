@@ -243,7 +243,7 @@ namespace MultiplayerBase
     {
         internal static bool Prefix(ref bool __result, Entity entity)
         {
-            if (entity.owner == null)
+            if (entity.owner == null || !Battle.instance.rows.ContainsKey(entity.owner))
             {
                 __result = false;
                 return false;

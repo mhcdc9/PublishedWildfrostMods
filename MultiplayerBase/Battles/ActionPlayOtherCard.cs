@@ -59,7 +59,7 @@ namespace MultiplayerBase.Battles
             }
             //HandlerSystem.CHT_Handler(friend, otherCard.transform.position.ToString());
             LeanTween.moveLocal(otherCard.gameObject, new Vector3(-6f,0,0), 0.5f).setEase(LeanTweenType.easeOutQuart);
-            DisplayOwner(otherCard);
+            //DisplayOwner(otherCard);
             yield return new WaitForSeconds(0.5f);
             if (Events.CheckAction(action))
             {
