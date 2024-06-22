@@ -15,6 +15,7 @@ using HarmonyLib;
 using Wave = BattleWaveManager.Wave;
 using System.Collections;
 using static Console;
+using UnityEngine.SceneManagement;
 
 namespace Sync
 {
@@ -30,7 +31,7 @@ namespace Sync
         public static int enemyPerWave = 1;
         public static float itemSyncChance = 0.33f;
 
-        public static float itemMystChance = 0.33f;
+        public static float itemMystChance = 0.2f;
 
         private List<StatusEffectDataBuilder> effects = new List<StatusEffectDataBuilder>();
         private List<KeywordDataBuilder> keywords = new List<KeywordDataBuilder>();
@@ -63,6 +64,7 @@ namespace Sync
             Net.HandlerRoutines.Add("SYNC", SYNC_Handler);
             base.Load();
             CreateModifierData();
+            Events.OnSceneChanged += Commands;
             //commands.Add(new CommandSync());
         }
 
@@ -76,6 +78,14 @@ namespace Sync
             Events.OnCampaignGenerated -= MystStartingInventory;
             Net.HandlerRoutines.Remove("SYNC");
             base.Unload();
+        }
+
+        public void Commands(Scene scene)
+        {
+            if (scene.name == "Battle" && Console.commands != null)
+            {
+                Console.commands.Add(new CommandSync());
+            }
         }
 
         public void ClearSync()
@@ -92,19 +102,19 @@ namespace Sync
         public void CreateStatuses()
         {
             keywords.Add(Extensions.CreateBasicKeyword(this, "sync", "Sync", "Gain an effect as long as conditions are met..."));
-            keywords.Add(Extensions.CreateBasicKeyword(this, "mystical", "Mystical", "Playable on another board once\nReward: <keyword=zoomlin>-ize a random card in hand"));
+            keywords.Add(Extensions.CreateBasicKeyword(this, "mystic", "Mystic", "Playable on another board|Reward: replace this effect with Zoomlin"));
 
             effects.Add(new StatusEffectDataBuilder(this)
-                .Create<StatusEffectMystical>("Mystical")
+                .Create<StatusEffectMystical>("Mystic")
                 .WithCanBeBoosted(false)
-                .WithText("<keyword=mhcdc9.wildfrost.sync.mystical>")
+                .WithText("<keyword=mhcdc9.wildfrost.sync.mystic>")
                 .WithType("")
-                .WithConstraints(Extensions.IsItem(), Extensions.IsPlay())
+                .WithConstraints(Extensions.IsItem(), Extensions.IsPlay(),Extensions.NotOnSlot())
                 .FreeModify<StatusEffectApplyX>(
                 (data) =>
                 {
                     data.effectToApply = Get<StatusEffectData>("Temporary Zoomlin");
-                    data.applyToFlags = StatusEffectApplyX.ApplyToFlags.RandomCardInHand;
+                    data.applyToFlags = StatusEffectApplyX.ApplyToFlags.Self;
                 })
                 );
 
@@ -154,12 +164,13 @@ namespace Sync
                 );
 
             effects.Add(new StatusEffectDataBuilder(this)
-                .CreateSyncEffect<StatusEffectSync>("Sync Mystical", "<keyword=mhcdc9.wildfrost.sync.sync>: <keyword=mhcdc9.wildfrost.sync.mystical>", "", "Mystical")
-                .WithConstraints(Extensions.IsPlay())
+                .CreateSyncEffect<StatusEffectSync>("Sync Mystic", "<keyword=mhcdc9.wildfrost.sync.sync>: <keyword=mhcdc9.wildfrost.sync.mystic>", "", "Mystic")
+                .WithConstraints(Extensions.IsPlay(), Extensions.NotOnSlot())
                 );
 
             effects.Add(new StatusEffectDataBuilder(this)
                 .CreateSyncEffect<StatusEffectSync>("Sync Nothing", "<keyword=mhcdc9.wildfrost.sync.sync>: Do nothing?", "", "", ongoing: false)
+                .WithConstraints(Extensions.IsPlay())
                 );
         }
 

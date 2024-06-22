@@ -68,6 +68,14 @@ namespace MultiplayerBase.UI
 
             HandlerSystem.Initialize();
             Debug.Log("[Multiplayer] Dashboard is set up!");
+            StartCoroutine(DelaySend());
+        }
+
+        private IEnumerator DelaySend()
+        {
+            yield return new WaitForSeconds(1f);
+            HandlerSystem.SceneChanged(SceneManager.ActiveSceneName);
+            HandlerSystem.SendMessageToAllOthers("MSC", $"NICKNAME!{friendIcons[HandlerSystem.self].nickname}");
         }
 
         public static void AddToButtons(Button button)

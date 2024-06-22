@@ -116,7 +116,7 @@ namespace Sync
         public static bool TryAddMyst(CardData data, Entity entity = null)
         {
             if (data == null) { return false; }
-            StatusEffectData effect = SyncMain.Instance.Get<StatusEffectData>("Mystical");
+            StatusEffectData effect = SyncMain.Instance.Get<StatusEffectData>("Mystic");
             if (CheckConstraints(effect, data))
             {
                 data.startWithEffects = CardData.StatusEffectStacks.Stack(data.startWithEffects, new CardData.StatusEffectStacks[]
@@ -156,6 +156,14 @@ namespace Sync
         {
             TargetConstraintPlayType play =  ScriptableObject.CreateInstance<TargetConstraintPlayType>();
             play.targetPlayType = Card.PlayType.Play;
+            return play;
+        }
+
+        public static TargetConstraint NotOnSlot()
+        {
+            TargetConstraintPlayOnSlot play = ScriptableObject.CreateInstance<TargetConstraintPlayOnSlot>();
+            play.not = true;
+            play.slot = true;
             return play;
         }
 

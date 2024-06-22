@@ -22,7 +22,7 @@ namespace MultiplayerBase
     {
         public static UnityAction Finalized;
 
-        public static bool isHost = false;
+        public static bool isHost = true;
         public static MultiplayerMain instance;
 
         internal static Matchmaking matchmaker;
@@ -41,13 +41,13 @@ namespace MultiplayerBase
 
         public override string Title => "Multiplayer Base Mod";
 
-        public override string Description => "This mod provides barebones matchmaking and helpful functions.";
+        public override string Description => "A foundation for multiplayer mods to build on top of.";
 
         public void CreateModAssets()
         {
             AddressableLoader.AddToGroup("KeywordData",
             new KeywordDataBuilder(this).Create("friend")
-                .WithTitle("Party Memebers")
+                .WithTitle("Party Memeber")
                 .WithDescription("How did you find this")
                 .Build()
                 );
@@ -177,6 +177,10 @@ namespace MultiplayerBase
         private void ToggleMatchmaking()
         {
             matchmaker.gameObject.SetActive(!matchmaker.gameObject.activeSelf);
+            if (matchmaker.gameObject.activeSelf && Matchmaking.lobby == null)
+            {
+                matchmaker.FindLobby();
+            }
         }
     }
 

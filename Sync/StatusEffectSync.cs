@@ -25,7 +25,7 @@ namespace Sync
         {
             base.Init();
             base.OnEntityDestroyed += Destroyed;
-            //base.OnEffectBonusChanged += EffectChanged;
+            base.OnEffectBonusChanged += EffectChanged;
         }
 
         public override bool RunCardPlayedEvent(Entity entity, Entity[] targets)
@@ -48,24 +48,17 @@ namespace Sync
             {
                 entities = GetTargets();
                 yield return Run(GetTargets(), amount);
-                //amountApplied = GetAmount();
+                amountApplied = GetAmount();
             }
             effectActive = true;
         }
 
         public IEnumerator EffectChanged()
         {
-            if (effectActive && canBeBoosted)
+            if (effectActive && canBeBoosted && ongoing)
             {
-                int changedAmount = GetAmount() - amountApplied;
-                if (changedAmount > 0)
-                {
-                    yield return Run(entities, changedAmount);
-                }
-                if (changedAmount < 0)
-                {
-                    yield return FindAndRemoveStacks(changedAmount);
-                }
+                yield return Deactivate();
+                yield return Activate(0);
             }
         }
 
@@ -111,7 +104,7 @@ namespace Sync
         {
             if (effectActive && ongoing)
             {
-                yield return FindAndRemoveStacks(GetAmount());
+                yield return FindAndRemoveStacks(amountApplied);
             }
             effectActive = false;
         }

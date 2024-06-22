@@ -14,8 +14,8 @@ namespace MultiplayerBase.Battles
     internal class ActionPlayOtherCard : PlayAction
     {
         public override bool IsRoutine => true;
-        private string[] messages;
-        private Friend friend;
+        private readonly string[] messages;
+        private readonly Friend friend;
         private Entity entity;
         private CardContainer container;
 
@@ -31,7 +31,8 @@ namespace MultiplayerBase.Battles
         {
             Entity otherCard = CardEncoder.DecodeEntity1(null, References.Player, messages);
             otherCard.transform.SetParent(HandlerInspect.instance.transform, false);
-            foreach(StatusEffectData effect in entity.statusEffects)
+            yield return CardEncoder.DecodeEntity2(otherCard, messages);
+            foreach (StatusEffectData effect in entity.statusEffects)
             {
                 if (effect is StatusEffectFreeAction f)
                 {
@@ -41,7 +42,6 @@ namespace MultiplayerBase.Battles
             yield return otherCard.UpdateTraits();
             otherCard.display.promptUpdateDescription = true;
             otherCard.PromptUpdate();
-            yield return CardEncoder.DecodeEntity2(otherCard, messages);
             otherCard.flipper.FlipUp(true);
             References.Player.handContainer.Add(otherCard);
             HandlerBattle.InvokeOnPlayOtherCard(friend, entity);
@@ -54,6 +54,7 @@ namespace MultiplayerBase.Battles
             {
                 action = new ActionTriggerAgainst(otherCard, References.Player.entity, entity, container);
             }
+            HandlerSystem.CHT_Handler(friend, otherCard.transform.position.ToString());
             LeanTween.moveLocal(otherCard.gameObject, new Vector3(-6f,0,0), 1f).setEase(LeanTweenType.easeOutQuart);
             yield return new WaitForSeconds(1f);
             if (Events.CheckAction(action))

@@ -124,18 +124,30 @@ namespace MultiplayerBase
                 MultiplayerMain.instance.HookToChatRoom();
                 leaveLobbyButton.interactable = true;
                 finalizeButton.interactable = true;
+                findLobbyButton.interactable = false;
                 Debug.Log("[Multiplayer] You have created a lobby.");
             }
         }
 
-        private async void FindLobby()
+        internal async void FindLobby()
         {
-            Debug.Log("[Multiplayer] Find lobbyrequest");
+            Debug.Log("[Multiplayer] Find lobby request");
+            MultiplayerMain.textElement.text = "<color=#FC5>Searching for a lobby...</color>";
             Lobby[] lobbies = await SteamMatchmaking.LobbyList.RequestAsync();
             Debug.Log("[Multiplayer] Found lobbies");
             if (lobbies == null)
             {
+                MultiplayerMain.textElement.text = "No lobbies found. :(";
                 lobbies = new Lobby[0];
+                return;
+            }
+            if (lobbyList.Length > 0)
+            {
+                MultiplayerMain.textElement.text = $"<size=0.55><color=#FC5>{lobbyList.Length} lobbies found!</color></size>";
+            }
+            else
+            {
+                MultiplayerMain.textElement.text = $"No lobbies found. :(";
             }
             foreach (Lobby lobby in lobbies)
             {
@@ -157,8 +169,10 @@ namespace MultiplayerBase
             {
                 Debug.Log("[Multiplayer] Successfully joined");
                 lobby= lobbyList[index];
+                MultiplayerMain.isHost = false;
                 MultiplayerMain.instance.HookToChatRoom();
                 leaveLobbyButton.interactable = true;
+                findLobbyButton.interactable = false;
             }
             else
             {
@@ -172,9 +186,11 @@ namespace MultiplayerBase
             if (lobby is Lobby lob)
             {
                 lob.Leave();
+                MultiplayerMain.isHost = true;
                 MultiplayerMain.instance.UnhookToChatRoom();
                 leaveLobbyButton.interactable = false;
                 finalizeButton.interactable = false;
+                findLobbyButton.interactable = true;
                 lobby = null;
             }
         }

@@ -25,6 +25,7 @@ namespace MultiplayerBase.UI
         protected static  KeywordData keyword;
         protected bool popped = false;
 
+        public string nickname = "(Unknown)";
 
         protected string currentScene = "";
         protected string currentInfo = "";
@@ -77,6 +78,10 @@ namespace MultiplayerBase.UI
             icon.textElement.transform.localScale *= 0.5f;
             icon.textElement.alignment = TextAlignmentOptions.BottomRight;
             icon.textElement.transform.Translate(new Vector3(0.25f, -0.25f), icon.transform);
+            if (friend.Id == HandlerSystem.self.Id)
+            {
+                icon.nickname = CreateNickname();
+            }
             SetSprite(image, imageTask);
             EventTrigger trigger = button.gameObject.AddComponent<EventTrigger>();
             EventTrigger.Entry pointerEnter = new EventTrigger.Entry();
@@ -90,7 +95,24 @@ namespace MultiplayerBase.UI
             return icon;
         }
 
-        public void SceneChanged(string scene)
+        public static string CreateNickname()
+        {
+            string[] adj = { "<sprite name=crown>'d", "<sprite name=enemy crown>'d", "<sprite name=snow>'d", "Bootleg",  "Charmless",
+                "Determined", "Gnomish", "Greedy", "Faithful", "Frostblooded",
+                "Frenzied", "Furious", "Hearty", "High-rolling", "Hogheaded",
+                "Nyoooom", "Overburnt", "Ribbiting", "Scrappy", "Shady",
+                "Shelled", "Soulbound", "Sparked", "Spiced-up", "Sunny",
+                "Toothy", "Wild", "Wise", "Zoomin'"};
+            string[] noun = { "Snowdweller", "Shademancer", "Clunkmaster", "Petmaster", "Bellringer", "Pengoon", "Makoko", "Gobling", "Gnomebot", "Woodhead", "Shopkeeper", "Sunbringer", "High Roller", "Frog", "Combo Seeker", "Card Sharp", "Jimbo" };
+            return string.Format("The {0} {1}", adj.RandomItem(), noun.RandomItem());
+        }
+
+        public void SetNickname(string nickname)
+        {
+            this.nickname = nickname; 
+        }
+
+        public void SceneChanged(string scene, string extra)
         {
             currentScene = scene;
             if (friend.Id == HandlerSystem.self.Id)
@@ -117,7 +139,7 @@ namespace MultiplayerBase.UI
             }
             if (scene == "Battle")
             {
-                currentInfo = currentInfo.Format(friend.Name, "???");
+                currentInfo = currentInfo.Format(friend.Name, extra);
             }
             else
             {
@@ -128,17 +150,11 @@ namespace MultiplayerBase.UI
         public void Pop()
         {
             if (popped) { return; }
-            string[] adj = { "<sprite name=crown>'d", "<sprite name=enemy crown>'d", "<sprite name=snow>'d", "Bootleg",  "Charmless", 
-                "Determined", "Gnomish", "Greedy", "Faithful", "Frostblooded", 
-                "Frenzied", "Furious", "Hearty", "High-rolling", "Hogheaded",
-                "Nyoooom", "Overburnt", "Ribbiting", "Scrappy", "Shady", 
-                "Shelled", "Soulbound", "Sparked", "Spiced-up", "Sunny", 
-                "Toothy", "Wild", "Wise", "Zoomin'"};
-            string[] noun = { "Snowdweller", "Shademancer", "Clunkmaster", "Petmaster", "Bellringer", "Pengoon", "Makoko", "Gobling", "Gnomebot", "Woodhead", "Shopkeeper", "Sunbringer", "High Roller", "Frog", "Combo Seeker", "Card Sharp", "Jimbo"};
+            
             string title = (friend.Id == HandlerSystem.self.Id) ? $"{friend.Name} (:3)" : $"{friend.Name}";
             StringTable collection = LocalizationHelper.GetCollection("Tooltips", SystemLanguage.English);
             collection.SetString(keyword.name + "_title", title);
-            string text = $"The {adj.RandomItem()} {noun.RandomItem()}\n\n";
+            string text = $"{nickname}\n\n";
             text += currentInfo;
             CardPopUp.AssignTo((RectTransform)transform, 1f, 0.25f);
             CardPopUp.AddPanel(keyword, text);

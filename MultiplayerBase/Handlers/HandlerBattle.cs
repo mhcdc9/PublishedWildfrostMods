@@ -89,7 +89,7 @@ namespace MultiplayerBase.Handlers
             for (int i = 0; i < playerLanes.Length; i++)
             {
                 playerLanes[i] = HelperUI.OtherCardViewer($"Player Row {i + 1}", background.transform, cc);
-                playerLanes[i].transform.localPosition = new Vector3(-0.67f, 0.26f - 0.43f * i, 0);
+                playerLanes[i].transform.localPosition = new Vector3(-0.47f, 0.26f - 0.43f * i, 0);
                 //0.47, -0.17
                 //0.47, 0.26
                 playerLanes[i].dir = 1;
@@ -105,7 +105,7 @@ namespace MultiplayerBase.Handlers
             for (int i = 0; i < enemyLanes.Length; i++)
             {
                 enemyLanes[i] = HelperUI.OtherCardViewer($"Enemy Row {i + 1}", background.transform, cc);
-                enemyLanes[i].transform.localPosition = new Vector3(0.67f, 0.26f - 0.43f * i, 0);
+                enemyLanes[i].transform.localPosition = new Vector3(0.47f, 0.26f - 0.43f * i, 0);
                 enemyLanes[i].gap = new Vector3(1f, 0, 0);
                 enemyLanes[i].SetSize(3, 0.6667f);
                 enemyLanes[i].gameObject.AddComponent<UINavigationItem>();

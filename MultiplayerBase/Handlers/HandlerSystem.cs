@@ -168,16 +168,19 @@ namespace MultiplayerBase.Handlers
             switch(messages[0])
             {
                 case "SCENE":
-                    FriendSceneChanged(friend, messages[1]);
+                    FriendSceneChanged(friend, messages[1], messages[2]);
+                    break;
+                case "NICKNAME":
+                    Dashboard.friendIcons[friend].SetNickname(messages[1]);
                     break;
                 default:
                     break;
             }
         }
 
-        private static void FriendSceneChanged(Friend friend, string scene)
+        private static void FriendSceneChanged(Friend friend, string scene, string extra)
         {
-            Dashboard.friendIcons[friend].SceneChanged(scene);
+            Dashboard.friendIcons[friend].SceneChanged(scene, extra);
             switch (scene)
             {
                 case "Battle":
@@ -223,9 +226,20 @@ namespace MultiplayerBase.Handlers
         }
         private static void SceneChanged(Scene scene)
         {
-            Dashboard.friendIcons[self].SceneChanged(scene.name);
-            SendMessageToAllOthers("MSC", $"SCENE!{scene.name}");
-            FriendSceneChanged(self, scene.name);
+            SceneChanged(scene.name);
+        }
+
+        public static void SceneChanged(string sceneName)
+        {
+            string s = $"SCENE!{sceneName}!";
+            string s2 = "";
+            if (sceneName == "Battle")
+            {
+                s2 = $"{Campaign.FindCharacterNode(References.Player).name}";
+            }
+            //Dashboard.friendIcons[self].SceneChanged(sceneName,s2);
+            SendMessageToAllOthers("MSC", s + s2);
+            FriendSceneChanged(self, sceneName, s2);
         }
     }
 }
