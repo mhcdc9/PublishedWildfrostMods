@@ -33,6 +33,8 @@ namespace Sync
 
         public static float itemMystChance = 0.2f;
 
+        private static bool commandsLoaded = false;
+
         private List<StatusEffectDataBuilder> effects = new List<StatusEffectDataBuilder>();
         private List<KeywordDataBuilder> keywords = new List<KeywordDataBuilder>();
         public SyncMain(string modDirectory) : base(modDirectory)
@@ -64,7 +66,10 @@ namespace Sync
             Net.HandlerRoutines.Add("SYNC", SYNC_Handler);
             base.Load();
             CreateModifierData();
-            Events.OnSceneChanged += Commands;
+            if (!commandsLoaded)
+            {
+                Events.OnSceneChanged += Commands;
+            }
             //commands.Add(new CommandSync());
         }
 
@@ -78,6 +83,10 @@ namespace Sync
             Events.OnCampaignGenerated -= MystStartingInventory;
             Net.HandlerRoutines.Remove("SYNC");
             base.Unload();
+            if (!commandsLoaded)
+            {
+                Events.OnSceneChanged -= Commands;
+            }
         }
 
         public void Commands(Scene scene)
@@ -85,6 +94,8 @@ namespace Sync
             if (scene.name == "Battle" && Console.commands != null)
             {
                 Console.commands.Add(new CommandSync());
+                commandsLoaded = true;
+                Events.OnSceneChanged -= Commands;
             }
         }
 

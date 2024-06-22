@@ -44,7 +44,7 @@ namespace MultiplayerBase.UI
             {"MapNew", "Click to view... a map of your map?" },
             {"Event", "Click to ask for advice from your party" },
             {"MainMenu", "You answered the call to end the storm"},
-            {"Town", "You answered the call to end the storm"},
+            {"Town", "You should make sure everyone is ready before heading to the gate"},
             {"CharacterSelect", "Time for some self-reflection. Who are you?" },
             {"Default", "Where are you?" },
         };

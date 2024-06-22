@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using static Rewired.ComponentControls.Data.CustomControllerElementSelector;
 using UnityEngine;
 using Steamworks;
+using TMPro;
 
 namespace MultiplayerBase.Battles
 {
@@ -18,6 +19,8 @@ namespace MultiplayerBase.Battles
         private readonly Friend friend;
         private Entity entity;
         private CardContainer container;
+
+        private Vector3 startTextPosition = new Vector3(0f, 2.6f, 0f);
 
         public ActionPlayOtherCard(string[] messages, Friend friend, Entity entity, CardContainer container)
         {
@@ -54,15 +57,30 @@ namespace MultiplayerBase.Battles
             {
                 action = new ActionTriggerAgainst(otherCard, References.Player.entity, entity, container);
             }
-            HandlerSystem.CHT_Handler(friend, otherCard.transform.position.ToString());
-            LeanTween.moveLocal(otherCard.gameObject, new Vector3(-6f,0,0), 1f).setEase(LeanTweenType.easeOutQuart);
-            yield return new WaitForSeconds(1f);
+            //HandlerSystem.CHT_Handler(friend, otherCard.transform.position.ToString());
+            LeanTween.moveLocal(otherCard.gameObject, new Vector3(-6f,0,0), 0.5f).setEase(LeanTweenType.easeOutQuart);
+            DisplayOwner(otherCard);
+            yield return new WaitForSeconds(0.5f);
             if (Events.CheckAction(action))
             {
                 ActionQueue.Add(action);
             }
             HandlerBattle.InvokeOnPostPlayOtherCard(friend, entity);
             ActionQueue.Add(new ActionKill(otherCard));
+        }
+
+        private void DisplayOwner(Entity otherCard)
+        {
+            GameObject obj = new GameObject("Owner Text");
+            obj.transform.SetParent(otherCard.canvas.transform, false);
+            obj.transform.localPosition = startTextPosition;
+            TextMeshProUGUI textElement = obj.AddComponent<TextMeshProUGUI>();
+            textElement.fontSize = 0.4f;
+            textElement.horizontalAlignment = HorizontalAlignmentOptions.Center;
+            textElement.text = friend.Name;
+            textElement.outlineColor = Color.black;
+            textElement.outlineWidth = 0.06f;
+            obj.GetComponent<RectTransform>().sizeDelta = new Vector2(4f, 1f);
         }
     }
 }

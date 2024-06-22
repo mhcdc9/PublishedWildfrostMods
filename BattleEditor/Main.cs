@@ -32,6 +32,14 @@ namespace BattleEditor
             .AddBattleToLoader().RegisterBattle(0, mandatory: true);
         }
 
+        public void Debug1()
+        {
+            new BattleDataEditor(this, "The Glitchy Debuggers")
+                .GiveMiniBossesCharms(new string[] { "Makoko" }, "CardUpgradePlink");
+
+            Get<CardData>("Makoko").cardType = Get<CardType>("Miniboss");
+        }
+
         public override string GUID => "mhcdc9.wildfrost.battle";
 
         public override string[] Depends => new string[0];
@@ -48,18 +56,17 @@ namespace BattleEditor
         private bool newBattle = false;
         private List<CardData> enemies = new List<CardData>();
         private Dictionary<char, CardData> dictionary = new Dictionary<char, CardData>();
-        private Dictionary<char, >
         private int wavePoolIndex = 0;
 
         public readonly string[] VanillaBattles =
         {
-            "Pengoons", "Snowbos", 
+            "Pengoons", "Snowbos", "BabyBerries", "Bombers",
             "Berries", "Frosters", "Shroomers", "Yeti",
             "Frenzy Boss", "Split Boss",
             "Goats", "Husks", "Spice Monkeys",
-            "Drek", "Spikers",
+            "Drek", "Spikers", "Inkers",
             "Clunker Boss", "Toadstool Boss",
-            "Blockers", "Wildlings",
+            "Blockers", "Wildlings", "Mimiks",
             "Final Boss",
             "Final Final Boss"
         };
@@ -104,6 +111,34 @@ namespace BattleEditor
         }
 
 
+
+        public BattleDataEditor GiveMiniBossesCharms(string[] cardNames, params string[] upgradeNames)
+        {
+            List<CardUpgradeData> upgradeData = new List<CardUpgradeData>();
+            foreach(string name in upgradeNames)
+            {
+                CardUpgradeData upgrade = mod.Get<CardUpgradeData>(name);
+                if (upgrade != null)
+                {
+                    upgradeData.Add(upgrade);
+                }
+                else
+                {
+                    Debug.Log($"[BattleDataEditor] Could not find a CardUpgrade named {name}");
+                }
+            }
+            ScriptUpgradeMinibosses.Profile profile = new ScriptUpgradeMinibosses.Profile();
+            profile.cardDataNames = cardNames;
+            profile.possibleUpgrades = upgradeData.ToArray(); ;
+            foreach (HardModeModifierData hardModeModifierData in References.instance.hardModeModifiers)
+            {
+                if (hardModeModifierData.name == "10.BossesHaveCharms")
+                {
+                    ((ScriptUpgradeMinibosses)hardModeModifierData.modifierData.startScripts[0]).profiles = ((ScriptUpgradeMinibosses)hardModeModifierData.modifierData.startScripts[0]).profiles.Append(profile).ToArray();
+                }
+            }
+            return this;
+        }
 
         /// <summary>
         /// Sets the sprite seen on the map.
@@ -401,15 +436,6 @@ namespace BattleEditor
             
             
             return this;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="tier"></param>
-        public static void ResetTier(int tier, params string[] battleNames)
-        {
-            for(int i=0; i<battles.Length; i++)
         }
     }
 }
