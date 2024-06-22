@@ -248,7 +248,7 @@ namespace MultiplayerBase.Handlers
                 switch (messages[i])
                 {
                     case "PLAYER":
-                        for(int j = 0; j < Battle.instance.rows[References.Player].Count; j++)
+                        for(int j = 0; j < 2; j++)
                         {
                             Entity[] entities = Battle.instance.rows[References.Player][j].ToArray();
                             for (int k=0; k<entities.Length; k++)
@@ -261,7 +261,7 @@ namespace MultiplayerBase.Handlers
                         }
                         break;
                     case "ENEMY":
-                        for (int j = 0; j < Battle.instance.rows[Battle.GetOpponent(References.Player)].Count; j++)
+                        for (int j = 0; j < 2; j++)
                         {
                             Entity[] entities = Battle.instance.rows[Battle.GetOpponent(References.Player)][j].ToArray();
                             for (int k = 0; k < entities.Length; k++)

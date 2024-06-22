@@ -24,7 +24,7 @@ namespace Sync
             HandlerBattle.OnBattleViewerOpen -= ViewerOpen;
             HandlerBattle.OnBattleViewerClose -= ViewerClose;
             //HandlerBattle.OnSendCardToPlay -= Play;
-            HandlerBattle.OnPostSendCardToPlay += GainZoomlin;
+            HandlerBattle.OnPostSendCardToPlay -= GainZoomlin;
         }
 
         public void ViewerOpen(Friend friend)
