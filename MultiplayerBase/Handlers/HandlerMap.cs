@@ -18,7 +18,7 @@ namespace MultiplayerBase.Handlers
     {
         public static HandlerMap instance;
 
-        public bool Blocking => background != null && background.activeSelf;
+        public bool Blocking => holder != null && holder.activeSelf;
         public Friend? friend;
 
         GameObject holder;
@@ -181,15 +181,20 @@ namespace MultiplayerBase.Handlers
         {
             if (holder.activeSelf)
             {
-                holder.SetActive(false);
-                this.friend = friend;
-                Clear();
+                CloseViewer();
             }
             else
             {
                 holder.SetActive(true);
+                this.friend = friend;
                 AskForData(friend);
             }
+        }
+
+        public void CloseViewer()
+        {
+            holder.SetActive(false);
+            Clear();
         }
     }
 }

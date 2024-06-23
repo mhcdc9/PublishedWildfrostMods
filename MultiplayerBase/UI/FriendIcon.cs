@@ -15,6 +15,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.Localization;
 using Deadpan.Enums.Engine.Components.Modding;
 using UnityEngine.Localization.Tables;
+using System.Collections;
 
 namespace MultiplayerBase.UI
 {
@@ -24,6 +25,8 @@ namespace MultiplayerBase.UI
         protected TextMeshProUGUI textElement;
         protected static  KeywordData keyword;
         protected bool popped = false;
+
+        protected static bool preventClicking = false;
 
         public string nickname = "(Unknown)";
 
@@ -178,9 +181,11 @@ namespace MultiplayerBase.UI
 
         public void FriendIconPressed()
         {
+            if (preventClicking) { return; }
+
             if (HandlerMap.instance.Blocking && (friend.Id != HandlerMap.instance.friend?.Id || HandlerSystem.friendStates[(Friend)HandlerMap.instance.friend] != PlayerState.Map) )
             {
-                HandlerMap.instance.ToggleViewer(friend);
+                HandlerMap.instance.CloseViewer();
             }
             Debug.Log($"[Multiplayer] Sending Message to {friend.Name}");
             if (InspectSystem.IsActive())
@@ -219,9 +224,15 @@ namespace MultiplayerBase.UI
                 HandlerSystem.SendMessage("CHT", friend, Dead.PettyRandom.Range(0f, 1f).ToString());
                 HandlerInspect.instance.Clear();
             }
-
+            StartCoroutine(Cooldown(0.5f));
         }
 
+        public static IEnumerator Cooldown(float seconds)
+        {
+            preventClicking = true;
+            yield return new WaitForSeconds(seconds);
+            preventClicking = false;
+        }
 
         public static Sprite GetAvatarSprite(SSprite steamSprite)
         {
