@@ -74,6 +74,7 @@ namespace MultiplayerBase.Handlers
                     }
                 }
                 hideButton.GetComponent<Image>().color = Color.white;
+                clearButton.GetComponent<Image>().color = Color.white;
                 hidden = false;
             }
             else
@@ -82,7 +83,8 @@ namespace MultiplayerBase.Handlers
                 {
                     ocv.gameObject.SetActive(false);
                 }
-                hideButton.GetComponent<Image>().color = Color.gray;
+                hideButton.GetComponent<Image>().color = new Color(0.5f,0.5f,0.5f,0.5f);
+                clearButton.GetComponent<Image>().color = new Color(1f, 0f, 0f, 0.5f);
                 hidden = true;
             }
         }
@@ -227,7 +229,8 @@ namespace MultiplayerBase.Handlers
             entity.flipper.FlipUp(force: true);
             if (hidden)
             {
-                hideButton.GetComponent<Image>().color = Color.green;
+                hideButton.GetComponent<Image>().color = new Color(0f,1f,0f,0.75f);
+                clearButton.GetComponent<Image>().color = new Color(1f, 0f, 0f, 0.75f);
             }
         }
 

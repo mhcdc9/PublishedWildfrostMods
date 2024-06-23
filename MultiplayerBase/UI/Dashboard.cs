@@ -91,9 +91,7 @@ namespace MultiplayerBase.UI
                 friendIcons[friend].gameObject.SetActive(!friendIcons[friend].gameObject.activeSelf);
             }
             friendsHidden = !friendIcons[HandlerSystem.self].gameObject.activeSelf;
-            visibleButton.GetComponent<UnityEngine.UI.Image>().color = friendsHidden ? Color.gray : Color.white;
+            visibleButton.GetComponent<UnityEngine.UI.Image>().color = friendsHidden ? new Color(0.5f, 0.5f, 0.5f, 0.5f) : Color.white;
         }
-
-        
     }
 }

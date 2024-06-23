@@ -178,6 +178,10 @@ namespace MultiplayerBase.UI
 
         public void FriendIconPressed()
         {
+            if (HandlerMap.instance.Blocking && (friend.Id != HandlerMap.instance.friend?.Id || HandlerSystem.friendStates[(Friend)HandlerMap.instance.friend] != PlayerState.Map) )
+            {
+                HandlerMap.instance.ToggleViewer(friend);
+            }
             Debug.Log($"[Multiplayer] Sending Message to {friend.Name}");
             if (InspectSystem.IsActive())
             {

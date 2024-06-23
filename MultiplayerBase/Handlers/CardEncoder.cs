@@ -151,6 +151,7 @@ namespace MultiplayerBase.Handlers
             if (int.TryParse(messages[15], out i)) { entity.hp.current = i; } //15. HP Current
             if (int.TryParse(messages[16], out i)) { entity.counter.max = i; }//16. Counter Max
             if (int.TryParse(messages[17], out i)) { entity.counter.current = i; }//17. Counter Current
+            Debug.Log($"[Multiplayer] More specific stats");
             entity.enabled = true;
         }
 
@@ -166,7 +167,7 @@ namespace MultiplayerBase.Handlers
             {
                 return data;
             }
-            Debug.Log("[Multiplayer] 0");
+            //Debug.Log("[Multiplayer] 0");
             data = data.Clone(false);
             if (!messages[1].IsNullOrEmpty()) //1. CustomData: Fix Later
             {
@@ -176,23 +177,23 @@ namespace MultiplayerBase.Handlers
                     data.customData = References.PlayerData.inventory.deck.FirstOrDefault((deckcard) => deckcard.cardType.name == "Leader").customData;
                 }
             }
-            Debug.Log("[Multiplayer] 1");
+            //Debug.Log("[Multiplayer] 1");
             data.attackEffects = DecodeToEffectStacks(messages[2]).ToArray(); //2. attackEffects
-            Debug.Log("[Multiplayer] 2");
+            //Debug.Log("[Multiplayer] 2");
             data.startWithEffects = DecodeToEffectStacks(messages[3]).ToArray(); //3. startWithEffects
-            Debug.Log("[Multiplayer] 3");
+            //Debug.Log("[Multiplayer] 3");
             data.traits = DecodeToTraitStacks(messages[4]); //4. traits
-            Debug.Log("[Multiplayer] 4");
+            //Debug.Log("[Multiplayer] 4");
             data.injuries = DecodeToEffectStacks(messages[5]); //5. injuries
-            Debug.Log("[Multiplayer] 5");
+            Debug.Log("[Multiplayer] Effects and Traits");
             int.TryParse(messages[6], out data.hp); //6. hp
-            Debug.Log("[Multiplayer] 6");
+            //Debug.Log("[Multiplayer] 6");
             int.TryParse(messages[7], out data.damage); //7. damage
-            Debug.Log("[Multiplayer] 7");
+            //Debug.Log("[Multiplayer] 7");
             int.TryParse(messages[8], out data.counter); //8. counter
-            Debug.Log("[Multiplayer] 8");
+            //Debug.Log("[Multiplayer] 8");
             data.upgrades = DecodeUpgrades(messages[9]); //9. upgrades
-            Debug.Log("[Multiplayer] 9");
+            //Debug.Log("[Multiplayer] 9");
             if (data.upgrades.Any((CardUpgradeData a) => a.becomesTargetedCard))
             {
                 data.hasAttack = true;
@@ -204,7 +205,7 @@ namespace MultiplayerBase.Handlers
                 data.needsTarget = true;
             }
             data.forceTitle = messages[10]; // 10. nickname
-            Debug.Log("[Multiplayer] 10");
+            Debug.Log("[Multiplayer] Stats and Nickname");
             return data;
         }
 

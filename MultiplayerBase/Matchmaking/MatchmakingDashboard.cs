@@ -15,9 +15,9 @@ using System.Collections;
 using MultiplayerBase.Handlers;
 using MultiplayerBase.UI;
 
-namespace MultiplayerBase
+namespace MultiplayerBase.Matchmaking
 {
-    public class Matchmaking : MonoBehaviour
+    public class MatchmakingDashboard : MonoBehaviour
     {
         public static Lobby? lobby;
         public static Lobby[] lobbyList;
@@ -28,6 +28,8 @@ namespace MultiplayerBase
         internal Button joinLobbyButton;
         internal Button leaveLobbyButton;
         internal Button finalizeButton;
+
+        internal LobbyView lobbyView;
 
         internal Button[] lobbyButtons = new Button[0];
         public int index = -1;
@@ -52,6 +54,8 @@ namespace MultiplayerBase
             joinLobbyButton.onClick.AddListener(JoinLobby);
             leaveLobbyButton.onClick.AddListener(LeaveLobby);
             finalizeButton.onClick.AddListener(FinalizeParty);
+
+            lobbyView = LobbyView.Create(transform);
         }
 
         public void CreateLobbyView(Lobby[] lobbies)
@@ -137,7 +141,7 @@ namespace MultiplayerBase
             Debug.Log("[Multiplayer] Found lobbies");
             if (lobbies == null)
             {
-                MultiplayerMain.textElement.text = "No lobbies found. :(";
+                MultiplayerMain.textElement.text = "No lobbies found :(";
                 lobbies = new Lobby[0];
                 return;
             }

@@ -59,7 +59,6 @@ namespace MultiplayerBase.Battles
             }
             //HandlerSystem.CHT_Handler(friend, otherCard.transform.position.ToString());
             LeanTween.moveLocal(otherCard.gameObject, new Vector3(-6f,0,0), 0.5f).setEase(LeanTweenType.easeOutQuart);
-            //DisplayOwner(otherCard);
             yield return new WaitForSeconds(0.5f);
             if (Events.CheckAction(action))
             {
@@ -67,12 +66,15 @@ namespace MultiplayerBase.Battles
             }
             HandlerBattle.InvokeOnPostPlayOtherCard(friend, entity);
             ActionQueue.Add(new ActionKill(otherCard));
+            //DisplayOwner(otherCard);
         }
 
         private void DisplayOwner(Entity otherCard)
         {
+            Debug.Log($"[Multiplayer] {otherCard != null}, {otherCard?.canvas != null}, {friend}");
             GameObject obj = new GameObject("Owner Text");
             obj.transform.SetParent(otherCard.canvas.transform, false);
+            Debug.Log($"[Multiplayer] Got past this part, at least");
             obj.transform.localPosition = startTextPosition;
             TextMeshProUGUI textElement = obj.AddComponent<TextMeshProUGUI>();
             textElement.fontSize = 0.4f;
@@ -80,6 +82,7 @@ namespace MultiplayerBase.Battles
             textElement.text = friend.Name;
             textElement.outlineColor = Color.black;
             textElement.outlineWidth = 0.06f;
+            Debug.Log($"[Multiplayer] Text Element Stuff");
             obj.GetComponent<RectTransform>().sizeDelta = new Vector2(4f, 1f);
         }
     }

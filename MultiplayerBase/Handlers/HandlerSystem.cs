@@ -226,6 +226,7 @@ namespace MultiplayerBase.Handlers
         }
         private static void SceneChanged(Scene scene)
         {
+            MultiplayerMain.textElement.text = "";
             SceneChanged(scene.name);
         }
 

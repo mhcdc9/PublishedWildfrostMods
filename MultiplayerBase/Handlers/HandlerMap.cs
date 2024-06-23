@@ -18,6 +18,9 @@ namespace MultiplayerBase.Handlers
     {
         public static HandlerMap instance;
 
+        public bool Blocking => background != null && background.activeSelf;
+        public Friend? friend;
+
         GameObject holder;
         GameObject background;
         List<GameObject> levels = new List<GameObject>();
@@ -179,6 +182,7 @@ namespace MultiplayerBase.Handlers
             if (holder.activeSelf)
             {
                 holder.SetActive(false);
+                this.friend = friend;
                 Clear();
             }
             else

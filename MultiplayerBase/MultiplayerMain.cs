@@ -14,6 +14,7 @@ using Image = UnityEngine.UI.Image;
 using HarmonyLib;
 using MultiplayerBase.Handlers;
 using MultiplayerBase.UI;
+using MultiplayerBase.Matchmaking;
 using UnityEngine.Events;
 
 namespace MultiplayerBase
@@ -25,7 +26,7 @@ namespace MultiplayerBase
         public static bool isHost = true;
         public static MultiplayerMain instance;
 
-        internal static Matchmaking matchmaker;
+        internal static MatchmakingDashboard matchmaker;
         internal static Button openMatchmaking;
         internal static TextMeshProUGUI textElement;
 
@@ -60,7 +61,7 @@ namespace MultiplayerBase
             GameObject gameobject = new GameObject("Matchmaker");
             gameobject.transform.SetParent(GameObject.Find("Canvas/SafeArea").transform);
             Debug.Log("[Multiplayer] 1");
-            matchmaker = gameobject.AddComponent<Matchmaking>();
+            matchmaker = gameobject.AddComponent<MatchmakingDashboard>();
             Debug.Log("[Multiplayer] 2");
             matchmaker.CreateObjects();
             Debug.Log("[Multiplayer] 3");
@@ -115,7 +116,7 @@ namespace MultiplayerBase
 
         internal void HookToChatRoom()
         {
-            Events.OnSceneChanged += AnnounceSceneToOthers;
+            //Events.OnSceneChanged += AnnounceSceneToOthers;
             SteamMatchmaking.OnLobbyCreated += SendMessageCreate;
             SteamMatchmaking.OnLobbyEntered += SendMessageEnter;
             SteamMatchmaking.OnChatMessage += DisplayMessage;
@@ -123,7 +124,7 @@ namespace MultiplayerBase
 
         internal void UnhookToChatRoom()
         {
-            Events.OnSceneChanged -= AnnounceSceneToOthers;
+            //Events.OnSceneChanged -= AnnounceSceneToOthers;
             SteamMatchmaking.OnLobbyCreated -= SendMessageCreate;
             SteamMatchmaking.OnLobbyEntered -= SendMessageEnter;
             SteamMatchmaking.OnChatMessage -= DisplayMessage;
@@ -162,7 +163,7 @@ namespace MultiplayerBase
 
         public static void SendMessage(string message)
         {
-            if (Matchmaking.lobby is Lobby lob)
+            if (MatchmakingDashboard.lobby is Lobby lob)
             {
                 lob.SendChatString(message);
                 Debug.Log("[Multiplayer] Sent message: " + message);
@@ -177,7 +178,7 @@ namespace MultiplayerBase
         private void ToggleMatchmaking()
         {
             matchmaker.gameObject.SetActive(!matchmaker.gameObject.activeSelf);
-            if (matchmaker.gameObject.activeSelf && Matchmaking.lobby == null)
+            if (matchmaker.gameObject.activeSelf && MatchmakingDashboard.lobby == null)
             {
                 matchmaker.FindLobby();
             }

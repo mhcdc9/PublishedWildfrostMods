@@ -65,7 +65,6 @@ namespace Sync
             Events.OnCampaignGenerated += MystStartingInventory;
             Net.HandlerRoutines.Add("SYNC", SYNC_Handler);
             base.Load();
-            CreateModifierData();
             if (!commandsLoaded)
             {
                 Events.OnSceneChanged += Commands;
@@ -102,12 +101,6 @@ namespace Sync
         public void ClearSync()
         {
             syncNextTurn = 0;
-        }
-
-        public void CreateModifierData()
-        {
-            GameModifierDataBuilder syncModifier = new GameModifierDataBuilder()
-                .Create("SyncModifier");
         }
 
         public void CreateStatuses()
@@ -175,7 +168,7 @@ namespace Sync
                 );
 
             effects.Add(new StatusEffectDataBuilder(this)
-                .CreateSyncEffect<StatusEffectSync>("Sync Mystic", "<keyword=mhcdc9.wildfrost.sync.sync>: <keyword=mhcdc9.wildfrost.sync.mystic>", "", "Mystic")
+                .CreateSyncEffect<StatusEffectSync>("Sync Mystic", "<keyword=mhcdc9.wildfrost.sync.sync>: <keyword=mhcdc9.wildfrost.sync.mystic>", "", "mhcdc9.wildfrost.sync.Mystic")
                 .WithConstraints(Extensions.IsPlay(), Extensions.NotOnSlot())
                 );
 
@@ -193,7 +186,7 @@ namespace Sync
             ("Sync Frenzy", 1),
             ("Sync Barrage", 1),
             ("Sync Zoomlin", 1),
-            ("Sync Mystical", 1),
+            ("Sync Mystic", 1),
             ("Sync Nothing", 1)
         };
 
