@@ -116,8 +116,8 @@ namespace MultiplayerBase.Matchmaking
             }
             index = newIndex;
             lobbyButtons[index].GetComponent<Image>().color = Color.green;
-            modView.OpenModView((Lobby)lobby, false);
-            memberView.OpenMemberView((Lobby)lobby, false, false);
+            modView.OpenModView(lobbyList[index], false);
+            memberView.OpenMemberView(lobbyList[index], false, false);
             joinLobbyButton.interactable = true;
         }
 

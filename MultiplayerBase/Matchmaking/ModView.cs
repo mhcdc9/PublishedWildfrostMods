@@ -67,7 +67,7 @@ namespace MultiplayerBase.Matchmaking
             {
                 if (!modList.Contains(myMod))
                 {
-                    s2 += myMod + " (Host)\n";
+                    s2 += myMod + " (Yours)\n";
                 }
             }
             s2 += "</color>";
@@ -81,7 +81,7 @@ namespace MultiplayerBase.Matchmaking
                 }
                 else
                 {
-                    s3 += mod + " (Yours) \n";
+                    s3 += mod + " (Host) \n";
                 }
             }
             textElement.text = s1 + $"\n<size={bodySize}>" + s2 + s3 + s4;

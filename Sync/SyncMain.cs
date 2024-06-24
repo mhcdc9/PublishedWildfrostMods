@@ -144,7 +144,7 @@ namespace Sync
 
             effects.Add(new StatusEffectDataBuilder(this)
                 .CreateSyncEffect<StatusEffectSync>("Sync Barrage", "<keyword=mhcdc9.wildfrost.sync.sync>: <keyword=barrage>", "", "Temporary Barrage")
-                .WithConstraints(Extensions.DoesAttack(), Extensions.NotTrait("Barrage"))
+                .WithConstraints(Extensions.DoesAttack(), Extensions.NotTrait("Barrage"), Extensions.TargetsBoard())
                 );
 
             effects.Add(new StatusEffectDataBuilder(this)
