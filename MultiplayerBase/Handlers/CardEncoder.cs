@@ -143,6 +143,20 @@ namespace MultiplayerBase.Handlers
             {
                 yield break;
             }
+            foreach(Entity.TraitStacks trait in entity.traits)
+            {
+                foreach(StatusEffectData effect in trait.data.effects)
+                {
+                    foreach(StatusEffectData effect2 in entity.statusEffects)
+                    {
+                        if (effect2.name == effect.name)
+                        {
+                            effect2.count = Math.Max(effect2.count - trait.count, 0);
+                        }
+                    }
+                }
+            }
+            Debug.Log($"[Multiplayer] Update trait effect counts");
             int i;
             if (int.TryParse(messages[11], out i)) { entity.height = i; } //11. Height
             if (int.TryParse(messages[12], out i)) { entity.damage.max = i; } //12. Damage Max
@@ -158,10 +172,10 @@ namespace MultiplayerBase.Handlers
         //CardData!customData!attackEffects!startWithEffects!traits!injuries!hp!damage!counter!upgrades!forceTitle!
         public static CardData DecodeData(string[] messages)
         {
-            foreach(string message in messages)
+            /*foreach(string message in messages)
             {
                 Debug.Log(message);
-            }
+            }*/
             CardData data = AddressableLoader.Get<CardData>("CardData", messages[0]); //0. CardData
             if (data == null)
             {
