@@ -35,7 +35,7 @@ namespace MultiplayerBase.Battles
             Entity otherCard = CardEncoder.DecodeEntity1(null, References.Player, messages);
             otherCard.transform.SetParent(HandlerInspect.instance.transform, false);
             yield return CardEncoder.DecodeEntity2(otherCard, messages);
-            foreach (StatusEffectData effect in entity.statusEffects)
+            foreach (StatusEffectData effect in otherCard.statusEffects)
             {
                 if (effect is StatusEffectFreeAction f)
                 {

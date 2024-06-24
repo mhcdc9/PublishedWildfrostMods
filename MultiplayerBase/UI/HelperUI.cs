@@ -41,6 +41,23 @@ namespace MultiplayerBase.UI
             return newButtonObject.GetComponent<Button>();
         }
 
+        public static GameObject ButtonTemplateWithIcon(Transform transform, Vector2 totalDim, Vector2 iconDim, Vector3 pos, string text, Color color, float innerPadding, float outerPadding)
+        {
+            GameObject obj1 = HelperUI.ButtonTemplate(transform, totalDim, pos, text, color).gameObject;
+            GameObject obj2 = new GameObject("Icon");
+            obj2.AddComponent<Image>();
+            obj2.transform.SetParent(obj1.transform, false);
+            obj2.GetComponent<RectTransform>().sizeDelta = iconDim;
+            obj2.GetComponent<RectTransform>().SetInsetAndSizeFromParentEdge(RectTransform.Edge.Left, outerPadding, iconDim.x);
+            TextMeshProUGUI memberName = obj1.GetComponentInChildren<TextMeshProUGUI>();
+            memberName.alignment = TextAlignmentOptions.CaplineLeft;
+            memberName.overflowMode = TextOverflowModes.Ellipsis;
+            Vector2 textDim = totalDim - iconDim - new Vector2(innerPadding + 2 * outerPadding, 2*outerPadding);
+            memberName.GetComponent<RectTransform>().sizeDelta = textDim;
+            memberName.GetComponent<RectTransform>().SetInsetAndSizeFromParentEdge(RectTransform.Edge.Right, outerPadding, textDim.x);
+            return obj1;
+        }
+
         public static GameObject Background(Transform transform, Color color)
         {
             GameObject background = new GameObject("Background");

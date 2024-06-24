@@ -447,7 +447,8 @@
     <Compile Include="Battles\ActionPlayOtherCard.cs" />
     <Compile Include="Battles\NavigationStateMultiplayerCard.cs" />
     <Compile Include="Handlers\CardEncoder.cs" />
-    <Compile Include="Matchmaking\LobbyView.cs" />
+    <Compile Include="Matchmaking\MemberView.cs" />
+    <Compile Include="Matchmaking\ModView.cs" />
     <Compile Include="UI\Dashboard.cs" />
     <Compile Include="Handlers\HandlerBattle.cs" />
     <Compile Include="Handlers\HandlerDeck.cs" />

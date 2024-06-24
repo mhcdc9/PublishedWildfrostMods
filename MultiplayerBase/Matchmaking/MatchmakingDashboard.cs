@@ -29,7 +29,8 @@ namespace MultiplayerBase.Matchmaking
         internal Button leaveLobbyButton;
         internal Button finalizeButton;
 
-        internal LobbyView lobbyView;
+        internal MemberView memberView;
+        internal ModView modView;
 
         internal Button[] lobbyButtons = new Button[0];
         public int index = -1;
@@ -55,7 +56,8 @@ namespace MultiplayerBase.Matchmaking
             leaveLobbyButton.onClick.AddListener(LeaveLobby);
             finalizeButton.onClick.AddListener(FinalizeParty);
 
-            lobbyView = LobbyView.Create(transform);
+            memberView = MemberView.Create(transform);
+            modView = ModView.Create(transform);
         }
 
         public void CreateLobbyView(Lobby[] lobbies)
@@ -119,12 +121,18 @@ namespace MultiplayerBase.Matchmaking
 
         private async void CreateLobby()
         {
+            int num = 4;
             Debug.Log("[Multiplayer] Lobby creation request");
-            lobby = await SteamMatchmaking.CreateLobbyAsync(2);
+            lobby = await SteamMatchmaking.CreateLobbyAsync(num);
             if (lobby is Lobby lob)
             {
                 lob.SetData("name", $"{HandlerSystem.self.Name}");
+                lob.SetData("mods", ModView.ActiveModListAsString());
+                lob.SetData("id", $"{HandlerSystem.self.Id}");
+                lob.SetData("maxplayers", num.ToString());
+                lob.SetData("players", "1");
                 lob.SetPublic();
+                modView.OpenModView(lob, true);
                 MultiplayerMain.instance.HookToChatRoom();
                 leaveLobbyButton.interactable = true;
                 finalizeButton.interactable = true;
@@ -168,6 +176,7 @@ namespace MultiplayerBase.Matchmaking
                 lobby= lobbyList[index];
                 MultiplayerMain.isHost = false;
                 MultiplayerMain.instance.HookToChatRoom();
+                modView.OpenModView((Lobby)lobby, true);
                 leaveLobbyButton.interactable = true;
                 findLobbyButton.interactable = false;
             }
