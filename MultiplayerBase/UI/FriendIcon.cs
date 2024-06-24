@@ -221,8 +221,8 @@ namespace MultiplayerBase.UI
             }
             else
             {
-                HandlerSystem.SendMessage("CHT", friend, Dead.PettyRandom.Range(0f, 1f).ToString());
-                HandlerInspect.instance.Clear();
+                //HandlerSystem.SendMessage("CHT", friend, Dead.PettyRandom.Range(0f, 1f).ToString());
+                //HandlerInspect.instance.Clear();
             }
             StartCoroutine(Cooldown(0.5f));
         }

@@ -74,7 +74,7 @@ namespace MultiplayerBase.Handlers
                     }
                 }
                 hideButton.GetComponent<Image>().color = Color.white;
-                clearButton.GetComponent<Image>().color = Color.white;
+                clearButton.GetComponent<Image>().color = Color.red;
                 hidden = false;
             }
             else

@@ -18,21 +18,21 @@ namespace MultiplayerBase.Matchmaking
     internal class ModView : MonoBehaviour
     {
         TextMeshProUGUI textElement;
-        static Vector3 defaultPosition = new Vector3(6f,0.7f,0f);
-        static Vector2 dim = new Vector2(6f, 6f);
-        static Vector2 innerDim = new Vector2(5f, 5.5f);
-        static float titleSize = 0.4f;
+        static Vector3 defaultPosition = new Vector3(6f,-0.4f,0f);
+        static Vector2 dim = new Vector2(6f, 8.2f);
+        static Vector2 innerDim = new Vector2(5f, 7.5f);
+        static float titleSize = 0.6f;
         static float bodySize = 0.3f;
 
-        string hostTitle = $"<size={titleSize}><color=#FC5>Your Mods</color></size>";
-        string clientTitle = $"<size={titleSize}><color=#FC5>Mods (Differences in <color=#F33>Red</color> and <color=#888>Gray</color>)</color></size>";
+        string hostTitle = $"<size={titleSize}><color=#FC8>My Mods</color></size>";
+        string clientTitle = $"<size={titleSize}><color=#FC8>Mods</color></size>";
         string[] hostMods;
 
         public static ModView Create(Transform transform)
         {
             GameObject obj = new GameObject("Member View");
-            obj.AddComponent<Image>().color = Color.black;
-            obj.GetComponent<RectTransform>().sizeDelta = new Vector2(6, 6);
+            obj.AddComponent<Image>().color = new Color(0, 0, 0, 0.8f);
+            obj.GetComponent<RectTransform>().sizeDelta = dim;
             obj.transform.Translate(defaultPosition);
             ModView mv = obj.AddComponent<ModView>();
             mv.transform.SetParent(transform);
@@ -46,8 +46,6 @@ namespace MultiplayerBase.Matchmaking
         public static string ActiveModListAsString()
         {
             List<string> mods = ActiveModList();
-            mods.RemoveAt(3);
-            mods.Add("The GRAY (not grey) Mod");
             string s = string.Join(", ", mods.Select((modName) => modName.Replace(",", ",|")));
             return s;
         }
@@ -69,7 +67,7 @@ namespace MultiplayerBase.Matchmaking
             {
                 if (!modList.Contains(myMod))
                 {
-                    s2 += myMod + "\n";
+                    s2 += myMod + " (Host)\n";
                 }
             }
             s2 += "</color>";
@@ -83,7 +81,7 @@ namespace MultiplayerBase.Matchmaking
                 }
                 else
                 {
-                    s3 += mod + "\n";
+                    s3 += mod + " (Yours) \n";
                 }
             }
             textElement.text = s1 + $"\n<size={bodySize}>" + s2 + s3 + s4;

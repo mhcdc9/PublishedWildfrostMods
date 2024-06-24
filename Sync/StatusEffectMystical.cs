@@ -11,6 +11,7 @@ namespace Sync
 {
     public class StatusEffectMystical : StatusEffectApplyX
     {
+        public bool holdPlayOnHand = false;
         public override void Init()
         {
             HandlerBattle.OnBattleViewerOpen += ViewerOpen;
@@ -31,6 +32,8 @@ namespace Sync
         {
             if (target != null && References.Battle != null && target.IsAliveAndExists())
             {
+                holdPlayOnHand = target.data.canPlayOnHand;
+                target.data.canPlayOnHand = false;
                 target.display.hover.controller = HandlerBattle.instance.CB;
             }
         }
@@ -39,6 +42,7 @@ namespace Sync
         {
             if (target != null && References.Battle != null && target.IsAliveAndExists())
             {
+                target.data.canPlayOnHand = holdPlayOnHand;
                 target.display.hover.controller = References.Battle.playerCardController;
             }
         }

@@ -150,6 +150,8 @@ namespace Sync
         public static TargetConstraint HasCounter() => ScriptableObject.CreateInstance<TargetConstraintMaxCounterMoreThan>();
         public static TargetConstraint CanBeBoosted() => ScriptableObject.CreateInstance<TargetConstraintCanBeBoosted>();
 
+        public static TargetConstraint TargetsBoard() => ScriptableObject.CreateInstance<TargetConstraintPlayableOnBoard>();
+
         public static TargetConstraint IsItem() => ScriptableObject.CreateInstance<TargetConstraintIsItem>();
 
         public static TargetConstraint IsPlay()

@@ -45,9 +45,9 @@ namespace Sync
 
         public override string[] Depends => new string[0];
 
-        public override string Title => "Sync and Mystical";
+        public override string Title => "Sync and Mystic";
 
-        public override string Description => "Create complicated board states by entangling multiple board states together.";
+        public override string Description => "Complicate the game by entangling multiple board states together.";
 
         public CardData.StatusEffectStacks SStack(string name, int count) => new CardData.StatusEffectStacks(Get<StatusEffectData>(name), count);
 
@@ -105,7 +105,7 @@ namespace Sync
 
         public void CreateStatuses()
         {
-            keywords.Add(Extensions.CreateBasicKeyword(this, "sync", "Sync", "Gain an effect as long as conditions are met..."));
+            keywords.Add(Extensions.CreateBasicKeyword(this, "sync", "Sync", "Gain an effect when a <sync> card is played or attacks elsewhere"));
             keywords.Add(Extensions.CreateBasicKeyword(this, "mystic", "Mystic", "Playable on another board|Reward: replace this effect with Zoomlin"));
 
             effects.Add(new StatusEffectDataBuilder(this)
@@ -113,7 +113,7 @@ namespace Sync
                 .WithCanBeBoosted(false)
                 .WithText("<keyword=mhcdc9.wildfrost.sync.mystic>")
                 .WithType("")
-                .WithConstraints(Extensions.IsItem(), Extensions.IsPlay(),Extensions.NotOnSlot())
+                .WithConstraints(Extensions.IsItem(), Extensions.IsPlay(),Extensions.NotOnSlot(), Extensions.TargetsBoard())
                 .FreeModify<StatusEffectApplyX>(
                 (data) =>
                 {
@@ -169,7 +169,7 @@ namespace Sync
 
             effects.Add(new StatusEffectDataBuilder(this)
                 .CreateSyncEffect<StatusEffectSync>("Sync Mystic", "<keyword=mhcdc9.wildfrost.sync.sync>: <keyword=mhcdc9.wildfrost.sync.mystic>", "", "mhcdc9.wildfrost.sync.Mystic")
-                .WithConstraints(Extensions.IsPlay(), Extensions.NotOnSlot())
+                .WithConstraints(Extensions.IsPlay(), Extensions.NotOnSlot(), Extensions.TargetsBoard())
                 );
 
             effects.Add(new StatusEffectDataBuilder(this)

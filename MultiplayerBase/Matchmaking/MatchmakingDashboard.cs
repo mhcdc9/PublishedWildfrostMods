@@ -116,6 +116,8 @@ namespace MultiplayerBase.Matchmaking
             }
             index = newIndex;
             lobbyButtons[index].GetComponent<Image>().color = Color.green;
+            modView.OpenModView((Lobby)lobby, false);
+            memberView.OpenMemberView((Lobby)lobby, false, false);
             joinLobbyButton.interactable = true;
         }
 
@@ -133,6 +135,7 @@ namespace MultiplayerBase.Matchmaking
                 lob.SetData("players", "1");
                 lob.SetPublic();
                 modView.OpenModView(lob, true);
+                memberView.OpenMemberView(lob, true, true);
                 MultiplayerMain.instance.HookToChatRoom();
                 leaveLobbyButton.interactable = true;
                 finalizeButton.interactable = true;
@@ -176,7 +179,8 @@ namespace MultiplayerBase.Matchmaking
                 lobby= lobbyList[index];
                 MultiplayerMain.isHost = false;
                 MultiplayerMain.instance.HookToChatRoom();
-                modView.OpenModView((Lobby)lobby, true);
+                modView.OpenModView((Lobby)lobby, false);
+                memberView.OpenMemberView((Lobby)lobby, true, false);
                 leaveLobbyButton.interactable = true;
                 findLobbyButton.interactable = false;
             }
@@ -199,6 +203,32 @@ namespace MultiplayerBase.Matchmaking
                 findLobbyButton.interactable = true;
                 lobby = null;
             }
+        }
+
+        public void UpdateMemberView()
+        {
+            if (lobby is Lobby lob)
+            {
+                memberView.OpenMemberView(lob, true, MultiplayerMain.isHost);
+            }
+            
+        }
+
+        public void UpdateModView()
+        {
+            if (lobby is Lobby lob)
+            {
+                modView.OpenModView(lob, MultiplayerMain.isHost);
+            }
+        }
+
+        public void UpdateModList()
+        {
+            if (lobby is Lobby lob)
+            {
+                (lob).SetData("mods", ModView.ActiveModListAsString());
+            }
+            UpdateModView();
         }
     }
 }

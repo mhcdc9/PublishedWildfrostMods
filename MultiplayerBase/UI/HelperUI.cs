@@ -45,14 +45,15 @@ namespace MultiplayerBase.UI
         {
             GameObject obj1 = HelperUI.ButtonTemplate(transform, totalDim, pos, text, color).gameObject;
             GameObject obj2 = new GameObject("Icon");
-            obj2.AddComponent<Image>();
+            obj2.AddComponent<Image>().color = new Color(0.5f, 0.5f, 0.5f);
             obj2.transform.SetParent(obj1.transform, false);
             obj2.GetComponent<RectTransform>().sizeDelta = iconDim;
             obj2.GetComponent<RectTransform>().SetInsetAndSizeFromParentEdge(RectTransform.Edge.Left, outerPadding, iconDim.x);
             TextMeshProUGUI memberName = obj1.GetComponentInChildren<TextMeshProUGUI>();
             memberName.alignment = TextAlignmentOptions.CaplineLeft;
             memberName.overflowMode = TextOverflowModes.Ellipsis;
-            Vector2 textDim = totalDim - iconDim - new Vector2(innerPadding + 2 * outerPadding, 2*outerPadding);
+            memberName.enableWordWrapping = false;
+            Vector2 textDim = totalDim - new Vector2(iconDim.x + innerPadding + 2 * outerPadding, 2*outerPadding);
             memberName.GetComponent<RectTransform>().sizeDelta = textDim;
             memberName.GetComponent<RectTransform>().SetInsetAndSizeFromParentEdge(RectTransform.Edge.Right, outerPadding, textDim.x);
             return obj1;

@@ -120,6 +120,8 @@ namespace MultiplayerBase
             SteamMatchmaking.OnLobbyCreated += SendMessageCreate;
             SteamMatchmaking.OnLobbyEntered += SendMessageEnter;
             SteamMatchmaking.OnChatMessage += DisplayMessage;
+            Events.OnModLoaded += ModChanged;
+            Events.OnModUnloaded += ModChanged;
         }
 
         internal void UnhookToChatRoom()
@@ -128,15 +130,31 @@ namespace MultiplayerBase
             SteamMatchmaking.OnLobbyCreated -= SendMessageCreate;
             SteamMatchmaking.OnLobbyEntered -= SendMessageEnter;
             SteamMatchmaking.OnChatMessage -= DisplayMessage;
+            Events.OnModLoaded -= ModChanged;
+            Events.OnModUnloaded -= ModChanged;
         }
 
-        
+        private void ModChanged(WildfrostMod mod)
+        {
+            if (isHost)
+            {
+                matchmaker.UpdateModList();
+            }
+        }
 
         private void SendMessageCreate(Result result, Lobby lobby) => SendMessage("Created lobby");
         private void SendMessageEnter(Lobby lobby) => SendMessage("Joined lobby");
 
         private void DisplayMessage(Lobby lobby, Friend friend, String message)
         {
+            if(message == "Joined lobby")
+            {
+                if (isHost)
+                {
+                    lobby.SetData("players", lobby.MemberCount.ToString());
+                }
+                matchmaker.UpdateMemberView();
+            }
             if(message == "AndSoThePartyIsFinallyFinalized")
             {
                 HandlerSystem.friends = lobby.Members.ToArray();

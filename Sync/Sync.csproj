@@ -398,6 +398,7 @@
     <Compile Include="StatusEffectSync.cs" />
     <Compile Include="SyncMain.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TargetConstraintPlayableOnBoard.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
