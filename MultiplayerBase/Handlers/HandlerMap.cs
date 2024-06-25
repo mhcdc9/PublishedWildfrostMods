@@ -19,7 +19,7 @@ namespace MultiplayerBase.Handlers
         public static HandlerMap instance;
 
         public bool Blocking => holder != null && holder.activeSelf;
-        public Friend? friend;
+        public static Friend? friend;
 
         GameObject holder;
         GameObject background;
@@ -186,7 +186,7 @@ namespace MultiplayerBase.Handlers
             else
             {
                 holder.SetActive(true);
-                this.friend = friend;
+                HandlerMap.friend = friend;
                 AskForData(friend);
             }
         }

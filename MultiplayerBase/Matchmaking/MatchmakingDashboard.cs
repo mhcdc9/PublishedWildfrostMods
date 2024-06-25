@@ -39,7 +39,21 @@ namespace MultiplayerBase.Matchmaking
         {
             transform.SetAsFirstSibling();
 
-            background = HelperUI.Background(transform, new Color(0f, 0f, 0f, .9f));
+            background = HelperUI.Background(transform, new Color(0f, 0f, 0f, .8f));
+            Fader fader = background.AddComponent<Fader>();
+            fader.onEnable = true;
+            fader.gradient = new Gradient();
+            GradientColorKey[] colors = new GradientColorKey[]
+            {
+                new GradientColorKey(Color.black, 0f),
+                new GradientColorKey(Color.black, 1f)
+            };
+            GradientAlphaKey[] alphas = new GradientAlphaKey[]
+            {
+                new GradientAlphaKey(0f, 0f),
+                new GradientAlphaKey(0.8f, 1f)
+            };
+            fader.gradient.SetKeys(colors, alphas);
 
             createLobbyButton = HelperUI.ButtonTemplate(transform,new Vector2(2,0.8f), new Vector3(-1.5f, -3, 0), "Create", Color.white);
             findLobbyButton = HelperUI.ButtonTemplate(transform, new Vector2(2, 0.8f), new Vector3(-1.5f, -4, 0), "Find", Color.white);

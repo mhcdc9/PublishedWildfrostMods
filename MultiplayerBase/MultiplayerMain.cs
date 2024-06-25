@@ -60,13 +60,9 @@ namespace MultiplayerBase
             base.Load();
             GameObject gameobject = new GameObject("Matchmaker");
             gameobject.transform.SetParent(GameObject.Find("Canvas/SafeArea").transform);
-            Debug.Log("[Multiplayer] 1");
-            matchmaker = gameobject.AddComponent<MatchmakingDashboard>();
-            Debug.Log("[Multiplayer] 2");
-            matchmaker.CreateObjects();
-            Debug.Log("[Multiplayer] 3");
-            Debug.Log("[Multiplayer] 4");
             gameobject.SetActive(false);
+            matchmaker = gameobject.AddComponent<MatchmakingDashboard>();
+            matchmaker.CreateObjects();
 
             HandlerSystem.self = new Friend(SteamClient.SteamId);
             Task<Steamworks.Data.Image?> imageTask = HandlerSystem.self.GetSmallAvatarAsync();

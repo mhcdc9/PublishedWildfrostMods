@@ -33,7 +33,7 @@ namespace MultiplayerBase.Handlers
 
         public static HandlerBattle instance;
         public static readonly List<PlayAction> actions = new List<PlayAction>();
-        public static Friend friend;
+        public static Friend? friend = null;
 
         GameObject background;
 
@@ -164,7 +164,11 @@ namespace MultiplayerBase.Handlers
             background.SetActive(false);
             background.transform.SetParent(transform);
             Clear();
-            InvokeOnBattleViewerClose(friend);
+            if (friend is Friend f)
+            {
+                InvokeOnBattleViewerClose(f);
+            }
+            
         }
 
         public void ToggleViewer(Friend friend)

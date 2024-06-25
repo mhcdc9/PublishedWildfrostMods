@@ -183,9 +183,13 @@ namespace MultiplayerBase.UI
         {
             if (preventClicking) { return; }
 
-            if (HandlerMap.instance.Blocking && (friend.Id != HandlerMap.instance.friend?.Id || HandlerSystem.friendStates[(Friend)HandlerMap.instance.friend] != PlayerState.Map) )
+            if (HandlerMap.instance.Blocking && (friend.Id != HandlerMap.friend?.Id || HandlerSystem.friendStates[(Friend)HandlerMap.friend] != PlayerState.Map) )
             {
                 HandlerMap.instance.CloseViewer();
+            }
+            if (HandlerBattle.instance.Blocking && (friend.Id != HandlerBattle.friend?.Id || HandlerSystem.friendStates[(Friend)HandlerBattle.friend] != PlayerState.Battle))
+            {
+                HandlerBattle.instance.CloseBattleViewer();
             }
             Debug.Log($"[Multiplayer] Sending Message to {friend.Name}");
             if (InspectSystem.IsActive())

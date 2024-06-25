@@ -21,7 +21,8 @@ namespace MultiplayerBase.Handlers
             s += $"{entity.height}!";
             s += $"{entity.damage.max}!" + $"{entity.damage.current}!";
             s += $"{entity.hp.max}!" + $"{entity.hp.current}!";
-            s += $"{entity.counter.max}!" + $"{entity.counter.current}";
+            s += $"{entity.counter.max}!" + $"{entity.counter.current}!";
+            s += $"{entity.effectBonus}!" + $"{entity.effectFactor}";
             return s;
         }
 
@@ -158,6 +159,7 @@ namespace MultiplayerBase.Handlers
             }
             Debug.Log($"[Multiplayer] Update trait effect counts");
             int i;
+            float f;
             if (int.TryParse(messages[11], out i)) { entity.height = i; } //11. Height
             if (int.TryParse(messages[12], out i)) { entity.damage.max = i; } //12. Damage Max
             if (int.TryParse(messages[13], out i)) { entity.damage.current = i; } //13. Damage Current
@@ -165,6 +167,8 @@ namespace MultiplayerBase.Handlers
             if (int.TryParse(messages[15], out i)) { entity.hp.current = i; } //15. HP Current
             if (int.TryParse(messages[16], out i)) { entity.counter.max = i; }//16. Counter Max
             if (int.TryParse(messages[17], out i)) { entity.counter.current = i; }//17. Counter Current
+            if (int.TryParse(messages[18], out i)) { entity.effectBonus = i; }//18. Effect Bonus
+            if (float.TryParse(messages[19], out f)) { entity.effectFactor = f; }//19. Effect Factor
             Debug.Log($"[Multiplayer] More specific stats");
             entity.enabled = true;
         }

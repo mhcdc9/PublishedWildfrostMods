@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using UnityEngine;
 using MultiplayerBase.Handlers;
 using MultiplayerBase.UI;
+using Steamworks;
 
 namespace MultiplayerBase.Battles
 {
@@ -86,7 +87,7 @@ namespace MultiplayerBase.Battles
                                 Debug.Log("[Multiplayer] Targetless?");
                                 if (!hoverContainer || !dragging.InContainer(hoverContainer))
                                 {
-                                    ActionQueue.Add(new ActionSendCardToPlay(dragging, HandlerBattle.friend, 0, ActionSendCardToPlay.TargetType.None));
+                                    ActionQueue.Add(new ActionSendCardToPlay(dragging, (Friend)HandlerBattle.friend, 0, ActionSendCardToPlay.TargetType.None));
                                 }
                             }
                             else if (dragging.data.playOnSlot)
@@ -121,13 +122,13 @@ namespace MultiplayerBase.Battles
                                 Debug.Log("[Multiplayer] Barrage?");
                                 if (dragging.CanPlayOn(hoverContainer))
                                 {
-                                    ActionQueue.Add(new ActionSendCardToPlay(dragging, HandlerBattle.friend, HandlerBattle.instance.ConvertToID(hoverContainer), ActionSendCardToPlay.TargetType.Container));
+                                    ActionQueue.Add(new ActionSendCardToPlay(dragging, (Friend)HandlerBattle.friend, HandlerBattle.instance.ConvertToID(hoverContainer), ActionSendCardToPlay.TargetType.Container));
                                 }
                             }
                             else if ((bool)hoverEntity && hoverEntity != dragging)
                             {
                                 Debug.Log("[Multiplayer] Standard!");
-                                ActionQueue.Add(new ActionSendCardToPlay(dragging, HandlerBattle.friend, HandlerInspect.FindTrueID(hoverEntity), ActionSendCardToPlay.TargetType.Entity));
+                                ActionQueue.Add(new ActionSendCardToPlay(dragging, (Friend)HandlerBattle.friend, HandlerInspect.FindTrueID(hoverEntity), ActionSendCardToPlay.TargetType.Entity));
                             }
 
                             break;
