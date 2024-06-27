@@ -461,6 +461,7 @@
     <Compile Include="Matchmaking\MatchmakingDashboard.cs" />
     <Compile Include="MultiplayerMain.cs" />
     <Compile Include="UI\NoncardReward.cs" />
+    <Compile Include="UI\NoncardViewer.cs" />
     <Compile Include="UI\OtherCardViewer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

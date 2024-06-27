@@ -43,7 +43,7 @@ namespace MultiplayerBase.UI
         };
 
         public static Dictionary<string, string> ExplanationText_Self = new Dictionary<string, string>(){
-            {"Battle", "Click to view... your own battle?" },
+            {"Battle", "Click to view... your own battle against <{1}>?" },
             {"MapNew", "Click to view... a map of your map?" },
             {"Event", "Click to ask for advice from your party" },
             {"MainMenu", "You answered the call to end the storm"},
@@ -195,6 +195,10 @@ namespace MultiplayerBase.UI
             if (InspectSystem.IsActive())
             {
                 HandlerInspect.SelectDisp(FindObjectOfType<InspectSystem>(true).inspect);
+            }
+            else if (SceneManager.IsLoaded("BossReward"))
+            {
+                HandlerEvent.instance.SendRewardData(friend);
             }
             else if (HandlerSystem.friendStates[friend] == PlayerState.Battle)
             {

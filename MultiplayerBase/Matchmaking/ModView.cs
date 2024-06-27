@@ -30,10 +30,20 @@ namespace MultiplayerBase.Matchmaking
 
         public static ModView Create(Transform transform)
         {
-            GameObject obj = new GameObject("Member View");
+            GameObject obj = new GameObject("Mod View");
+            obj.SetActive(false);
             obj.AddComponent<Image>().color = new Color(0, 0, 0, 0.8f);
             obj.GetComponent<RectTransform>().sizeDelta = dim;
             obj.transform.Translate(defaultPosition);
+            TweenUI tween = obj.AddComponent<TweenUI>();
+            tween.target = obj;
+            tween.property = TweenUI.Property.Move;
+            tween.ease = LeanTweenType.easeOutElastic;
+            tween.fireOnEnable = true;
+            tween.duration = 1f;
+            tween.to = defaultPosition;
+            tween.hasFrom = true;
+            tween.from = defaultPosition + new Vector3(7, 0, 0);
             ModView mv = obj.AddComponent<ModView>();
             mv.transform.SetParent(transform);
             GameObject obj2 = new GameObject("Text");
@@ -57,6 +67,7 @@ namespace MultiplayerBase.Matchmaking
 
         public void OpenModView(Lobby lobby, bool isHost)
         {
+            gameObject.SetActive(true);
             string s1 = isHost ? hostTitle : clientTitle;
             string modList = lobby.GetData("mods");
             string[] mods = modList.Split(new string[] { ", " }, StringSplitOptions.RemoveEmptyEntries);

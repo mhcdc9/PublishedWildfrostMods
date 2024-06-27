@@ -25,8 +25,11 @@ namespace MultiplayerBase.Handlers
         public Button hideButton;
         public Button clearButton;
         protected bool hidden = false;
+        public GameObject verticalGroup;
         public List<OtherCardViewer> lanes = new List<OtherCardViewer>();
+        public NoncardViewer charmLane;
         public int laneIndex = 0;
+        protected float verticalSpacing = 0.3f;
         public Vector3 offset = new Vector3(0,-3f,0);
         protected Vector3 gap = new Vector3(0.3f, 0, 0);
 
@@ -49,6 +52,14 @@ namespace MultiplayerBase.Handlers
             RectTransform rectTransform = gameObject.AddComponent<RectTransform>();
             gameObject.AddComponent<WorldSpaceCanvasSafeArea>().parent = transform.parent.GetComponent<RectTransform>();
 
+            verticalGroup = HelperUI.VerticalGroup("Viewers", transform, Vector2.zero, verticalSpacing);
+            verticalGroup.GetComponent<VerticalLayoutGroup>().childAlignment = TextAnchor.MiddleLeft;
+            verticalGroup.transform.localPosition = new Vector3(2.7f, 3.4f, 0f);
+            verticalGroup.GetComponent<RectTransform>().SetInsetAndSizeFromParentEdge(RectTransform.Edge.Left, 1.75f, 0f);
+
+            charmLane = NoncardViewer.Create(verticalGroup.transform);
+            charmLane.gameObject.SetActive(false);
+
             SetLane(0);
 
             hideButton = HelperUI.ButtonTemplate(transform, new Vector2(1f, 0.3f), new Vector3(-0.5f, 4.35f, 0), "", Color.white);
@@ -57,6 +68,8 @@ namespace MultiplayerBase.Handlers
             clearButton = HelperUI.ButtonTemplate(transform, new Vector2(1f, 0.3f), new Vector3(0.5f, 4.35f, 0), "", Color.red);
             clearButton.GetComponent<RectTransform>().SetInsetAndSizeFromParentEdge(RectTransform.Edge.Left, 2.5f, 1);
             clearButton.onClick.AddListener(Clear);
+
+            
 
             HandlerSystem.HandlerRoutines.Add("INS", HandleMessage);
             Debug.Log("[Multiplayer] Inspection Handler Online!");
@@ -75,6 +88,7 @@ namespace MultiplayerBase.Handlers
                 }
                 hideButton.GetComponent<Image>().color = Color.white;
                 clearButton.GetComponent<Image>().color = Color.red;
+                HandlerEvent.instance.ShowIndicators();
                 hidden = false;
             }
             else
@@ -85,6 +99,7 @@ namespace MultiplayerBase.Handlers
                 }
                 hideButton.GetComponent<Image>().color = new Color(0.5f,0.5f,0.5f,0.5f);
                 clearButton.GetComponent<Image>().color = new Color(1f, 0f, 0f, 0.5f);
+                HandlerEvent.instance.HideIndicators();
                 hidden = true;
             }
         }
@@ -93,11 +108,11 @@ namespace MultiplayerBase.Handlers
         {
             for(int i=lanes.Count(); i<=index; i++)
             {
-                OtherCardViewer lane = HelperUI.OtherCardViewer($"Lane {lanes.Count()}", transform, cc);
+                OtherCardViewer lane = HelperUI.OtherCardViewer($"Lane {lanes.Count()}", verticalGroup.transform, cc);
                 lane.gameObject.SetActive(false);
                 lane.gap = gap;
-                lane.transform.localPosition = new Vector3(0,2.7f,0) + lanes.Count() * offset;
-                lane.GetComponent<RectTransform>().SetInsetAndSizeFromParentEdge(RectTransform.Edge.Left, 2f, 1);
+                //lane.transform.localPosition = new Vector3(0,2.7f,0) + lanes.Count() * offset;
+                //lane.GetComponent<RectTransform>().SetInsetAndSizeFromParentEdge(RectTransform.Edge.Left, 2f, 1);
                 lane.owner = HandlerSystem.playerDummy;
                 cc.hoverEvent.AddListener(lane.Hover);
                 cc.unHoverEvent.AddListener(lane.Unhover);
@@ -117,7 +132,7 @@ namespace MultiplayerBase.Handlers
                 if (container is OtherCardViewer ocv)
                 {
                     (Friend friend, ulong id) = ocv.Find(entity);
-                    HandlerSystem.SendMessage("INS", friend, $"PING!{friend.Name}!{id}!");
+                    HandlerSystem.SendMessage("INS", friend, $"PING!{friend.Id.Value}!{id}!");
                     return;
                 }
             }
@@ -151,7 +166,7 @@ namespace MultiplayerBase.Handlers
             }
             Friend friend = HandlerSystem.self;
             ulong id = entity.data.id;
-            string s = $"DISP!{friend.Name}!";
+            string s = $"DISP!{friend.Id.Value}!";
             //s += EncodeEntity(entity, id);
             s += CardEncoder.Encode(entity, id);
             HandlerSystem.SendMessageToAll("INS", s);    
@@ -189,6 +204,14 @@ namespace MultiplayerBase.Handlers
 
         public void Clear()
         {
+            HandlerEvent.instance.ClearIndicators();
+            NoncardReward[] noncardRewards = charmLane.ToArray();
+            charmLane.Clear();
+            for (int i = noncardRewards.Length - 1; i >= 0; i--)
+            {
+                noncardRewards[i].gameObject.DestroyImmediate();
+            }
+            charmLane.gameObject.SetActive(false);
             foreach (OtherCardViewer ocv in lanes)
             {
                 //Debug.Log("[Multiplayer] " + lanes[laneIndex].ToArray());
@@ -239,24 +262,6 @@ namespace MultiplayerBase.Handlers
         public static Card CreateDisplayCard(CardController cc, CardContainer container, string[] messages)
         {
             Debug.Log("[Multiplayer] " + messages[0]);
-            /*
-            CardData cardData = AddressableLoader.Get<CardData>("CardData", messages[0]).Clone(false); //3(0) -> Carddata
-            if (!messages[1].IsNullOrWhitespace())
-            {
-                Debug.Log("[Multiplayer] Has Upgrades.");
-                string[] upgrades = messages[1].Split(new char[] { ',' }); //4(1) -> Upgrades
-                foreach (string upgrade in upgrades)
-                {
-                    CardUpgradeData upgradeData = AddressableLoader.Get<CardUpgradeData>("CardUpgradeData", upgrade).Clone();
-                    upgradeData.Assign(cardData);
-                }
-            }
-            if (cardData.cardType.name == "Leader")
-            {
-                Debug.Log("[Multiplayer] Leader Detected.");
-                cardData.customData = References.PlayerData.inventory.deck.FirstOrDefault((deckcard) => deckcard.cardType.name == "Leader").customData;
-            }
-            */
             CardData cardData = CardEncoder.DecodeData(messages);
             Card card = CardManager.Get(cardData, cc, container.owner, inPlay: false, isPlayerCard: true);
             if (References.Battle?.cards != null)
@@ -267,10 +272,50 @@ namespace MultiplayerBase.Handlers
             return card;
         }
 
+        //DISP2!id!Type!Name
+        public IEnumerator DispNoncard(Friend friend, string[] messages, bool clear = true)
+        {
+            if (clear)
+            {
+                Clear();
+            }
+            if (!hidden)
+            {
+                charmLane.gameObject.SetActive(true);
+            }
+            Friend owner;
+            if (HandlerSystem.FindFriend(messages[1]) is Friend f)//1 -> owner
+            {
+                owner = f;
+            }
+            else
+            {
+                owner = friend;
+            }
+            int id = int.Parse(messages[0]);//0 -> id
+            NoncardReward ncr = null;
+            if (messages[2] == "MODI")
+            {
+                ncr = NoncardReward.CreateModifier(transform, new Vector2(1f, 1.5f), messages[3]);
+            }
+            else if (messages[2] == "UPGR")
+            {
+                ncr = NoncardReward.CreateUpgrade(transform, new Vector2(1.5f, 1.5f), messages[3]);
+            }
+            if (ncr == null)
+            {
+                Debug.Log("[Multiplayer] Could not find type " + messages[3]);
+                yield break;
+            }
+            charmLane.Add(ncr, owner, id);
+            ncr.gameObject.SetActive(true);
+            yield break;
+        }
+
         public IEnumerator PingCard(Friend friend, string[] messages)
         {
             ulong id = ulong.Parse(messages[2]);//2 -> id
-            if (messages[1] != HandlerSystem.self.Name)//1 -> Friend
+            if (ulong.Parse(messages[1]) != HandlerSystem.self.Id.Value)//1 -> Friend
             {
                 yield break;
             }

@@ -21,9 +21,19 @@ namespace MultiplayerBase.Matchmaking
         public static MemberView Create(Transform transform)
         {
             GameObject obj = new GameObject("Member View");
+            obj.SetActive(false);
             obj.AddComponent<Image>().color = new Color(0f,0f,0f,0.8f);
             obj.GetComponent<RectTransform>().sizeDelta = dim;
             obj.transform.Translate(pos);
+            TweenUI tween = obj.AddComponent<TweenUI>();
+            tween.target = obj;
+            tween.property = TweenUI.Property.Move;
+            tween.ease = LeanTweenType.easeOutElastic;
+            tween.fireOnEnable = true;
+            tween.duration = 1f;
+            tween.to = pos;
+            tween.hasFrom = true;
+            tween.from = pos + new Vector3(-7,0,0);
             MemberView mv = obj.AddComponent<MemberView>();
             mv.transform.SetParent(transform);
             return mv;
@@ -40,6 +50,7 @@ namespace MultiplayerBase.Matchmaking
 
         public void OpenMemberView(Lobby lobby, bool joined, bool isHost)
         {
+            gameObject.SetActive(true);
             if (memberGroup != null)
             {
                 memberGroup.transform.DestroyAllChildren();

@@ -23,6 +23,7 @@ namespace MultiplayerBase.Matchmaking
         public static Lobby[] lobbyList;
 
         internal GameObject background;
+        internal GameObject buttonGroup;
         internal Button createLobbyButton;
         internal Button findLobbyButton;
         internal Button joinLobbyButton;
@@ -55,13 +56,28 @@ namespace MultiplayerBase.Matchmaking
             };
             fader.gradient.SetKeys(colors, alphas);
 
-            createLobbyButton = HelperUI.ButtonTemplate(transform,new Vector2(2,0.8f), new Vector3(-1.5f, -3, 0), "Create", Color.white);
-            findLobbyButton = HelperUI.ButtonTemplate(transform, new Vector2(2, 0.8f), new Vector3(-1.5f, -4, 0), "Find", Color.white);
-            joinLobbyButton = HelperUI.ButtonTemplate(transform, new Vector2(2, 0.8f), new Vector3(1.5f, -4, 0), "Join", Color.white);
+            buttonGroup = new GameObject("Button Group");
+            buttonGroup.AddComponent<Image>().color = Color.black;
+            buttonGroup.GetComponent<RectTransform>().sizeDelta = new Vector2(5.5f, 3.5f);
+            buttonGroup.transform.SetParent(transform, false);
+            buttonGroup.transform.localPosition = new Vector3(0, -4f, 0);
+            TweenUI tween = buttonGroup.AddComponent<TweenUI>();
+            tween.target = buttonGroup;
+            tween.property = TweenUI.Property.Move;
+            tween.ease = LeanTweenType.easeOutBounce;
+            tween.fireOnEnable = true;
+            tween.duration = 0.75f;
+            tween.to = new Vector3(0, -4f, 0);
+            tween.hasFrom = true;
+            tween.from = new Vector3(0, -8f, 0);
+
+            createLobbyButton = HelperUI.ButtonTemplate(buttonGroup.transform,new Vector2(2,0.8f), new Vector3(-1.5f, 1, 0), "Create", Color.white);
+            findLobbyButton = HelperUI.ButtonTemplate(buttonGroup.transform, new Vector2(2, 0.8f), new Vector3(-1.5f, 0, 0), "Find", Color.white);
+            joinLobbyButton = HelperUI.ButtonTemplate(buttonGroup.transform, new Vector2(2, 0.8f), new Vector3(1.5f, 0, 0), "Join", Color.white);
             joinLobbyButton.interactable = false;
-            leaveLobbyButton = HelperUI.ButtonTemplate(transform, new Vector2(2, 0.8f), new Vector3(1.5f, -3, 0), "Leave", Color.white);
+            leaveLobbyButton = HelperUI.ButtonTemplate(buttonGroup.transform, new Vector2(2, 0.8f), new Vector3(1.5f, 1, 0), "Leave", Color.white);
             leaveLobbyButton.interactable = false;
-            finalizeButton = HelperUI.ButtonTemplate(transform, new Vector2(3, 0.8f), new Vector3(0f, -5, 0), "Finalize", Color.white);
+            finalizeButton = HelperUI.ButtonTemplate(buttonGroup.transform, new Vector2(3, 0.8f), new Vector3(0f, -1, 0), "Finalize", Color.white);
             //finalizeButton.interactable = false;
 
             createLobbyButton.onClick.AddListener(CreateLobby);
@@ -94,6 +110,7 @@ namespace MultiplayerBase.Matchmaking
 
         public void FinalizeParty()
         {
+            SfxSystem.OneShot("event:/sfx/ui/menu_click");
             if (lobby is Lobby lob)
             {
                 lob.SetPrivate();
@@ -118,6 +135,7 @@ namespace MultiplayerBase.Matchmaking
 
         public void SelectLobby(int newIndex)
         {
+            SfxSystem.OneShot("event:/sfx/ui/menu_click_sub");
             if (index != -1)
             {
                 lobbyButtons[index].GetComponent<Image>().color = Color.white;
@@ -137,6 +155,7 @@ namespace MultiplayerBase.Matchmaking
 
         private async void CreateLobby()
         {
+            SfxSystem.OneShot("event:/sfx/ui/menu_click");
             int num = 4;
             Debug.Log("[Multiplayer] Lobby creation request");
             lobby = await SteamMatchmaking.CreateLobbyAsync(num);
@@ -160,6 +179,7 @@ namespace MultiplayerBase.Matchmaking
 
         internal async void FindLobby()
         {
+            SfxSystem.OneShot("event:/sfx/ui/menu_click");
             Debug.Log("[Multiplayer] Find lobby request");
             MultiplayerMain.textElement.text = "<color=#FC5>Searching for a lobby...</color>";
             Lobby[] lobbies = await SteamMatchmaking.LobbyList.RequestAsync();
@@ -181,6 +201,7 @@ namespace MultiplayerBase.Matchmaking
 
         private async void JoinLobby()
         {
+            SfxSystem.OneShot("event:/sfx/ui/menu_click");
             Debug.Log("[Multiplayer] Joining lobby");
             if (index == -1 || lobby!= null)
             {
@@ -206,6 +227,7 @@ namespace MultiplayerBase.Matchmaking
 
         private void LeaveLobby()
         {
+            SfxSystem.OneShot("event:/sfx/ui/menu_click");
             Debug.Log("[Multiplayer] Leaving lobby");
             if (lobby is Lobby lob)
             {

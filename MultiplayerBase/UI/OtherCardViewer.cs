@@ -91,7 +91,7 @@ namespace MultiplayerBase.UI
         {
             foreach (Entity entity in this)
             {
-                if (decorations.ContainsKey(entity) && decorations[entity].Item1.Name == friend.Name && decorations[entity].Item2 == id)
+                if (decorations.ContainsKey(entity) && decorations[entity].Item1.Id.Value == friend.Id.Value && decorations[entity].Item2 == id)
                 {
                     return entity;
                 }

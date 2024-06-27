@@ -84,6 +84,23 @@ namespace MultiplayerBase.Handlers
         private void CreateBattleViewer()
         {
             background = HelperUI.Background(transform, new Color(1f, 1f, 1f, 0.75f));
+            background.SetActive(false);
+            Fader fader = background.AddComponent<Fader>();
+            fader.onEnable = true;
+            fader.gradient = new Gradient();
+            fader.ease = LeanTweenType.easeOutQuad;
+            GradientColorKey[] colors = new GradientColorKey[]
+            {
+                new GradientColorKey(Color.white, 0f),
+                new GradientColorKey(Color.white, 1f)
+            };
+            GradientAlphaKey[] alphas = new GradientAlphaKey[]
+            {
+                new GradientAlphaKey(0f, 0f),
+                new GradientAlphaKey(0.75f, 1f)
+            };
+            fader.gradient.SetKeys(colors, alphas);
+
             cb = background.AddComponent<CardControllerMultiplayerBattle>();
             playerLanes = new OtherCardViewer[lanes];
             for (int i = 0; i < playerLanes.Length; i++)
@@ -113,7 +130,7 @@ namespace MultiplayerBase.Handlers
                 cc.unHoverEvent.AddListener(enemyLanes[i].Unhover);
                 enemyLanes[i].AssignController(cb);
             }
-            background.SetActive(false);
+            
         }
 
         //BattleViewer should not be opened when interesting things can happen.

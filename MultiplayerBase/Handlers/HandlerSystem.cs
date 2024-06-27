@@ -10,6 +10,7 @@ using UnityEngine;
 using MultiplayerBase.UI;
 using UnityEngine.SceneManagement;
 using TMPro;
+using static UnityEngine.Rendering.DebugUI;
 
 //Battle/Canvas
 
@@ -85,7 +86,7 @@ namespace MultiplayerBase.Handlers
         {
             if (!initialized) return;
 
-            string s = $"{handler}|{self.Name}|{message}";
+            string s = $"{handler}|{self.Id.Value}|{message}";
             SteamNetworking.SendP2PPacket(to.Id, Encoding.UTF8.GetBytes(s));
         }
 
@@ -93,7 +94,7 @@ namespace MultiplayerBase.Handlers
         {
             if (!initialized) return;
 
-            string s = $"{handler}|{self.Name}|{message}";
+            string s = $"{handler}|{self.Id.Value}|{message}";
             foreach (Friend friend in friends)
             {
                 SteamNetworking.SendP2PPacket(friend.Id, Encoding.UTF8.GetBytes(s));
@@ -104,10 +105,10 @@ namespace MultiplayerBase.Handlers
         {
             if (!initialized) return;
 
-            string s = $"{handler}|{self.Name}|{message}";
+            string s = $"{handler}|{self.Id.Value}|{message}";
             foreach (Friend friend in friends)
             {
-                if (friend.Name != self.Name)
+                if (friend.Id.Value != self.Id.Value)
                 {
                     SteamNetworking.SendP2PPacket(friend.Id, Encoding.UTF8.GetBytes(s));
                 }
@@ -132,7 +133,7 @@ namespace MultiplayerBase.Handlers
                     if (FindFriend(strings[1]) is Friend friend)
                     {
                         s = string.Concat(strings.RangeSubset(2, strings.Length - 2));
-                        Debug.Log($"[Multiplayer] Sending message to {friend.Name}: \"{s}\"");
+                        Debug.Log($"[Multiplayer] Sending message to {friend.Id}: \"{s}\"");
                         HandlerRoutines[strings[0]](friend,s);
                     }
                     else
@@ -149,7 +150,7 @@ namespace MultiplayerBase.Handlers
         {
             foreach(Friend friend in friends)
             {
-                if (friend.Name == id)
+                if (friend.Id.Value.ToString() == id)
                 {
                     return friend;
                 }
@@ -236,7 +237,16 @@ namespace MultiplayerBase.Handlers
             string s2 = "";
             if (sceneName == "Battle")
             {
-                s2 = $"{Campaign.FindCharacterNode(References.Player).name}";
+                object value;
+                if (Campaign.FindCharacterNode(References.Player).data.TryGetValue("battle", out value) && value is string assetName)
+                {
+                    BattleData data = AddressableLoader.Get<BattleData>("BattleData", assetName);
+                    s2 = data.nameRef.GetLocalizedString();
+                }
+                else
+                {
+                    s2 = "???";
+                }
             }
             //Dashboard.friendIcons[self].SceneChanged(sceneName,s2);
             SendMessageToAllOthers("MSC", s + s2);
