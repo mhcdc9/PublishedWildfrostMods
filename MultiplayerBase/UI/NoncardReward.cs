@@ -21,7 +21,7 @@ namespace MultiplayerBase.UI
         protected string clickSFX;
 
         private bool popped = false;
-        private Vector2 offset = new Vector2(0f, 1f);
+        private Vector2 offset = new Vector2(1f, 0f);
         private Vector2 defaultUpgradeDim = new Vector2(1.5f, 1.5f);
         private Vector2 defaultBellDim = new Vector2(1f, 1.5f);
 
@@ -96,6 +96,33 @@ namespace MultiplayerBase.UI
             ncr.hoverSFX = "event:/sfx/modifiers/bell_hovering";
             ncr.clickSFX = "event:/sfx/modifiers/mod_bell_ringing";
             return ncr;
+        }
+
+        public static NoncardReward CreateMisc(Transform transform, Vector2 dim, string miscName, string arg0)
+        {
+            if (miscName == "CharmMachine")
+            {
+                string charmMachineTitle = "Random Charm";
+                string charmMachineDesc = $"Who knows what the <Charm Machine> has in store for {arg0}";
+                Sprite charmmachineSprite = AddressableLoader.Get<CardUpgradeData>("CardUpgradeData", "CardUpgradeSun").image;
+                NoncardReward charmMachine = Create(transform, dim, miscName, charmMachineTitle, charmMachineDesc, charmmachineSprite);
+                charmMachine.hoverSFX = "event:/sfx/inventory/charm_hover";
+                charmMachine.clickSFX = "event:/sfx/inventory/charm_pickup";
+                charmMachine.GetComponent<Image>().color = Color.black;
+                return charmMachine;
+
+            }
+            return null;
+        }
+
+        public void UpdateUpgrade(string upgradeName)
+        {
+            name = upgradeName;
+            CardUpgradeData cardUpgradeData = AddressableLoader.Get<CardUpgradeData>("CardUpgradeData", upgradeName);
+            title = cardUpgradeData?.title ?? "???";
+            body = cardUpgradeData?.text ?? "";
+            GetComponent<Image>().sprite = cardUpgradeData.image;
+            GetComponent<Image>().color = Color.white;
         }
 
         public void Pop()

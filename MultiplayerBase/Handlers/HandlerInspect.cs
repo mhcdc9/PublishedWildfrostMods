@@ -79,6 +79,10 @@ namespace MultiplayerBase.Handlers
         {
             if (hidden)
             {
+                if (charmLane.Count > 0)
+                {
+                    charmLane.gameObject.SetActive(true);
+                }
                 foreach(OtherCardViewer ocv in lanes)
                 {
                     if (ocv.Count > 0)
@@ -93,6 +97,7 @@ namespace MultiplayerBase.Handlers
             }
             else
             {
+                charmLane.gameObject.SetActive(false);
                 foreach (OtherCardViewer ocv in lanes)
                 {
                     ocv.gameObject.SetActive(false);
@@ -116,9 +121,14 @@ namespace MultiplayerBase.Handlers
                 lane.owner = HandlerSystem.playerDummy;
                 cc.hoverEvent.AddListener(lane.Hover);
                 cc.unHoverEvent.AddListener(lane.Unhover);
+                charmLane.transform.SetAsLastSibling();
                 lanes.Add(lane);
             }
             laneIndex = index;
+            if (lanes[laneIndex].Count >= 10)
+            {
+                SetLane(laneIndex+1);
+            }
         }
 
         public static void SelectPing(Entity entity)
@@ -296,11 +306,15 @@ namespace MultiplayerBase.Handlers
             NoncardReward ncr = null;
             if (messages[2] == "MODI")
             {
-                ncr = NoncardReward.CreateModifier(transform, new Vector2(1f, 1.5f), messages[3]);
+                ncr = NoncardReward.CreateModifier(transform, new Vector2(0.66f, 1f), messages[3]);
             }
             else if (messages[2] == "UPGR")
             {
-                ncr = NoncardReward.CreateUpgrade(transform, new Vector2(1.5f, 1.5f), messages[3]);
+                ncr = NoncardReward.CreateUpgrade(transform, new Vector2(1f, 1f), messages[3]);
+            }
+            else if (messages[2] == "MISC")
+            {
+                ncr = NoncardReward.CreateMisc(transform, new Vector2(1f, 1f), messages[3], friend.Name);
             }
             if (ncr == null)
             {

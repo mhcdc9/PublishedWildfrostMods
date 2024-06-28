@@ -21,7 +21,7 @@ namespace MultiplayerBase.Handlers
 
         public static event UnityAction<BossRewardData.Data> OnSelectBlessing;
 
-        public Dictionary<int, GameObject> pingables = new Dictionary<int, GameObject>();
+        public Dictionary<int, (GameObject,Vector3)> pingables = new Dictionary<int, (GameObject, Vector3)>();
         private List<Friend> watchers = new List<Friend>();
         private GameObject indicatorGroup;
         int nextID = 0;
@@ -36,6 +36,7 @@ namespace MultiplayerBase.Handlers
             indicatorGroup.transform.SetParent(transform);
             HandlerSystem.HandlerRoutines.Add("EVE", HandleMessage);
             Events.OnSceneChanged += ErasePingablesAndWatchers;
+            Events.OnShopItemPurchase += ItemPurchase;
             OnSelectBlessing += SelectBlessing;
         }
         public void AskForData(Friend friend)
@@ -45,16 +46,48 @@ namespace MultiplayerBase.Handlers
 
         public void SendData(Friend friend)
         {
-            if (!watchers.Contains(friend))
-            {
-                watchers.Add(friend);
-            }
+            AddToWatchers(friend);
             string s;
             string flag = "T";
             int i = 0;
             EventRoutine eventRoutine = GameObject.FindObjectOfType<EventRoutine>();
             if (eventRoutine != null)
             {
+                foreach(ShopItem item in eventRoutine.GetComponentsInChildren<ShopItem>())
+                {
+                    Debug.Log($"[Multiplayer] {item.name}");
+                    if(item.GetComponent<CardCharm>() != null)
+                    {
+                        int id = FindPingableID(item.gameObject);
+                        s = $"DISP2!{id}!{flag}!UPGR!{item.GetComponent<CardCharm>().data.name}";
+                        HandlerSystem.SendMessage("EVE", friend, s);
+                        flag = "F";
+                    }
+                    else if(item.GetComponent<CrownHolderShop>() != null)
+                    {
+                        int id = FindPingableID(item.gameObject);
+                        s = $"DISP2!{id}!{flag}!UPGR!{item.GetComponent<CrownHolderShop>().GetCrownData().name}";
+                        HandlerSystem.SendMessage("EVE", friend, s);
+                        flag = "F";
+                    }
+                    else if(item.GetComponent<CharmMachine>() != null && eventRoutine is ShopRoutine shop)
+                    {
+                        List<string> charms = shop.data.Get<ShopRoutine.Data>("shopData").charms;
+                        if (charms.Count > 0)
+                        {
+                            int id = FindPingableID(item.gameObject);
+                            s = $"DISP2!{id}!{flag}!MISC!CharmMachine";
+                            HandlerSystem.SendMessage("EVE", friend, s);
+                            flag = "F";
+                            s = $"DISP2!{id}!{flag}!MISC!CharmMachine";
+                            HandlerSystem.SendMessage("EVE", friend, s);
+                            s = $"DISP2!{id}!{flag}!MISC!CharmMachine";
+                            HandlerSystem.SendMessage("EVE", friend, s);
+                        }
+                        
+
+                    }
+                }
                 Debug.Log("[Multiplayer] Found Event Routine");
                 foreach(CardContainer container in eventRoutine.gameObject.GetComponentsInChildren<CardContainer>())
                 {
@@ -74,10 +107,7 @@ namespace MultiplayerBase.Handlers
 
         public void SendRewardData(Friend friend)
         {
-            if (!watchers.Contains(friend))
-            {
-                watchers.Add(friend);
-            }
+            AddToWatchers(friend);
             string s;
             BossRewardSelect[] rewards = FindObjectsOfType<BossRewardSelect>();
             string flag = "T";
@@ -95,6 +125,28 @@ namespace MultiplayerBase.Handlers
                 }
                 flag = "F";
                 HandlerSystem.SendMessage("EVE", friend, s);
+            }
+        }
+
+        private void AddToWatchers(Friend friend)
+        {
+            if (!watchers.Contains(friend))
+            {
+                watchers.Add(friend);
+                string s = "Watchers: ";
+                foreach(Friend f in watchers)
+                {
+                    s += f.Name + ", ";
+                }
+                MultiplayerMain.textElement.text = s.Substring(0, s.Length - 2);
+            }
+        }
+
+        private void SendToWatchers(string s)
+        {
+            foreach(Friend f in watchers)
+            {
+                HandlerSystem.SendMessage("EVE", f, s);
             }
         }
 
@@ -117,30 +169,57 @@ namespace MultiplayerBase.Handlers
                 case "PING":
                     StartCoroutine(PingNoncard(friend, messages));
                     break;
+                case "SELECT":
+                    StartCoroutine(SelectCard(friend, messages));
+                    break;
                 case "SELECT2":
                     StartCoroutine(SelectNoncard(friend, messages));
                     break;
             }
         }
 
-        //SELECT2!name
+        //SELECT!id
+        public IEnumerator SelectCard(Friend friend, string[] messages)
+        {
+            foreach (OtherCardViewer ocv in HandlerInspect.instance.lanes)
+            {
+                foreach(Entity entity in ocv.entities)
+                {
+                    (Friend, ulong) pair = ocv.Find(entity);
+                    if (ulong.Parse(messages[1]) == pair.Item2 && friend.Id.Value == pair.Item1.Id.Value)
+                    {
+                        CreateIndicator(entity.GetComponentInChildren<RectTransform>(), 1.1f);
+                    }
+                    yield break;
+                }
+            }
+        }
+
+        //SELECT2!name or SELECT2!name!Type!newName
         public IEnumerator SelectNoncard(Friend friend, string[] messages)
         {
             foreach (NoncardReward ncr in HandlerInspect.instance.charmLane)
             {
                 if (ncr.name == messages[1] && NoncardViewer.FindDecoration(ncr).Item1.Id.Value == friend.Id.Value)
                 {
-                    CreateIndicator(ncr.GetComponent<RectTransform>());
+                    CreateIndicator(ncr.GetComponent<RectTransform>(),1.05f);
+                    if (messages.Length > 2)
+                    {
+                        if (messages[2] == "UPGR")
+                        {
+                            ncr.UpdateUpgrade(messages[3]);
+                        }
+                    }
                     yield break;
                 }
             }
         }
 
-        private void CreateIndicator(RectTransform rect)
+        private void CreateIndicator(RectTransform rect, float factor)
         {
             GameObject obj = HelperUI.Background(indicatorGroup.transform, new Color(0.5f, 1f, 0.5f, 0.5f));
             obj.transform.localScale = Vector3.one;
-            obj.GetComponent<RectTransform>().sizeDelta = 1.05f * rect.sizeDelta;
+            obj.GetComponent<RectTransform>().sizeDelta = factor * rect.sizeDelta;
             obj.transform.position = rect.position;
         }
 
@@ -154,18 +233,18 @@ namespace MultiplayerBase.Handlers
             {
                 yield break;
             }
-            if (pingables.ContainsKey(id) && pingables[id] != null)
+            if (pingables.ContainsKey(id) && pingables[id].Item1 != null)
             {
-                if (pingables[id] == null)
+                if (pingables[id].Item1 == null)
                 {
                     pingables.Remove(id);
                     yield break;
                 }
-                Debug.Log($"[Multpilayer] Pinging {pingables[id].name}");
+                Debug.Log($"[Multpilayer] Pinging {pingables[id].Item1.name}");
                 SfxSystem.OneShot("event:/sfx/modifiers/mod_bell_ringing");
-                LeanTween.cancel(pingables[id]);
-                pingables[id].transform.localScale = 1.4f*Vector3.one;
-                LeanTween.scale(pingables[id], Vector3.one, pingDuration);
+                LeanTween.cancel(pingables[id].Item1);
+                pingables[id].Item1.transform.localScale = 1.4f * pingables[id].Item2;
+                LeanTween.scale(pingables[id].Item1, pingables[id].Item2, pingDuration);
             }
         }
 
@@ -189,7 +268,7 @@ namespace MultiplayerBase.Handlers
         {
             foreach(int key in pingables.Keys)
             {
-                if (pingables[key] == obj)
+                if (pingables[key].Item1 == obj)
                 {
                     return key;
                 }
@@ -205,7 +284,7 @@ namespace MultiplayerBase.Handlers
                 nextID = (nextID + 1) % 100;
                 if (!pingables.ContainsKey(nextID))
                 {
-                    pingables.Add(nextID, obj);
+                    pingables.Add(nextID, (obj,obj.transform.localPosition));
                     return nextID;
                 }
             }
@@ -217,7 +296,7 @@ namespace MultiplayerBase.Handlers
             pingables.Clear();
         }
 
-        public static void InvokeOnSelectBlessing(BossRewardData.Data data)
+        public static void InvokeSelectBlessing(BossRewardData.Data data)
         {
             OnSelectBlessing?.Invoke(data);
         }
@@ -225,9 +304,26 @@ namespace MultiplayerBase.Handlers
         private void SelectBlessing(BossRewardData.Data data)
         {
             string dataName = GetNameOfReward(data);
-            foreach(Friend friend in watchers)
+            SendToWatchers($"SELECT2!{dataName}");
+        }
+
+        private void ItemPurchase(ShopItem item)
+        {
+            if (item.GetComponent<CardCharm>() != null)
             {
-                HandlerSystem.SendMessage("EVE", friend, $"SELECT2!{dataName}");
+                SendToWatchers($"SELECT2!{item.GetComponent<CardCharm>().data.name}");
+            }
+            else if (item.GetComponent<CrownHolderShop>() != null)
+            {
+                SendToWatchers($"SELECT2!{item.GetComponent<CrownHolderShop>().GetCrownData().name}");
+            }
+            else if (item.GetComponent<CharmMachine>() != null)
+            {
+                SendToWatchers($"SELECT2!CharmMachine!UPGR!{References.PlayerData.inventory.upgrades.Last().name}");
+            }
+            else if (item.GetComponent<Entity>() != null)
+            {
+                SendToWatchers($"SELECT!{item.GetComponent<Entity>().data.id}");
             }
         }
 
@@ -235,7 +331,8 @@ namespace MultiplayerBase.Handlers
         {
             if (data is BossRewardDataCrown.Data crown)
             {
-                return crown.upgradeDataName;
+                string crownName = crown.upgradeDataName.IsNullOrWhitespace() ? "Crown" : crown.upgradeDataName;
+                return crownName;
             }
             else if (data is BossRewardDataRandomCharm.Data charm)
             {
@@ -269,7 +366,7 @@ namespace MultiplayerBase.Handlers
     {
         static void Prefix(BossRewardData.Data reward)
         {
-            HandlerEvent.InvokeOnSelectBlessing(reward);
+            HandlerEvent.InvokeSelectBlessing(reward);
         }
     }
 }
