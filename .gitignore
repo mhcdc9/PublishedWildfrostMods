@@ -395,3 +395,4 @@ FodyWeavers.xsd
 /GamemodeAndClasses/Properties/AssemblyInfo.cs
 /Inactive/Properties/AssemblyInfo.cs
 /TestMod/Extensions.cs
+/TestMod/PotentialDeckViewer.cs
