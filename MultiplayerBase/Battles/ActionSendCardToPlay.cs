@@ -53,13 +53,13 @@ namespace MultiplayerBase.Battles
             switch (type)
             {
                 case TargetType.None:
-                    s = "PLAY!NON !" + s;
+                    s = HandlerSystem.ConcatMessage(false, "PLAY", "NON ", s);
                     break;
                 case TargetType.Entity:
-                    s = $"PLAY!ENT {id}!" + s;
+                    s = HandlerSystem.ConcatMessage(false, "PLAY", $"ENT {id}", s);
                     break;
                 case TargetType.Container:
-                    s = $"PLAY!ROW {id}!" + s;
+                    s = HandlerSystem.ConcatMessage(false, "PLAY", $"ROW {id}", s);
                     break;
             }
 

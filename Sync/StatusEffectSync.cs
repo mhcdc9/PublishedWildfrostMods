@@ -142,13 +142,15 @@ namespace Sync
             }
             SyncMain.sync = !endSync;
             StatusEffectSystem.activeEffects.Freeze();
+            Routine.Clump clump = new Routine.Clump();
             foreach (StatusEffectData status in StatusEffectSystem.activeEffects)
             {
                 if (status is StatusEffectSync sync)
                 {
-                    yield return endSync ? sync.Deactivate() : sync.Activate(combo);
+                    clump.Add(endSync ? sync.Deactivate() : sync.Activate(combo));
                 }
             }
+            yield return clump.WaitForEnd();
             StatusEffectSystem.activeEffects.Thaw();
         }
     }

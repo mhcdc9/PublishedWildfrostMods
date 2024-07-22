@@ -257,7 +257,7 @@ namespace MultiplayerBase.Handlers
 
         public void AskForData(Friend friend)
         {
-            HandlerSystem.SendMessage("BAT", friend, "ASK!PLAYER!ENEMY!");
+            HandlerSystem.SendMessage("BAT", friend, HandlerSystem.ConcatMessage(false, "ASK", "PLAYER", "ENEMY"));
         }
 
         public void SendData(Friend friend, string[] messages)
@@ -274,9 +274,7 @@ namespace MultiplayerBase.Handlers
                             Entity[] entities = Battle.instance.rows[References.Player][j].ToArray();
                             for (int k=0; k<entities.Length; k++)
                             {
-                                //s = $"PLAYER!{j}!" + HandlerInspect.EncodeEntity(entities[k], entities[k].data.id);
-                                s = $"PLAYER!{j}!" + CardEncoder.Encode(entities[k], entities[k].data.id);
-
+                                s = HandlerSystem.ConcatMessage(false, "PLAYER", $"{j}", CardEncoder.Encode(entities[k], entities[k].data.id));
                                 HandlerSystem.SendMessage("BAT", friend, s);
                             }
                         }
@@ -287,8 +285,7 @@ namespace MultiplayerBase.Handlers
                             Entity[] entities = Battle.instance.rows[Battle.GetOpponent(References.Player)][j].ToArray();
                             for (int k = 0; k < entities.Length; k++)
                             {
-                                //s = $"ENEMY!{j}!" + HandlerInspect.EncodeEntity(entities[k], entities[k].data.id);
-                                s = $"ENEMY!{j}!" + CardEncoder.Encode(entities[k], entities[k].data.id);
+                                s = HandlerSystem.ConcatMessage(false, "ENEMY", $"{j}", CardEncoder.Encode(entities[k], entities[k].data.id));
                                 HandlerSystem.SendMessage("BAT", friend, s);
                             }
                         }
@@ -304,7 +301,7 @@ namespace MultiplayerBase.Handlers
 
         public void HandleMessage(Friend friend, string message)
         {
-            string[] messages = message.Split(new char[] { '!' });
+            string[] messages = HandlerSystem.DecodeMessages(message);
             Debug.Log($"[Multiplayer] {message}");
 
             switch (messages[0])//0 -> Action
@@ -485,11 +482,11 @@ namespace MultiplayerBase.Handlers
         {
             if (background != null && background.activeSelf)
             {
-                HandlerSystem.SendMessageToAllOthers("BAT", "ASK!INFO!PLAYER!ENEMY!");
+                HandlerSystem.SendMessageToAllOthers("BAT", HandlerSystem.ConcatMessage(false, "ASK","INFO","PLAYER","ENEMY"));
             }
             else
             {
-                HandlerSystem.SendMessageToAllOthers("BAT", "ASK!INFO!");
+                HandlerSystem.SendMessageToAllOthers("BAT", HandlerSystem.ConcatMessage(false, "ASK","INFO"));
             }
         }
 

@@ -115,6 +115,35 @@ namespace MultiplayerBase.Handlers
             }
         }
 
+        public static string ConcatMessage(bool performReplacement, params string[] messages)
+        {
+            if (performReplacement)
+            {
+                messages = messages.Select((s) => s.Replace("!", "!:")).ToArray();
+            }
+            
+            return string.Join("! ", messages);
+        }
+
+        public static string AppendTo(string original, string addOn, bool performReplacement = true)
+        {
+            if (performReplacement)
+            {
+                addOn = addOn.Replace("!", "!:");
+            }
+            return original + "! " + addOn;
+        }
+
+        public static string[] DecodeMessages(string message)
+        {
+            string[] messages = message.Split(new string[] { "! " },StringSplitOptions.None);
+            foreach(string s in messages)
+            {
+                Debug.Log(s);
+            }
+            return messages.Select((s) => s.Replace("!:", "!")).ToArray();
+        }
+
         public static bool TryReadMessage()
         {
             Steamworks.Data.P2Packet? packet = SteamNetworking.ReadP2PPacket();
@@ -165,7 +194,7 @@ namespace MultiplayerBase.Handlers
 
         public static void MSC_Handler(Friend friend, string message)
         {
-            string[] messages = message.Split('!');
+            string[] messages = HandlerSystem.DecodeMessages(message); ;
             switch(messages[0])
             {
                 case "SCENE":
@@ -241,7 +270,11 @@ namespace MultiplayerBase.Handlers
                 if (Campaign.FindCharacterNode(References.Player).data.TryGetValue("battle", out value) && value is string assetName)
                 {
                     BattleData data = AddressableLoader.Get<BattleData>("BattleData", assetName);
-                    s2 = data.nameRef.GetLocalizedString();
+                    s2 = "???";
+                    if (data.nameRef != null)
+                    {
+                        s2 = data.nameRef.IsEmpty ? "???" : data.nameRef.GetLocalizedString();
+                    }
                 }
                 else
                 {

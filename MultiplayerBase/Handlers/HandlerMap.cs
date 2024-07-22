@@ -71,7 +71,8 @@ namespace MultiplayerBase.Handlers
             }
             CampaignNode startNode = Campaign.FindCharacterNode(References.Player);
             string cleared = startNode.cleared ? "T" : "F";
-            HandlerSystem.SendMessage("MAP", friend, $"NODE!0!{startNode.id}!{startNode.type.name}!{cleared}!");
+            string s = HandlerSystem.ConcatMessage(true, "NODE", "0", $"{startNode.id}", startNode.type.name, cleared);
+            HandlerSystem.SendMessage("MAP", friend, s);
             if(startNode.type is CampaignNodeTypeBattle && !startNode.cleared)
             {
                 return;
@@ -86,7 +87,8 @@ namespace MultiplayerBase.Handlers
                 CampaignNode node = Campaign.GetNode(connection.otherId);
                 if (node != null)
                 {
-                    HandlerSystem.SendMessage("MAP", friend, $"NODE!{index + 1}!{node.id}!{node.type.name}!F!");
+                    string s = HandlerSystem.ConcatMessage(true, "NODE", $"{index+1}", $"{node.id}", node.type.name, "F");
+                    HandlerSystem.SendMessage("MAP", friend, s);
                     if (!(node.type is CampaignNodeTypeBattle))
                     {
                         SendAdjacentNodeData(friend, node, index + 1);
@@ -97,7 +99,7 @@ namespace MultiplayerBase.Handlers
 
         public void HandleMessage(Friend friend, string message)
         {
-            string[] messages = message.Split(new char[] { '!' });
+            string[] messages = HandlerSystem.DecodeMessages(message);
             Debug.Log($"[Multiplayer] {message}");
 
             switch (messages[0])//0 -> Action

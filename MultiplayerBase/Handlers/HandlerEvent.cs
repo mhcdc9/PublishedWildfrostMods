@@ -59,14 +59,14 @@ namespace MultiplayerBase.Handlers
                     if(item.GetComponent<CardCharm>() != null)
                     {
                         int id = FindPingableID(item.gameObject);
-                        s = $"DISP2!{id}!{flag}!UPGR!{item.GetComponent<CardCharm>().data.name}";
+                        s = HandlerSystem.ConcatMessage(true,"DISP2",$"{id}",$"{flag}","UPGR",$"{item.GetComponent<CardCharm>().data.name}");
                         HandlerSystem.SendMessage("EVE", friend, s);
                         flag = "F";
                     }
                     else if(item.GetComponent<CrownHolderShop>() != null)
                     {
                         int id = FindPingableID(item.gameObject);
-                        s = $"DISP2!{id}!{flag}!UPGR!{item.GetComponent<CrownHolderShop>().GetCrownData().name}";
+                        s = HandlerSystem.ConcatMessage(true, "DISP2", $"{id}", $"{flag}", "UPGR", $"{item.GetComponent<CrownHolderShop>().GetCrownData().name}");
                         HandlerSystem.SendMessage("EVE", friend, s);
                         flag = "F";
                     }
@@ -76,12 +76,10 @@ namespace MultiplayerBase.Handlers
                         if (charms.Count > 0)
                         {
                             int id = FindPingableID(item.gameObject);
-                            s = $"DISP2!{id}!{flag}!MISC!CharmMachine";
+                            s = HandlerSystem.ConcatMessage(true, "DISP2", $"{id}", $"{flag}", "MISC", "CharmMachine");
                             HandlerSystem.SendMessage("EVE", friend, s);
                             flag = "F";
-                            s = $"DISP2!{id}!{flag}!MISC!CharmMachine";
                             HandlerSystem.SendMessage("EVE", friend, s);
-                            s = $"DISP2!{id}!{flag}!MISC!CharmMachine";
                             HandlerSystem.SendMessage("EVE", friend, s);
                         }
                         
@@ -96,7 +94,7 @@ namespace MultiplayerBase.Handlers
                     for(int j=entities.Length-1; j>=0; j--)
                     {
                         Entity entity = entities[j];
-                        s = $"DISP!{i}!{flag}!{CardEncoder.Encode(entity.data, entity.data.id)}";
+                        s = HandlerSystem.ConcatMessage(false, "DISP",$"{i}",$"{flag}",CardEncoder.Encode(entity.data, entity.data.id));
                         HandlerSystem.SendMessage("EVE", friend, s);
                         flag = "F";
                     }
@@ -117,11 +115,11 @@ namespace MultiplayerBase.Handlers
                 int id = FindPingableID(reward.gameObject);
                 if (reward is BossRewardSelectModifier)
                 {
-                    s = $"DISP2!{id}!{flag}!MODI!{reward.popUpName}";
+                    s = HandlerSystem.ConcatMessage(true, "DISP2",$"{id}",$"{flag}","MODI",reward.popUpName);
                 }
                 else
                 {
-                    s = $"DISP2!{id}!{flag}!UPGR!{reward.popUpName}";
+                    s = HandlerSystem.ConcatMessage(true, "DISP2", $"{id}", $"{flag}", "UPGR", reward.popUpName);
                 }
                 flag = "F";
                 HandlerSystem.SendMessage("EVE", friend, s);
@@ -142,8 +140,9 @@ namespace MultiplayerBase.Handlers
             }
         }
 
-        private void SendToWatchers(string s)
+        private void SendToWatchers(params string[] content)
         {
+            string s = HandlerSystem.ConcatMessage(true, content);
             foreach(Friend f in watchers)
             {
                 HandlerSystem.SendMessage("EVE", f, s);
@@ -152,7 +151,7 @@ namespace MultiplayerBase.Handlers
 
         public void HandleMessage(Friend friend, string message)
         {
-            string[] messages = message.Split(new char[] { '!' });
+            string[] messages = HandlerSystem.DecodeMessages(message);
             Debug.Log($"[Multiplayer] {message}");
 
             switch (messages[0])//0 -> Action
@@ -311,19 +310,19 @@ namespace MultiplayerBase.Handlers
         {
             if (item.GetComponent<CardCharm>() != null)
             {
-                SendToWatchers($"SELECT2!{item.GetComponent<CardCharm>().data.name}");
+                SendToWatchers("SELECT2",item.GetComponent<CardCharm>().data.name);
             }
             else if (item.GetComponent<CrownHolderShop>() != null)
             {
-                SendToWatchers($"SELECT2!{item.GetComponent<CrownHolderShop>().GetCrownData().name}");
+                SendToWatchers("SELECT2",item.GetComponent<CrownHolderShop>().GetCrownData().name);
             }
             else if (item.GetComponent<CharmMachine>() != null)
             {
-                SendToWatchers($"SELECT2!CharmMachine!UPGR!{References.PlayerData.inventory.upgrades.Last().name}");
+                SendToWatchers("SELECT2","CharmMachine", "UPGR", References.PlayerData.inventory.upgrades.Last().name);
             }
             else if (item.GetComponent<Entity>() != null)
             {
-                SendToWatchers($"SELECT!{item.GetComponent<Entity>().data.id}");
+                SendToWatchers($"SELECT",item.GetComponent<Entity>().data.id.ToString());
             }
         }
 

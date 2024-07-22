@@ -75,7 +75,8 @@ namespace MultiplayerBase.UI
         {
             yield return new WaitForSeconds(1f);
             HandlerSystem.SceneChanged(SceneManager.ActiveSceneName);
-            HandlerSystem.SendMessageToAllOthers("MSC", $"NICKNAME!{friendIcons[HandlerSystem.self].nickname}");
+            string s = HandlerSystem.ConcatMessage(true, "NICKNAME", friendIcons[HandlerSystem.self].nickname);
+            HandlerSystem.SendMessageToAllOthers("MSC", s);
         }
 
         public static void AddToButtons(Button button)

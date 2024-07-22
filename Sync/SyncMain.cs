@@ -233,6 +233,7 @@ namespace Sync
         internal static void CheckSync(int turnCount)
         {
             sentSyncMessage = false;
+            sync = false;
             UnityEngine.Debug.Log($"[Sync] You can sync again.");
             PerformSync();
         }
@@ -272,10 +273,9 @@ namespace Sync
             }
             else
             {
-
                 syncNextTurn = 0;
             }
-            if (Battle.instance != null && Battle.instance.phase == Battle.Phase.Play)
+            if (Battle.instance != null && Battle.instance.phase == Battle.Phase.Play && !sync)
             {
                 PerformSync();
             }
@@ -283,7 +283,7 @@ namespace Sync
 
         internal static void PerformSync()
         {
-            if (sync && syncNextTurn == 0)
+            if (syncNextTurn == 0)
             {
                 syncCombo = 0;
                 sync = false;

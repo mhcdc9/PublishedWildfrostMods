@@ -1,4 +1,5 @@
-﻿using MultiplayerBase.Handlers;
+﻿using Deadpan.Enums.Engine.Components.Modding;
+using MultiplayerBase.Handlers;
 using Steamworks;
 using System;
 using System.Collections;
@@ -100,6 +101,7 @@ namespace MultiplayerBase.UI
 
         public static NoncardReward CreateMisc(Transform transform, Vector2 dim, string miscName, string arg0)
         {
+
             if (miscName == "CharmMachine")
             {
                 string charmMachineTitle = "Random Charm";
@@ -164,7 +166,8 @@ namespace MultiplayerBase.UI
             SfxSystem.OneShot(clickSFX);
             TweenExciting();
             (Friend, int) decoration = NoncardViewer.FindDecoration(this);
-            HandlerSystem.SendMessage("EVE",decoration.Item1, $"PING!{decoration.Item1.Id.Value}!{decoration.Item2}!Bell");
+            string s = HandlerSystem.ConcatMessage(true, "PING", $"{decoration.Item1.Id.Value}", $"{decoration.Item2}", "Bell");
+            HandlerSystem.SendMessage("EVE",decoration.Item1, s);
         }
 
         public void TweenExciting()

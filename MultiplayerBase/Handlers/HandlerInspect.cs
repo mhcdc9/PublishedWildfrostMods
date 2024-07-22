@@ -142,7 +142,7 @@ namespace MultiplayerBase.Handlers
                 if (container is OtherCardViewer ocv)
                 {
                     (Friend friend, ulong id) = ocv.Find(entity);
-                    HandlerSystem.SendMessage("INS", friend, $"PING!{friend.Id.Value}!{id}!");
+                    HandlerSystem.SendMessage("INS", friend, HandlerSystem.ConcatMessage(false,"PING",$"{friend.Id.Value}",$"{id}"));
                     return;
                 }
             }
@@ -176,9 +176,9 @@ namespace MultiplayerBase.Handlers
             }
             Friend friend = HandlerSystem.self;
             ulong id = entity.data.id;
-            string s = $"DISP!{friend.Id.Value}!";
+            string s = HandlerSystem.ConcatMessage(false,"DISP",$"{friend.Id.Value}");
             //s += EncodeEntity(entity, id);
-            s += CardEncoder.Encode(entity, id);
+            s += "! " + CardEncoder.Encode(entity, id);
             HandlerSystem.SendMessageToAll("INS", s);    
         }
 
@@ -197,7 +197,7 @@ namespace MultiplayerBase.Handlers
 
         public void HandleMessage(Friend friend, string message)
         {
-            string[] messages = message.Split(new char[] { '!' });
+            string[] messages = HandlerSystem.DecodeMessages(message);
             Debug.Log($"[Multiplayer] {message}");
 
             switch(messages[0])//0 -> Action
