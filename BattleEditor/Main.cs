@@ -13,6 +13,10 @@ namespace BattleEditor
 {
     public class Main : WildfrostMod
     {
+        public static List<WildfrostMod> resetModList = new List<WildfrostMod>();
+        public static bool ListeningReset = false;
+
+        public static bool ListeningGobbler = false;
         public Main(string modDirectory) : base(modDirectory)
         {
         }
@@ -29,7 +33,10 @@ namespace BattleEditor
             .ConstructWaves(3, 1, "PCW", "CPW", "CKW", "KCW")
             .StartWavePoolData(2, "Wave 3: Bolgo is here!")
             .ConstructWaves(3, 9, "BPW", "BCW")
-            .AddBattleToLoader().RegisterBattle(0, mandatory: true);
+            .AddBattleToLoader().RegisterBattle(0, mandatory: true)
+            .GiveMiniBossesCharms(new string[] { "Bolgo" }, "CardUpgradeAcorn", "CardUpgradeShellOnKill")
+            .GiveGobblers()
+            .GiveGobblers();
         }
 
         public void Debug1()
@@ -46,7 +53,100 @@ namespace BattleEditor
 
         public override string Title => "Battle Data Editor";
 
-        public override string Description => "[Backend] Provides useful functions to the creation/editing of battles.";
+        public override string Description => "[Backend] Provides useful functions to the creation/editing of battles.\r\n\r\n\r\n\r\n\r\n" +
+            "For modders who want to use this, here is an example code on how you would make the Shelled Husks fight and make it the first mandatory fight. " +
+            "This code should be placed some time after all of the cards are loaded (if you are following the documentation tutorial, this code should run after base.Load):\r\n\r\n" +
+            "new BattleDataEditor(this, \"Spare Shells\")\r\n" +
+            ".SetSprite(this.ImagePath(\"Spare Shells.png\").ToSprite())\r\n" +
+            ".SetNameRef(\"The Other Shelled Husks\")\r\n" +
+            ".EnemyDictionary(('C', \"Conker\"), ('W', \"ShellWitch\"), ('P', \"Pecan\"), ('K', \"Prickle\"), ('B', \"Bolgo\"))\r\n" +
+            ".StartWavePoolData(0, \"Wave 1: The first of the husks\")\r\n.ConstructWaves(3, 0, \"CWW\", \"CWP\")\r\n" +
+            ".StartWavePoolData(1, \"Wave 2: Some more husks\")\r\n" +
+            ".ConstructWaves(3, 1, \"PCW\", \"CPW\", \"CKW\", \"KCW\")\r\n.StartWavePoolData(2, \"Wave 3: Bolgo is here!\")\r\n" +
+            ".ConstructWaves(3, 9, \"BPW\", \"BCW\")\r\n.AddBattleToLoader().RegisterBattle(0, mandatory: true)\r\n" +
+            ".GiveMiniBossesCharms(new string[] { \"Bolgo\" }, \"CardUpgradeAcorn\", \"CardUpgradeShellOnKill\");\r\n\r\n" +
+            "If you have further questions, reach out to me on the Wildfrost Discord (@Michael C).\r\n\r\n" +
+            "Have fun!";
+
+        public readonly static string[,] VanillaBattles =
+        {
+            { "Pengoons", "Snowbos", "BabyBerries", "Bombers" },
+            { "Berries", "Frosters", "Shroomers", "Yeti" },
+            { "Frenzy Boss", "Split Boss", "", "" },
+            { "Goats", "Husks", "Spice Monkeys", "" },
+            { "Drek", "Spikers", "Inkers", "" },
+            { "Clunker Boss", "Toadstool Boss", "", "" },
+            { "Blockers", "Wildlings", "Mimiks", "" },
+            { "Final Boss", "", "", "" },
+            {"Final Final Boss", "", "", ""}
+        };
+
+        public static void CheckReset(WildfrostMod mod)
+        {
+            if (Main.resetModList.Contains(mod))
+            {
+                Main.resetModList.Remove(mod);
+                ResetAllTiers();
+            }
+        }
+
+        public static void ResetTier(int tier, string gameMode = "GameModeNormal")
+        {
+            GameMode game = AddressableLoader.Get<GameMode>("GameMode", gameMode);
+            if (!game)
+            {
+                Debug.LogWarning("Gamemode does not exist.");
+            }
+            List<BattleData> data = new List<BattleData>();
+            for (int i = 0; i < VanillaBattles.GetLength(1); i++)
+            {
+                if (VanillaBattles[tier, i] == "") continue;
+
+                BattleData bd = AddressableLoader.Get<BattleData>("BattleData", VanillaBattles[tier, i]);
+                if (bd == null)
+                {
+                    Debug.Log($"[BattleEditor] Could not find a vanilla fight named {VanillaBattles[tier, i]}. Go yell at Michael.");
+                }
+                else
+                {
+                    Debug.Log($"[BattleEditor] Found the {VanillaBattles[tier, i]} battle!");
+                    data.Add(bd);
+                }
+            }
+            game.populator.tiers[tier].battlePool = data.ToArray();
+            Debug.Log($"[BattleEditor] Tier {tier} reset.");
+        }
+
+        public static void ResetAllTiers(string gameMode = "GameModeNormal")
+        {
+            for (int i = 0; i < VanillaBattles.GetLength(0); i++)
+            {
+                ResetTier(i, gameMode);
+            }
+        }
+
+        public static void CheckGobblerProfiles(WildfrostMod mod)
+        {
+            foreach (HardModeModifierData hardModeModifierData in References.instance.hardModeModifiers)
+            {
+                if (hardModeModifierData.name == "9.MoreEnemiesInBossBattles")
+                {
+                    ScriptAddEnemies script = (ScriptAddEnemies)(hardModeModifierData.modifierData.startScripts[0]);
+                    List<ScriptAddEnemies.Profile> list = script.profiles.ToList();
+                    for(int i = list.Count-1; i>=0; i--)
+                    {
+                        ScriptAddEnemies.Profile profile = script.profiles[i];
+                        if (profile.battleData == null || profile.battleData.ModAdded == mod)
+                        {
+                            list.RemoveAt(i);
+                        }
+                    }
+                    script.profiles = list.ToArray();
+                }
+            }
+
+            Debug.Log("[BattleEditor] Removing excess gobbler profiles");
+        }
     }
 
     public class BattleDataEditor
@@ -57,19 +157,6 @@ namespace BattleEditor
         private List<CardData> enemies = new List<CardData>();
         private Dictionary<char, CardData> dictionary = new Dictionary<char, CardData>();
         private int wavePoolIndex = 0;
-
-        public readonly string[] VanillaBattles =
-        {
-            "Pengoons", "Snowbos", "BabyBerries", "Bombers",
-            "Berries", "Frosters", "Shroomers", "Yeti",
-            "Frenzy Boss", "Split Boss",
-            "Goats", "Husks", "Spice Monkeys",
-            "Drek", "Spikers", "Inkers",
-            "Clunker Boss", "Toadstool Boss",
-            "Blockers", "Wildlings", "Mimiks",
-            "Final Boss",
-            "Final Final Boss"
-        };
 
         /// <summary>
         /// Starts a battle data editor for the desired battle. 
@@ -85,9 +172,9 @@ namespace BattleEditor
             bd = mod.Get<BattleData>(name);
             if (bd == null)
             {
-                Debug.LogWarning("[BattleEditor] Cound not find BattleData for " + name + ". Creating new BattleData instead.");
+                Debug.Log("[BattleEditor] Cound not find BattleData for " + name + ". Creating new BattleData instead.");
                 bd = ScriptableObject.CreateInstance<BattleData>();
-                bd.name = name;
+                bd.name = string.Concat(m.GUID,".",name);
                 bd.bonusUnitPool = new CardData[0];
                 bd.bonusUnitRange = new Vector2Int(0, 0);
                 bd.generationScript = null; //Unsure of what this is, so I'm going to set it to be the same as the other battles :P 
@@ -110,10 +197,16 @@ namespace BattleEditor
             }
         }
 
-
-
         public BattleDataEditor GiveMiniBossesCharms(string[] cardNames, params string[] upgradeNames)
         {
+            for(int i=0; i<cardNames.Length; i++)
+            {
+                CardData data = mod.Get<CardData>(cardNames[i]);
+                if (data != null)
+                {
+                    cardNames[i] = data.name;
+                }
+            }
             List<CardUpgradeData> upgradeData = new List<CardUpgradeData>();
             foreach(string name in upgradeNames)
             {
@@ -137,6 +230,33 @@ namespace BattleEditor
                     ((ScriptUpgradeMinibosses)hardModeModifierData.modifierData.startScripts[0]).profiles = ((ScriptUpgradeMinibosses)hardModeModifierData.modifierData.startScripts[0]).profiles.Append(profile).ToArray();
                 }
             }
+            return this;
+        }
+
+        public BattleDataEditor GiveGobblers(int add = 1, int toWave = 1, bool randomPosition = false, CardData[] pool = null)
+        {
+            ScriptAddEnemies.Profile profile;
+            profile = new ScriptAddEnemies.Profile();
+            profile.battleData = bd;
+            profile.add = add;
+            profile.toWave = toWave;
+            profile.randomPosition = randomPosition;
+            profile.pool = pool == null ? new CardData[] { mod.Get<CardData>("Gobbler") } : pool;
+
+            foreach (HardModeModifierData hardModeModifierData in References.instance.hardModeModifiers)
+            {
+                if (hardModeModifierData.name == "9.MoreEnemiesInBossBattles")
+                {
+                    ((ScriptAddEnemies)hardModeModifierData.modifierData.startScripts[0]).profiles = ((ScriptAddEnemies)hardModeModifierData.modifierData.startScripts[0]).profiles.Append(profile).ToArray();
+                }
+            }
+
+            if (!Main.ListeningGobbler)
+            {
+                Events.OnModUnloaded += Main.CheckGobblerProfiles;
+                Main.ListeningGobbler = true;
+            }
+
             return this;
         }
 
@@ -168,14 +288,19 @@ namespace BattleEditor
             return this;
         }
 
+        public BattleDataEditor SetNameRef(string nameRef)
+        {
+            return SetNameRef(nameRef, SystemLanguage.English);
+        }
+
         /// <summary>
         /// Sets the name that shows up on the map page (e.g. "The Teethy Shades" or "The Spike Mokos").
         /// </summary>
         /// <param name="nameRef"></param>
         /// <returns></returns>
-        public BattleDataEditor SetNameRef(string nameRef)
+        public BattleDataEditor SetNameRef(string nameRef, SystemLanguage lang)
         {
-            UnityEngine.Localization.Tables.StringTable collection = LocalizationHelper.GetCollection("Cards", SystemLanguage.English);
+            UnityEngine.Localization.Tables.StringTable collection = LocalizationHelper.GetCollection("Cards", lang);
             collection.SetString(bd.name + "_text", nameRef);
             bd.nameRef = collection.GetString(bd.name + "_text");
             return this;
@@ -272,7 +397,7 @@ namespace BattleEditor
         {
             if (bd.pools.Length <= index)
             {
-                Debug.LogWarning("[Warning] Index does not exist.");
+                Debug.Log("[BattleEditor] Index does not exist.");
                 return null;
             }
             return bd.pools[index];
@@ -282,12 +407,12 @@ namespace BattleEditor
         {
             if(bd.pools.Length <= wavePoolIndex)
             {
-                Debug.LogWarning("[Warning] Wave Pool Index does not exist.");
+                Debug.Log("[BattleEditor] Wave Pool Index does not exist.");
                 return bd.pools[0].waves[0];
             }
             if(bd.pools[wavePoolIndex].waves.Length <= waveIndex)
             {
-                Debug.LogWarning("[Warning] Wave Index does not exist.");
+                Debug.Log("[BattleEditor] Wave Index does not exist.");
                 return bd.pools[0].waves[0];
             }
             return bd.pools[wavePoolIndex].waves[waveIndex];
@@ -310,7 +435,7 @@ namespace BattleEditor
             
             if (index >= bd.pools.Length)
             {
-                Debug.Log("[Warning] WavePool index does not exist. Ading a new WavePool.");
+                Debug.Log("[BattleEditor] Adding a new WavePool.");
                 bd.pools = bd.pools.AddItem(null).ToArray();
                 index = bd.pools.Length-1;
             }
@@ -418,6 +543,20 @@ namespace BattleEditor
         /// <returns></returns>
         public BattleDataEditor RegisterBattle(int tier, string gameMode = "GameModeNormal", bool mandatory = false)
         {
+            return RegisterBattle(tier, true, gameMode, mandatory);
+        }
+
+        /// <summary>
+        /// [Important] Places the battle in the pool of other battles of the same tiers:
+        /// 0 = Pengoons/Snowbo, 1=Bears/Shroom/Berries/Ringer, 2=Infernoko/Bamboozle, etc.
+        /// Setting mandatory to true removes all other battles in the tier.
+        /// </summary>
+        /// <param name="tier"></param>
+        /// <param name="gameMode"></param>
+        /// <param name="mandatory"></param>
+        /// <returns></returns>
+        public BattleDataEditor RegisterBattle(int tier, bool resetAllOnClear, string gameMode = "GameModeNormal", bool mandatory = false)
+        {
             GameMode game = mod.Get<GameMode>(gameMode);
             if (!game)
             {
@@ -431,11 +570,22 @@ namespace BattleEditor
             else
             {
                 game.populator.tiers[tier].battlePool = game.populator.tiers[tier].battlePool.AddToArray(bd);
-                Debug.Log("[BattleEditor] The " + bd.name + "is in tier " + tier.ToString()); 
+                Debug.Log("[BattleEditor] The " + bd.name + "is in tier " + tier.ToString());
             }
-            
-            
+
+            if (resetAllOnClear)
+            {
+                if (!Main.ListeningReset)
+                {
+                    Events.OnModUnloaded += Main.CheckReset;
+                    Main.ListeningReset = true;
+                }
+                Main.resetModList.Add(mod);
+            }
+
             return this;
         }
+
+
     }
 }

@@ -29,13 +29,14 @@ namespace Tokens
 
         public override string[] Depends => new string[0];
 
-        public override string Title => "Tokens v2.0.1";
+        public override string Title => "Tokens v2.1.2";
 
         public override string Description => "Tokens are a new type of card upgrade (token icons are clickable!). They can be obtained by asking Goblings nicely for them.\n\n\n" +
-            "Think of tokens as equipment/consumables." +
-            "Clicking a token during a battle will provide a small effect." +
-            "There are 11 different tokens (8 general, 3 class-exclusive) that have varied effects (see icon picture)." +
-            "Tokens may be a free action or end your turn.";
+            "Think of tokens as equipment/consumables. " +
+            "Clicking a token during a battle will provide a small effect. " +
+            "There are 11 different tokens (8 general, 3 class-exclusive) that have varied effects (see icon picture). " +
+            "Tokens may be a free action or end your turn.\n\n" +
+            "The developer can be contacted through Steam and/or Discord (@Michael C).";
 
         public static bool OverrideDrag = false;
 
@@ -249,7 +250,7 @@ namespace Tokens
 
                 Extensions.CreateBasicKeyword(this, "decktoken", "Hidden Ace", "<Free Action>: Move (from anywhere!) to top of draw pile|Uses per battle: 1").AddToIcons("deckToken"),
 
-                Extensions.CreateBasicKeyword(this, "prismtoken", "Prism Stone", "<End Turn>: Copy the next (valid) effect to allies in row|Uses per battle: 1").AddToIcons("prismToken"),
+                Extensions.CreateBasicKeyword(this, "prismtoken", "Prism Stone", "<End Turn>: Gain <keyword=mhcdc9.wildfrost.tokens.prism>|Uses per battle: 1").AddToIcons("prismToken"),
 
                 Extensions.CreateBasicKeyword(this, "frosttoken", "Frost Spike", "<Free Action>: Deal <keyword=frost> instead of damage for next attack|Uses per battle: 2").AddToIcons("frostToken"),
 
@@ -259,7 +260,7 @@ namespace Tokens
 
                 Extensions.CreateBasicKeyword(this, "junktoken", "Dismantle Kit", "<Free Action>: Replace the rightmost card in hand with 2 <card=Junk>|Uses per battle: 1").AddToIcons("junkToken"),
 
-                Extensions.CreateBasicKeyword(this, "prism", "Prism", "Copies the next (valid) effects to allies in row|Counts down when activated")
+                Extensions.CreateBasicKeyword(this, "prism", "Prism", "Copies the next (valid) effect to allies in row|Clears when activated")
                 .WithCanStack(true),
                 Extensions.CreateBasicKeyword(this, "froststrike", "Frost Strike", "Deals damage as <keyword=frost> instead|Counts down after each attack")
                 .WithCanStack(true)
@@ -696,15 +697,17 @@ namespace Tokens
                     if (transform.name == "BorderLeft")
                     {
                         borderRight = transform;
+                        //Debug.Log("[Tokens] Test 1");
                         break;
                     }
                 }
+                //Debug.Log("[Tokens] Test 2");
                 Holder = GameObject.Instantiate(HolderPrefab, borderRight);
                 Holder.transform.SetSiblingIndex(0);
                 Holder.transform.localPosition = new Vector3(1.35f, 1.3f, 0f);
                 Holder.GetComponent<TokenHolder>().dragHandler = deckDisplay.GetComponentInChildren<CardCharmDragHandler>(true);
                 Holder.SetActive(true);
-
+                //Debug.Log("[Tokens] Test 3");
                 deckSelect = GameObject.FindObjectOfType<DeckSelectSequence>(true);
                 foreach (Transform transform in deckSelect.GetComponentsInChildren<Transform>())
                 {
@@ -718,6 +721,7 @@ namespace Tokens
                         break;
                     }
                 }
+                //Debug.Log("[Tokens] Test 4");
                 ButtonAnimator animator = takeTokenButton.GetComponentInChildren<ButtonAnimator>();
                 animator.baseColour = new Color(0.96f, 0.875f, 0.589f, 1);
                 Button button = takeTokenButton.GetComponentInChildren<Button>();
@@ -759,7 +763,7 @@ namespace Tokens
             return data.upgrades.Find((CardUpgradeData a) => a.type == CardUpgradeData.Type.Token);
         }
 
-        private static IEnumerator RemoveToken(Entity entity)
+        internal static IEnumerator RemoveToken(Entity entity)
         {
             CardData data = entity.data;
             CardUpgradeData token = GetToken(data);
@@ -860,6 +864,29 @@ namespace Tokens
         }
     }
 
+    [HarmonyPatch(typeof(EventRoutineCopyItem), "CopyRoutine")]
+    internal static class PatchNoDuplicateTokens
+    {
+        static IEnumerator Postfix(IEnumerator __result, EventRoutineCopyItem __instance)
+        {
+            CardUpgradeData upgrade = null;
+            for(int i = __instance.copyEntity.data.upgrades.Count - 1; i>=0; i--)
+            {
+                if (__instance.copyEntity.data.upgrades[i].type == CardUpgradeData.Type.Token)
+                {
+                    upgrade = __instance.copyEntity.data.upgrades[i].Clone();
+                    yield return TokenMain.RemoveToken(__instance.copyEntity);
+                    break;
+                }
+            }
+            yield return __result;
+            if (upgrade != null)
+            {
+                upgrade.Assign(__instance.copyEntity.data);
+            }
+        }
+    }
+
     public class TokenHolder : UpgradeHolder
     {
         [SerializeField]
@@ -904,6 +931,17 @@ namespace Tokens
 
                 zero += new Vector2(-2*(alternate-0.5f)*xGap , alternate * yGap);
                 alternate = 1-alternate;
+            }
+        }
+
+        public override void SetInputOverrides()
+        {
+            for (int i = 0; i < base.transform.childCount; i++)
+            {
+                UpgradeDisplay component = base.transform.GetChild(i).GetComponent<UpgradeDisplay>();
+                component.navigationItem.overrideInputs = true;
+                component.navigationItem.inputDown = ((i > 0) ? base.transform.GetChild(i - 1).GetComponent<UpgradeDisplay>().navigationItem : null);
+                component.navigationItem.inputUp = ((i < list.Count - 1) ? base.transform.GetChild(i + 1).GetComponent<UpgradeDisplay>().navigationItem : null);
             }
         }
     }

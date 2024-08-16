@@ -38,7 +38,6 @@ namespace Tokens
         {
             base.Assign(entity);
             SetText();
-            Ping();
             onValueDown.AddListener(delegate { Ping(); });
             onValueUp.AddListener(delegate { Ping(); });
             afterUpdate.AddListener(SetText);
@@ -427,6 +426,10 @@ namespace Tokens
 
         public override bool RunPostApplyStatusEvent(StatusEffectApply apply)
         {
+            if (apply.applier == null || apply.target == null || apply.effectData == null)
+            {
+                return false;
+            }
             if (apply.count == 0 || apply.target != target)
             {
                 return false;

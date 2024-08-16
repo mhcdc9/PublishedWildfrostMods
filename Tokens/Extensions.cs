@@ -149,6 +149,8 @@ namespace Tokens
             icon.type = type;
             cardIcons[type] = gameObject;
 
+            gameObject.AddComponent<UINavigationItem>();
+
             return gameObject;
         }
 
