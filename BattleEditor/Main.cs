@@ -418,6 +418,18 @@ namespace BattleEditor
             return bd.pools[wavePoolIndex].waves[waveIndex];
         }
 
+        public BattleDataEditor SetGenerationScript(BattleGenerationScript bgs)
+        {
+            bd.generationScript = bgs;
+            return this;
+        }
+
+        public BattleDataEditor FreeModify<T>(Action<T> action) where T : BattleData
+        {
+            action((T)bd);
+            return this;
+        }
+
 
         /// <summary>
         /// Creates WavePoolData at the desired index and sets the default WavePoolData index here. 
@@ -524,7 +536,7 @@ namespace BattleEditor
         {
             if (newBattle)
             {
-                bd.generationScript = mod.Get<BattleData>("Pengoons").generationScript;
+                bd.generationScript = bd.generationScript ?? mod.Get<BattleData>("Pengoons").generationScript;
                 AddressableLoader.AddToGroup<BattleData>("BattleData", bd);
                 newBattle = false;
                 Debug.Log("[BattleEditor] The " + bd.name + " battle is loaded.");
