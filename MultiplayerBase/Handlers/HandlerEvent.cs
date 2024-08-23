@@ -37,6 +37,7 @@ namespace MultiplayerBase.Handlers
             HandlerSystem.HandlerRoutines.Add("EVE", HandleMessage);
             Events.OnSceneChanged += ErasePingablesAndWatchers;
             Events.OnShopItemPurchase += ItemPurchase;
+            Events.OnEntityChosen += EntityChosen;
             OnSelectBlessing += SelectBlessing;
         }
         public void AskForData(Friend friend)
@@ -79,6 +80,7 @@ namespace MultiplayerBase.Handlers
                             s = HandlerSystem.ConcatMessage(true, "DISP2", $"{id}", $"{flag}", "MISC", "CharmMachine");
                             HandlerSystem.SendMessage("EVE", friend, s);
                             flag = "F";
+                            s = HandlerSystem.ConcatMessage(true, "DISP2", $"{id}", $"{flag}", "MISC", "CharmMachine");
                             HandlerSystem.SendMessage("EVE", friend, s);
                             HandlerSystem.SendMessage("EVE", friend, s);
                         }
@@ -90,7 +92,7 @@ namespace MultiplayerBase.Handlers
                 foreach(CardContainer container in eventRoutine.gameObject.GetComponentsInChildren<CardContainer>())
                 {
                     Debug.Log($"[Multiplayer] {container.name}");
-                    Entity[] entities = container.ToArray();
+                    Entity[] entities = container.ToArray() ?? new Entity[0];
                     for(int j=entities.Length-1; j>=0; j--)
                     {
                         Entity entity = entities[j];
@@ -187,9 +189,9 @@ namespace MultiplayerBase.Handlers
                     (Friend, ulong) pair = ocv.Find(entity);
                     if (ulong.Parse(messages[1]) == pair.Item2 && friend.Id.Value == pair.Item1.Id.Value)
                     {
-                        CreateIndicator(entity.GetComponentInChildren<RectTransform>(), 1.1f);
+                        CreateIndicator(entity.GetComponentInChildren<RectTransform>(), 0.6f);
+                        yield break;
                     }
-                    yield break;
                 }
             }
         }
@@ -283,7 +285,7 @@ namespace MultiplayerBase.Handlers
                 nextID = (nextID + 1) % 100;
                 if (!pingables.ContainsKey(nextID))
                 {
-                    pingables.Add(nextID, (obj,obj.transform.localPosition));
+                    pingables.Add(nextID, (obj,obj.transform.localScale));
                     return nextID;
                 }
             }
@@ -324,6 +326,11 @@ namespace MultiplayerBase.Handlers
             {
                 SendToWatchers($"SELECT",item.GetComponent<Entity>().data.id.ToString());
             }
+        }
+
+        private void EntityChosen(Entity entity)
+        {
+            SendToWatchers($"SELECT", entity.data.id.ToString());
         }
 
         private static string GetNameOfReward(BossRewardData.Data data)

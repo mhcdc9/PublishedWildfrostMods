@@ -17,8 +17,16 @@ namespace MultiplayerBase.UI
         public Vector3 startTextPosition = new Vector3(0f, -3f, 0f);
         public Vector3 defaultTextPosition = new Vector3(0f, -4f, 0f);
 
+        public bool BattleCardViewer = false;
+
         public void Add(Entity entity, Friend friend, ulong id)
         {
+            if (entity == null)
+            {
+                entities.Add(null);
+                Count++;
+                return;
+            }
             if (!decorations.ContainsKey(entity))
             {
                 decorations[entity] = (friend, id);
@@ -26,9 +34,39 @@ namespace MultiplayerBase.UI
             }
         }
 
+        public void Insert(int index, Entity entity, Friend friend, ulong id)
+        {
+            while (entities.Count < index)
+            {
+                Add(null);
+            }
+            if (!decorations.ContainsKey(entity))
+            {
+                if (index < entities.Count && entities[index] == null)
+                {
+                    decorations[entity] = (friend, id);
+                    entity.transform.SetParent(holder);
+                    entity.AddTo(this);
+                    entities[index] = entity;
+                    CardAdded(entity);
+                    onAdd.Invoke(entity);
+                }
+                else
+                {
+                    Add(entity, friend, id);
+                }
+            }
+        }
+
         public override void Add(Entity entity)
         {
-            if(!decorations.ContainsKey(entity))
+            if (entity == null)
+            {
+                entities.Add(null);
+                Count++;
+                return;
+            }
+            if (!decorations.ContainsKey(entity))
             {
                 decorations[entity] = (HandlerSystem.self, entity.data.id);
                 base.Add(entity);
@@ -37,6 +75,12 @@ namespace MultiplayerBase.UI
 
         public override void Remove(Entity entity)
         {
+            if (entity == null)
+            {
+                entities.RemoveWhere(x => x == null);
+                Count--;
+                return;
+            }
             if (decorations.ContainsKey(entity))
             {
                 decorations.Remove(entity);
@@ -91,6 +135,7 @@ namespace MultiplayerBase.UI
         {
             foreach (Entity entity in this)
             {
+                if (entity == null) { continue; }
                 if (decorations.ContainsKey(entity) && decorations[entity].Item1.Id.Value == friend.Id.Value && decorations[entity].Item2 == id)
                 {
                     return entity;
@@ -101,11 +146,40 @@ namespace MultiplayerBase.UI
 
         public (Friend,ulong) Find(Entity entity)
         {
+            if (entity == null) { return (HandlerSystem.self, 0); }
             if (decorations.ContainsKey(entity))
             {
                 return decorations[entity];
             }
             return (HandlerSystem.self, entity.data.id);
+        }
+
+        public override void SetChildPosition(Entity child)
+        {
+            if (child == null) { return; }
+            if (child.height > 1 && BattleCardViewer)
+            {
+                child.transform.position = HandlerBattle.FindPositionForBosses(this, child);
+                child.transform.localScale = GetChildScale(child);
+                child.transform.localEulerAngles = GetChildRotation(child);
+                return;
+            }
+            base.SetChildPosition(child);
+        }
+
+        new public void ClearAndDestroyAllImmediately()
+        {
+            Entity[] array = ToArray();
+            Clear();
+            Entity[] array2 = array;
+            if (array2 == null) { return; }
+            for (int i = 0; i < array2.Length; i++)
+            {
+                if (array2[i] != null)
+                {
+                    array2[i]?.gameObject.DestroyImmediate();
+                }
+            }
         }
     }
 }

@@ -17,6 +17,7 @@ using MultiplayerBase.UI;
 using MultiplayerBase.Battles;
 using Steamworks.Data;
 using Color = UnityEngine.Color;
+using System.Xml;
 
 namespace MultiplayerBase.Handlers
 {
@@ -58,6 +59,7 @@ namespace MultiplayerBase.Handlers
         protected void Start()
         {
             //Events.OnSceneUnload += DisableController;
+            Events.OnEntityMove += EntityMove;
             
             instance = this;
 
@@ -79,6 +81,19 @@ namespace MultiplayerBase.Handlers
             transform.position = defaultPosition;
             CreateBattleViewer();
             HandlerSystem.HandlerRoutines.Add("BAT", HandleMessage);
+        }
+
+        private void EntityMove(Entity entity)
+        {
+            Debug.Log($"[Multiplayer] {entity.data.title}");
+            foreach(CardContainer container in entity.preContainers)
+            {
+                Debug.Log($"[Multiplayer] Precontainer: [{container.name}]");
+            }
+            foreach (CardContainer container in entity.containers)
+            {
+                Debug.Log($"[Multiplayer] Container: [{container.name}]");
+            }
         }
 
         private void CreateBattleViewer()
@@ -107,6 +122,7 @@ namespace MultiplayerBase.Handlers
             {
                 playerLanes[i] = HelperUI.OtherCardViewer($"Player Row {i + 1}", background.transform, cc);
                 playerLanes[i].transform.localPosition = new Vector3(-0.47f, 0.26f - 0.43f * i, 0);
+                playerLanes[i].BattleCardViewer = true;
                 //0.47, -0.17
                 //0.47, 0.26
                 playerLanes[i].dir = 1;
@@ -123,6 +139,7 @@ namespace MultiplayerBase.Handlers
             {
                 enemyLanes[i] = HelperUI.OtherCardViewer($"Enemy Row {i + 1}", background.transform, cc);
                 enemyLanes[i].transform.localPosition = new Vector3(0.47f, 0.26f - 0.43f * i, 0);
+                enemyLanes[i].BattleCardViewer = true;
                 enemyLanes[i].gap = new Vector3(1f, 0, 0);
                 enemyLanes[i].SetSize(3, 0.6667f);
                 enemyLanes[i].gameObject.AddComponent<UINavigationItem>();
@@ -260,6 +277,7 @@ namespace MultiplayerBase.Handlers
             HandlerSystem.SendMessage("BAT", friend, HandlerSystem.ConcatMessage(false, "ASK", "PLAYER", "ENEMY"));
         }
 
+        //Bat|Player!rowIndex!index!id!cardStuff
         public void SendData(Friend friend, string[] messages)
         {
             string s;
@@ -271,22 +289,36 @@ namespace MultiplayerBase.Handlers
                     case "PLAYER":
                         for(int j = 0; j < 2; j++)
                         {
-                            Entity[] entities = Battle.instance.rows[References.Player][j].ToArray();
-                            for (int k=0; k<entities.Length; k++)
+                            if (Battle.instance.rows[References.Player][j] is CardSlotLane lane)
                             {
-                                s = HandlerSystem.ConcatMessage(false, "PLAYER", $"{j}", CardEncoder.Encode(entities[k], entities[k].data.id));
-                                HandlerSystem.SendMessage("BAT", friend, s);
+                                List<CardSlot> slots = lane.slots;
+                                for (int k = 0; k < slots.Count; k++)
+                                {
+                                    if (slots[k].Count != 0)
+                                    {
+                                        Entity entity = slots[k][0];
+                                        s = HandlerSystem.ConcatMessage(false, "PLAYER", $"{j}", $"{k}", CardEncoder.Encode(entity, entity.data.id));
+                                        HandlerSystem.SendMessage("BAT", friend, s);
+                                    }
+                                }
                             }
                         }
                         break;
                     case "ENEMY":
                         for (int j = 0; j < 2; j++)
                         {
-                            Entity[] entities = Battle.instance.rows[Battle.GetOpponent(References.Player)][j].ToArray();
-                            for (int k = 0; k < entities.Length; k++)
+                            if (Battle.instance.rows[Battle.GetOpponent(References.Player)][j] is CardSlotLane lane)
                             {
-                                s = HandlerSystem.ConcatMessage(false, "ENEMY", $"{j}", CardEncoder.Encode(entities[k], entities[k].data.id));
-                                HandlerSystem.SendMessage("BAT", friend, s);
+                                List<CardSlot> slots = lane.slots;
+                                for (int k = 0; k < slots.Count; k++)
+                                {
+                                    if (slots[k].Count != 0)
+                                    {
+                                        Entity entity = slots[k][0];
+                                        s = HandlerSystem.ConcatMessage(false, "ENEMY", $"{j}", $"{k}", CardEncoder.Encode(entity, entity.data.id));
+                                        HandlerSystem.SendMessage("BAT", friend, s);
+                                    }
+                                }
                             }
                         }
                         break;
@@ -401,22 +433,44 @@ namespace MultiplayerBase.Handlers
 
         public IEnumerator PlacePlayerCard(Friend friend, string[] messages)
         {
+            if (AlreadyCreated(friend, ulong.Parse(messages[3]), playerLanes))
+            {
+                yield break;
+            }
             OtherCardViewer ocv = playerLanes[int.Parse(messages[1])];
-            Entity entity = CardEncoder.DecodeEntity1(cb, ocv.owner, messages.Skip(3).ToArray());
-            ocv.Add(entity,friend,ulong.Parse(messages[2]));
+            Entity entity = CardEncoder.DecodeEntity1(cb, ocv.owner, messages.Skip(4).ToArray());
+            ocv.Insert(int.Parse(messages[2]), entity, friend, ulong.Parse(messages[3]));
+            if (entity.height > 1)
+            {
+                playerLanes[1].Insert(int.Parse(messages[2]), entity, friend, ulong.Parse(messages[3]));
+            }
             ocv.SetChildPosition(entity);
-            yield return CardEncoder.DecodeEntity2(entity, messages.Skip(3).ToArray());
+            yield return CardEncoder.DecodeEntity2(entity, messages.Skip(4).ToArray());
             entity.flipper.FlipUp(force: true);
         }
 
         public IEnumerator PlaceEnemyCard(Friend friend, string[] messages)
         {
+            if (AlreadyCreated(friend, ulong.Parse(messages[3]), enemyLanes))
+            {
+                yield break;
+            }
             OtherCardViewer ocv = enemyLanes[int.Parse(messages[1])];
-            Entity entity = CardEncoder.DecodeEntity1(cb, ocv.owner, messages.Skip(3).ToArray());
-            ocv.Add(entity, friend, ulong.Parse(messages[2]));
+            Entity entity = CardEncoder.DecodeEntity1(cb, ocv.owner, messages.Skip(4).ToArray());
+            ocv.Insert(int.Parse(messages[2]), entity, friend, ulong.Parse(messages[3]));
+            if (entity.height > 1)
+            {
+                enemyLanes[1].Insert(int.Parse(messages[2]), entity, friend, ulong.Parse(messages[3]));
+            }
             ocv.SetChildPosition(entity);
-            yield return CardEncoder.DecodeEntity2(entity, messages.Skip(3).ToArray());
+            yield return CardEncoder.DecodeEntity2(entity, messages.Skip(4).ToArray());
             entity.flipper.FlipUp(force: true);
+        }
+
+        public bool AlreadyCreated(Friend friend, ulong id, OtherCardViewer[] rows)
+        {
+            Entity entity = rows[0].Find(friend, id) ?? rows[1].Find(friend, id);
+            return entity != null;
         }
 
         public IEnumerator BattleRoutine()
@@ -444,6 +498,27 @@ namespace MultiplayerBase.Handlers
                         break;
                 }
             }
+        }
+
+        public static Vector3 FindPositionForBosses(OtherCardViewer viewer, Entity entity)
+        {
+            if (instance == null) { return Vector3.zero; }
+
+            if (instance.playerLanes.Contains(viewer))
+            {
+                Vector3 first = instance.playerLanes[0].GetChildPosition(entity) + instance.playerLanes[0].transform.position;
+                Vector3 second = instance.playerLanes[1].GetChildPosition(entity) + instance.playerLanes[1].transform.position;
+                return (first + second) / 2;
+            }
+
+            if (instance.enemyLanes.Contains(viewer))
+            {
+                Vector3 first = instance.enemyLanes[0].GetChildPosition(entity) + instance.enemyLanes[0].transform.position;
+                Vector3 second = instance.enemyLanes[1].GetChildPosition(entity) + instance.enemyLanes[1].transform.position;
+                return (first + second) / 2;
+            }
+
+            return Vector3.zero;
         }
 
         public static bool TryAction(PlayAction action)

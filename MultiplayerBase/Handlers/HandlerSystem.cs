@@ -48,7 +48,9 @@ namespace MultiplayerBase.Handlers
             SceneChanged(SceneManager.GetActive());
 
             playerDummy = AddressableLoader.Get<ClassData>("ClassData", "Basic").characterPrefab.InstantiateKeepName();
+            playerDummy.name = "Fake Player";
             enemyDummy = playerDummy.InstantiateKeepName();
+            enemyDummy.name = "Fake Enemy";
             enemyDummy.team = 2;
 
             if (initialized)

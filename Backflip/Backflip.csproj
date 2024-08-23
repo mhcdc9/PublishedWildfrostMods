@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{8BE3889F-91BD-4CE2-B4B1-3DB5027B0737}</ProjectGuid>
+    <ProjectGuid>{CD00DEAA-CA54-44B9-AEC5-13FC5CEB818A}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>MultiplayerBase</RootNamespace>
-    <AssemblyName>MultiplayerBase</AssemblyName>
+    <RootNamespace>Backflip</RootNamespace>
+    <AssemblyName>Backflip</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
@@ -35,17 +35,11 @@
     <Reference Include="0Harmony">
       <HintPath>..\..\..\..\Desktop\Managed\0Harmony.dll</HintPath>
     </Reference>
-    <Reference Include="Assembly-CSharp">
-      <HintPath>..\..\..\..\Desktop\Managed\Assembly-CSharp.dll</HintPath>
-    </Reference>
     <Reference Include="Assembly-CSharp-firstpass">
       <HintPath>..\..\..\..\Desktop\Managed\Assembly-CSharp-firstpass.dll</HintPath>
     </Reference>
     <Reference Include="Assembly-CSharp-Publicized">
       <HintPath>..\..\..\..\Desktop\Managed\Assembly-CSharp-Publicized.dll</HintPath>
-    </Reference>
-    <Reference Include="Commands Console">
-      <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\workshop\content\1811990\3154932293\Commands Console.dll</HintPath>
     </Reference>
     <Reference Include="DeadExtensions">
       <HintPath>..\..\..\..\Desktop\Managed\DeadExtensions.dll</HintPath>
@@ -92,37 +86,8 @@
     <Reference Include="MonoMod.Utils">
       <HintPath>..\..\..\..\Desktop\Managed\MonoMod.Utils.dll</HintPath>
     </Reference>
-    <Reference Include="NaughtyAttributes.Core">
-      <HintPath>..\..\..\..\Desktop\Managed\NaughtyAttributes.Core.dll</HintPath>
-    </Reference>
-    <Reference Include="NaughtyAttributes.Test">
-      <HintPath>..\..\..\..\Desktop\Managed\NaughtyAttributes.Test.dll</HintPath>
-    </Reference>
-    <Reference Include="netstandard">
-      <HintPath>..\..\..\..\Desktop\Managed\netstandard.dll</HintPath>
-    </Reference>
-    <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\Desktop\Managed\Newtonsoft.Json.dll</HintPath>
-    </Reference>
-    <Reference Include="Rewired_Core">
-      <HintPath>..\..\..\..\Desktop\Managed\Rewired_Core.dll</HintPath>
-    </Reference>
-    <Reference Include="Rewired_Windows">
-      <HintPath>..\..\..\..\Desktop\Managed\Rewired_Windows.dll</HintPath>
-    </Reference>
-    <Reference Include="Rewired_Windows_Functions">
-      <HintPath>..\..\..\..\Desktop\Managed\Rewired_Windows_Functions.dll</HintPath>
-    </Reference>
-    <Reference Include="Steamworks">
-      <HintPath>..\..\..\..\Desktop\Managed\Steamworks.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Drawing" />
-    <Reference Include="System.EnterpriseServices" />
-    <Reference Include="System.IO.Compression" />
-    <Reference Include="System.IO.Compression.FileSystem" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -449,28 +414,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Battles\ActionSendCardToPlay.cs" />
-    <Compile Include="Battles\CardControllerMultiplayerBattle.cs" />
-    <Compile Include="Battles\ActionPlayOtherCard.cs" />
-    <Compile Include="Battles\NavigationStateMultiplayerCard.cs" />
-    <Compile Include="ConsoleCommands\Commands.cs" />
-    <Compile Include="Handlers\CardEncoder.cs" />
-    <Compile Include="Matchmaking\MemberView.cs" />
-    <Compile Include="Matchmaking\ModView.cs" />
-    <Compile Include="UI\Dashboard.cs" />
-    <Compile Include="Handlers\HandlerBattle.cs" />
-    <Compile Include="Handlers\HandlerDeck.cs" />
-    <Compile Include="Handlers\HandlerEvent.cs" />
-    <Compile Include="Handlers\HandlerInspect.cs" />
-    <Compile Include="Handlers\HandlerMap.cs" />
-    <Compile Include="Handlers\HandlerSystem.cs" />
-    <Compile Include="UI\FriendIcon.cs" />
-    <Compile Include="UI\HelperUI.cs" />
-    <Compile Include="Matchmaking\MatchmakingDashboard.cs" />
-    <Compile Include="MultiplayerMain.cs" />
-    <Compile Include="UI\NoncardReward.cs" />
-    <Compile Include="UI\NoncardViewer.cs" />
-    <Compile Include="UI\OtherCardViewer.cs" />
+    <Compile Include="Backflip.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

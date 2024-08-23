@@ -16,6 +16,8 @@ using MultiplayerBase.Handlers;
 using MultiplayerBase.UI;
 using MultiplayerBase.Matchmaking;
 using UnityEngine.Events;
+using System.Collections;
+using MultiplayerBase.ConsoleCommands;
 
 namespace MultiplayerBase
 {
@@ -57,6 +59,8 @@ namespace MultiplayerBase
         public override void Load()
         {
             CreateModAssets();
+            FindAnotherConsoleMod();
+            Events.OnModLoaded += CheckAnotherConsoleMod;
             base.Load();
             GameObject gameobject = new GameObject("Matchmaker");
             gameobject.transform.SetParent(GameObject.Find("Canvas/SafeArea").transform);
@@ -105,6 +109,7 @@ namespace MultiplayerBase
         public override void Unload()
         {
             base.Unload();
+            Events.OnModLoaded -= CheckAnotherConsoleMod;
             matchmaker.gameObject.Destroy();
             openMatchmaking.gameObject.Destroy();
             textElement.Destroy();
@@ -136,6 +141,34 @@ namespace MultiplayerBase
             {
                 matchmaker.UpdateModList();
             }
+        }
+
+        private void CheckAnotherConsoleMod(WildfrostMod mod)
+        {
+            Debug.Log($"[Multiplayer] {mod.Title}");
+            if (mod.GUID == "hope.wildfrost.console")
+            {
+                CoroutineManager.Start(AddCustomCommands(mod));
+            }
+        }
+
+        private void FindAnotherConsoleMod()
+        {
+            List<WildfrostMod> mods = Bootstrap.Mods.ToList();
+            foreach(WildfrostMod mod in mods)
+            {
+                Debug.Log($"[Multiplayer] {mod.Title}");
+                if (mod.GUID == "hope.wildfrost.console" && mod.HasLoaded)
+                {
+                    CoroutineManager.Start(AddCustomCommands(mod));
+                }
+            }
+        }
+
+        private IEnumerator AddCustomCommands(WildfrostMod mod)
+        {
+            yield return new WaitUntil(() => WildfrostHopeMod.CommandsConsole.ConsoleMod.instantiated);
+            Console.commands.Add(new Commands.CommandMultASK());
         }
 
         private void SendMessageCreate(Result result, Lobby lobby) => SendMessage("Created lobby");
