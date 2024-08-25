@@ -40,39 +40,38 @@ namespace MultiplayerBase.Handlers
         public static Character enemyDummy;
         public static void Initialize()
         {
+            if (!initialized)
+            {
+                playerDummy = AddressableLoader.Get<ClassData>("ClassData", "Basic").characterPrefab.InstantiateKeepName();
+                playerDummy.name = "Fake Player";
+                enemyDummy = playerDummy.InstantiateKeepName();
+                enemyDummy.name = "Fake Enemy";
+                enemyDummy.team = 2;
+
+                SteamNetworking.OnP2PSessionRequest += SessionRequest;
+                HandlerRoutines.Add("CHT", CHT_Handler);
+                HandlerRoutines.Add("MSC", MSC_Handler);
+                GameObject gameObject = new GameObject("Inspect Handler");
+                gameObject.AddComponent<HandlerInspect>();
+                gameObject = new GameObject("Battle Handler");
+                gameObject.AddComponent<HandlerBattle>();
+                gameObject = new GameObject("Event Handler");
+                gameObject.AddComponent<HandlerEvent>();
+                gameObject = new GameObject("Map Handler");
+                gameObject.AddComponent<HandlerMap>();
+                Events.OnSceneChanged += SceneChanged;
+                References.instance.StartCoroutine(ListenLoop());
+
+                initialized = true;
+            }
+
             friendStates = new Dictionary<Friend, PlayerState>();
             foreach(Friend friend in friends)
             {
                 friendStates[friend] = PlayerState.Other;
             }
             SceneChanged(SceneManager.GetActive());
-
-            playerDummy = AddressableLoader.Get<ClassData>("ClassData", "Basic").characterPrefab.InstantiateKeepName();
-            playerDummy.name = "Fake Player";
-            enemyDummy = playerDummy.InstantiateKeepName();
-            enemyDummy.name = "Fake Enemy";
-            enemyDummy.team = 2;
-
-            if (initialized)
-            {
-                return;
-            }
-
-            SteamNetworking.OnP2PSessionRequest += SessionRequest;
-            HandlerRoutines.Add("CHT", CHT_Handler);
-            HandlerRoutines.Add("MSC", MSC_Handler);
-            GameObject gameObject = new GameObject("Inspect Handler");
-            gameObject.AddComponent<HandlerInspect>();
-            gameObject = new GameObject("Battle Handler");
-            gameObject.AddComponent<HandlerBattle>();
-            gameObject = new GameObject("Event Handler");
-            gameObject.AddComponent<HandlerEvent>();
-            gameObject = new GameObject("Map Handler");
-            gameObject.AddComponent<HandlerMap>();
-            Events.OnSceneChanged += SceneChanged;
-            References.instance.StartCoroutine(ListenLoop());
-
-            initialized = true;
+            
         }
 
         private static IEnumerator ListenLoop()

@@ -36,6 +36,8 @@ namespace MultiplayerBase.Handlers
         public static readonly List<PlayAction> actions = new List<PlayAction>();
         public static Friend? friend = null;
 
+        public static List<Friend> watchers = new List<Friend>();
+
         GameObject background;
 
         //Use Blcoking for your PlayActions
@@ -47,8 +49,8 @@ namespace MultiplayerBase.Handlers
         public CardControllerBattle CB => cb;
 
         int lanes = 2;
-        OtherCardViewer[] playerLanes;
-        OtherCardViewer[] enemyLanes;
+        internal OtherCardViewer[] playerLanes;
+        internal OtherCardViewer[] enemyLanes;
 
         Vector3 defaultPosition = new Vector3(0, 0, -8);
         Vector3 viewerPosition = new Vector3(0, 0, 2);
@@ -56,10 +58,14 @@ namespace MultiplayerBase.Handlers
         static Button refreshButton;
         static Button fetchButton;
 
+        DeathMarkerManager marks;
+
         protected void Start()
         {
             //Events.OnSceneUnload += DisableController;
             Events.OnEntityMove += EntityMove;
+            Events.OnEntityKilled += EntityKilled;
+            Events.OnBattlePreTurnStart += PreTurn;
             
             instance = this;
 
@@ -68,6 +74,8 @@ namespace MultiplayerBase.Handlers
 
             fetchButton = Dashboard.buttons[2];
             fetchButton.onClick.AddListener(Fetch);
+
+            marks = gameObject.AddComponent<DeathMarkerManager>();
 
             /*
             cc.pressEvent = new UnityEventEntity();
@@ -83,16 +91,107 @@ namespace MultiplayerBase.Handlers
             HandlerSystem.HandlerRoutines.Add("BAT", HandleMessage);
         }
 
-        private void EntityMove(Entity entity)
+        private void PreTurn(int _)
         {
-            Debug.Log($"[Multiplayer] {entity.data.title}");
+            SendBoardPositions("ENEMY");
+            SendBoardPositions("PLAYER");
+        }
+
+        private void EntityKilled(Entity entity, DeathType deathType)
+        {
+            Debug.Log(entity.data.title);
             foreach(CardContainer container in entity.preContainers)
             {
-                Debug.Log($"[Multiplayer] Precontainer: [{container.name}]");
+                Debug.Log($"[Multiplayer] preContainer: {container.name}");
             }
             foreach (CardContainer container in entity.containers)
             {
-                Debug.Log($"[Multiplayer] Container: [{container.name}]");
+                Debug.Log($"[Multiplayer] container: {container.name}");
+            }
+
+            if (entity.containers == null || entity.containers.Length == 0 || Battle.instance == null || !Battle.IsOnBoard(entity.containers))
+            {
+                return;
+            }
+
+            string side = (entity.owner == References.Player) ? "PLAYER" : "ENEMY";
+            string message = HandlerSystem.ConcatMessage(true, "MARK", side, entity.data.id.ToString());
+
+            foreach (Friend friend in watchers)
+            {
+                HandlerSystem.SendMessage("BAT", friend, message);
+            }
+            
+        }
+
+        private void EntityMove(Entity entity)
+        {
+            if (Blocking || Battle.instance == null) { return; }
+
+            bool flag = false;
+
+            Debug.Log($"[Multiplayer] {entity.data.title}");
+            foreach(CardContainer container in entity.preContainers)
+            {
+                if (Battle.IsOnBoard(container))
+                {
+                    flag = true;
+                    break;
+                }
+            }
+            foreach (CardContainer container in entity.containers)
+            {
+                if (Battle.IsOnBoard(container))
+                {
+                    flag = true;
+                    break;
+                }
+            }
+            if (flag)
+            {
+                string side = (entity.owner == References.Player) ? "PLAYER" : "ENEMY";
+                SendBoardPositions(side);
+            }
+        }
+
+        private void SendBoardPositions(string side)
+        {
+            List<string> positions = new List<string>();
+            List<CardSlotLane> lanes = null;
+            switch(side)
+            {
+                case "PLAYER":
+                    lanes = Battle.instance.GetRows(References.Player).Cast<CardSlotLane>().ToList();
+                    break;
+                case "ENEMY":
+                    lanes = Battle.instance.GetRows(Battle.GetOpponent(References.Player)).Cast<CardSlotLane>().ToList();
+                    break;
+                default:
+                    return;
+            }
+
+            List<List<CardSlot>> slots = lanes.Select((l) => l.slots).ToList();
+            for (int i = 0; i < Math.Max(slots[0].Count, slots[1].Count); i++)
+            {
+                for (int j=0; j<2; j++)
+                {
+                    if (i < slots[j].Count && slots[j][i].Count != 0)
+                    {
+                        positions.Add(slots[j][i][0].data.id.ToString());
+                    }
+                    else
+                    {
+                        positions.Add("");
+                    }
+                }
+            }
+
+            string s = HandlerSystem.ConcatMessage(true, positions.ToArray());
+            s = HandlerSystem.ConcatMessage(false, "BOARD", side, s);
+
+            foreach(Friend friend in watchers)
+            {
+                HandlerSystem.SendMessage("BAT", friend, s);
             }
         }
 
@@ -195,6 +294,8 @@ namespace MultiplayerBase.Handlers
                 }
                 RemoveRowsFromBattle();
             }
+            marks.ClearMarkers("PLAYER");
+            marks.ClearMarkers("ENEMY");
             background.SetActive(false);
             background.transform.SetParent(transform);
             Clear();
@@ -280,6 +381,10 @@ namespace MultiplayerBase.Handlers
         //Bat|Player!rowIndex!index!id!cardStuff
         public void SendData(Friend friend, string[] messages)
         {
+            if (!watchers.Contains(friend))
+            {
+                watchers.Add(friend);
+            }
             string s;
             for (int i = 1; i < messages.Length; i++)
             {
@@ -322,6 +427,45 @@ namespace MultiplayerBase.Handlers
                             }
                         }
                         break;
+                    case "SINGLE":
+                        for (int j = 0; j < 2; j++)
+                        {
+                            if (Battle.instance.rows[References.Player][j] is CardSlotLane lane)
+                            {
+                                List<CardSlot> slots = lane.slots;
+                                for (int k = 0; k < slots.Count; k++)
+                                {
+                                    if (slots[k].Count != 0)
+                                    {
+                                        Entity entity = slots[k][0];
+                                        if (i+1 < messages.Length && ulong.TryParse(messages[i+1],out ulong result) && entity.data.id == result)
+                                        {
+                                            s = HandlerSystem.ConcatMessage(false, "PLAYER", $"{j}", $"{k}", CardEncoder.Encode(entity, entity.data.id));
+                                            HandlerSystem.SendMessage("BAT", friend, s);
+                                            return;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        for (int j = 0; j < 2; j++)
+                        {
+                            if (Battle.instance.rows[Battle.GetOpponent(References.Player)][j] is CardSlotLane lane)
+                            {
+                                List<CardSlot> slots = lane.slots;
+                                for (int k = 0; k < slots.Count; k++)
+                                {
+                                    Entity entity = slots[k][0];
+                                    if (i + 1 < messages.Length && ulong.TryParse(messages[i + 1], out ulong result) && entity.data.id == result)
+                                    {
+                                        s = HandlerSystem.ConcatMessage(false, "ENEMY", $"{j}", $"{k}", CardEncoder.Encode(entity, entity.data.id));
+                                        HandlerSystem.SendMessage("BAT", friend, s);
+                                        return;
+                                    }
+                                }
+                            }
+                        }
+                        return;
                     case "INFO":
                         OnFetch?.Invoke(friend);
                         break;
@@ -347,6 +491,18 @@ namespace MultiplayerBase.Handlers
                 case "PLAYER":
                     StartCoroutine(PlacePlayerCard(friend, messages));
                     break;
+                case "BOARD":
+                    if(Blocking && friend.Id == HandlerBattle.friend?.Id)
+                    {
+                        StartCoroutine(UpdateBoard(friend, messages));
+                    }
+                    break;
+                case "MARK":
+                    if (Blocking && friend.Id == HandlerBattle.friend?.Id)
+                    {
+                        StartCoroutine(MarkCard(friend, messages));
+                    }
+                    break;
                 case "PLAY":
                     if(Battle.instance != null)
                     {
@@ -354,6 +510,113 @@ namespace MultiplayerBase.Handlers
                     }
                     break;
             }
+        }
+
+        //MARK! PLAYER/ENEMY! ID
+        public IEnumerator MarkCard(Friend friend, string[] messages)
+        {
+            if (!DetermineSide(messages[1], out OtherCardViewer[] ocvs) || !ulong.TryParse(messages[2], out ulong id))
+            {
+                yield break;
+            }
+
+            foreach(OtherCardViewer ocv in ocvs)
+            {
+                Entity entity = ocv.Find(friend, id);
+                if (entity != null)
+                {
+                    marks.CreateMarker(messages[1], entity.transform.position);
+                    yield break;
+                }
+            }
+        }
+        
+        public bool DetermineSide(string side, out OtherCardViewer[] ocvs)
+        {
+            ocvs = null;
+            switch(side)
+            {
+                case "PLAYER":
+                    ocvs = playerLanes;
+                    return true;
+                case "ENEMY":
+                    ocvs = enemyLanes;
+                    return true;
+            }
+            return false;
+        }
+
+        //BOARD! PLAYER/ENEMY! POS1! POS2! POS3! POS4! ...
+        public IEnumerator UpdateBoard(Friend friend, string[] messages)
+        {
+            OtherCardViewer[] ocvs = null;
+            switch(messages[1])
+            {
+                case "PLAYER":
+                    ocvs = playerLanes;
+                    break;
+                case "ENEMY":
+                    ocvs = enemyLanes;
+                    break;
+                default:
+                    yield break;
+
+            }
+
+            marks.ClearMarkers(messages[1]);
+
+            Dictionary<ulong, Entity> dictionary = CollectCardsFromOCVs(ocvs);
+
+            for(int i = 2; i<messages.Length; i++)
+            {
+                if(ulong.TryParse(messages[i], out ulong result))
+                {
+                    Debug.Log($"[Multiplayer] {result}");
+                    int laneIndex = i % 2;
+                    int index = (i - laneIndex - 2) / 2;
+                    if (dictionary.ContainsKey(result))
+                    {
+                        Debug.Log($"[Multiplayer] Contains Key {result}");
+                        ocvs[laneIndex].Insert(index, dictionary[result], friend, result);
+                        if (dictionary[result].height == 2)
+                        {
+                            ocvs[1].Insert(index, dictionary[result], friend, result);
+                        }
+                        ocvs[laneIndex].TweenChildPosition(dictionary[result]);
+                        dictionary.Remove(result);
+                        Debug.Log($"[Multiplayer] Removed {result}");
+                    }
+                    else
+                    {
+                        HandlerSystem.SendMessage("BAT", friend, HandlerSystem.ConcatMessage(true, "ASK", "SINGLE", result.ToString()));
+                    }
+                }
+            }
+
+            List<Entity> entities = dictionary.Values.ToList();
+            for(int i = entities.Count - 1; i>=0; i--)
+            {
+                CardManager.ReturnToPool(entities[i]);
+            }
+        }
+
+        public Dictionary<ulong, Entity> CollectCardsFromOCVs(OtherCardViewer[] ocvs)
+        {
+            Dictionary<ulong, Entity> dictionary = new Dictionary<ulong, Entity>();
+            foreach(OtherCardViewer ocv in ocvs)
+            {
+                for(int i = ocv.Count-1; i>=0; i--)
+                {
+                    Entity entity = ocv[i];
+                    if (entity != null)
+                    {
+                        (Friend, ulong) pair = ocv.Find(entity);
+                        dictionary[pair.Item2] = entity;
+                    }
+                    ocv.Remove(entity);
+                }
+            }
+            return dictionary;
         }
 
         public IEnumerator PlayCard(Friend friend, string[] messages)
@@ -482,6 +745,7 @@ namespace MultiplayerBase.Handlers
                 yield return new WaitUntil(() => (Battle.instance == null || phase != Battle.instance.phase));
                 if (Battle.instance == null)
                 {
+                    watchers.Clear();
                     yield break;
                 }
                 Debug.Log("[Battle Handler] Phase Change: " + Battle.instance.phase);

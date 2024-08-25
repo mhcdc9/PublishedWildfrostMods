@@ -169,6 +169,8 @@ namespace MultiplayerBase
         {
             yield return new WaitUntil(() => WildfrostHopeMod.CommandsConsole.ConsoleMod.instantiated);
             Console.commands.Add(new Commands.CommandMultASK());
+            Console.commands.Add(new Commands.CommandMultShuffle());
+            Console.commands.Add(new Commands.CommandMultSac());
         }
 
         private void SendMessageCreate(Result result, Lobby lobby) => SendMessage("Created lobby");
