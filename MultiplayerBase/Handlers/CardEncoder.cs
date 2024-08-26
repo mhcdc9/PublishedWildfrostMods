@@ -139,7 +139,7 @@ namespace MultiplayerBase.Handlers
 
         public static IEnumerator DecodeEntity2(Entity entity, string[] messages)
         {
-            yield return entity.display.UpdateData();
+            yield return entity.Reset();
             if (messages.Length <= 11)
             {
                 yield break;

@@ -15,6 +15,20 @@ namespace MultiplayerBase.UI
 
         static GameObject prefab;
 
+        private bool visible = true;
+
+        public void Start()
+        {
+            Events.OnInspect += OnInspect;
+            Events.OnInspectEnd += OnInspectEnd;
+        }
+
+        public void OnDestroy()
+        {
+            Events.OnInspect -= OnInspect;
+            Events.OnInspectEnd -= OnInspectEnd;
+        }
+        
         private bool FindPrefab()
         {
             VfxDeathSystem system = GameObject.FindObjectOfType<VfxDeathSystem>();
@@ -37,6 +51,7 @@ namespace MultiplayerBase.UI
             GameObject obj = GameObject.Instantiate(prefab, transform);
             markers.Add(obj);
             obj.SetActive(true);
+            obj.GetComponent<ParticleSystemRenderer>().enabled = visible;
             obj.transform.position = positon;
             StartCoroutine(GrowAndStop(obj));
         }
@@ -45,6 +60,29 @@ namespace MultiplayerBase.UI
         {
             yield return new WaitForSeconds(0.5f);
             obj?.GetComponent<ParticleSystem>()?.Pause();
+        }
+
+        public void OnInspect(Entity _)
+        {
+            ChangeVisibility(false);
+        }
+
+        public void OnInspectEnd(Entity _)
+        {
+            ChangeVisibility(true);
+        }
+
+        public void ChangeVisibility(bool visible)
+        {
+            this.visible = visible;
+            foreach(GameObject obj in enemyMarks)
+            {
+                ParticleSystemRenderer renderer = obj?.GetComponent<ParticleSystemRenderer>();
+                if (renderer != null)
+                {
+                    renderer.enabled = visible;
+                }
+            }
         }
 
         public void ClearMarkers(string side)

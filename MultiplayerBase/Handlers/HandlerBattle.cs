@@ -136,13 +136,15 @@ namespace MultiplayerBase.Handlers
                 Debug.Log($"[Multiplayer] container: {container.name}");
             }
 
-            if (entity.containers == null || entity.containers.Length == 0 || Battle.instance == null || !Battle.IsOnBoard(entity.containers))
+            if (entity.preContainers == null || entity.preContainers.Length == 0 || Battle.instance == null || !Battle.IsOnBoard(entity.preContainers[0]))
             {
                 return;
             }
 
-            string side = (entity.owner == References.Player) ? "PLAYER" : "ENEMY";
+            string side = (entity.preContainers[0].owner == References.Player) ? "PLAYER" : "ENEMY";
             string message = HandlerSystem.ConcatMessage(true, "MARK", side, entity.data.id.ToString());
+
+            Debug.Log("[Multiplayer] sending...");
 
             foreach (Friend friend in watchers)
             {
@@ -177,8 +179,17 @@ namespace MultiplayerBase.Handlers
             if (flag)
             {
                 string side = (entity.owner == References.Player) ? "PLAYER" : "ENEMY";
-                SendBoardPositions(side);
+                StartCoroutine(DelaySend(delay, side));
             }
+
+        }
+
+        public static float delay = 0.5f;
+
+        private IEnumerator DelaySend(float f, string s)
+        {
+            yield return new WaitForSeconds(f);
+            SendBoardPositions(s);
         }
 
         private void SendBoardPositions(string side)
@@ -475,9 +486,9 @@ namespace MultiplayerBase.Handlers
                                     if (slots[k].Count != 0)
                                     {
                                         Entity entity = slots[k][0];
-                                        if (i+1 < messages.Length && ulong.TryParse(messages[i+1],out ulong result) && entity.data.id == result)
+                                        if (entity != null && i + 1 < messages.Length && ulong.TryParse(messages[i+1],out ulong result) && entity.data.id == result)
                                         {
-                                            s = HandlerSystem.ConcatMessage(false, "PLAYER", $"{j}", $"{k}", CardEncoder.Encode(entity, entity.data.id));
+                                            s = HandlerSystem.ConcatMessage(false, "UPDATE", "PLAYER", $"{j}", $"{k}", CardEncoder.Encode(entity, entity.data.id));
                                             HandlerSystem.SendMessage("BAT", friend, s);
                                             return;
                                         }
@@ -493,7 +504,7 @@ namespace MultiplayerBase.Handlers
                                 for (int k = 0; k < slots.Count; k++)
                                 {
                                     Entity entity = slots[k][0];
-                                    if (i + 1 < messages.Length && ulong.TryParse(messages[i + 1], out ulong result) && entity.data.id == result)
+                                    if (entity != null && i + 1 < messages.Length && ulong.TryParse(messages[i + 1], out ulong result) && entity.data.id == result)
                                     {
                                         s = HandlerSystem.ConcatMessage(false, "ENEMY", $"{j}", $"{k}", CardEncoder.Encode(entity, entity.data.id));
                                         HandlerSystem.SendMessage("BAT", friend, s);
@@ -538,9 +549,14 @@ namespace MultiplayerBase.Handlers
             string[] messages = HandlerSystem.DecodeMessages(message);
             Debug.Log($"[Multiplayer] {message}");
 
-            if (messages[0] == "ASK")
+            switch(messages[0])
             {
-                SendData(friend, messages); return;
+                case "ASK":
+                    SendData(friend, messages); 
+                    return;
+                case "PLAY":
+                    StartCoroutine(PlayCard(friend, messages));
+                    break;
             }
 
             if (!Blocking || friend.Id != HandlerBattle.friend?.Id) { return; }
@@ -560,9 +576,6 @@ namespace MultiplayerBase.Handlers
                     break;
                 case "MARK":
                     StartCoroutine(MarkCard(friend, messages));
-                    break;
-                case "PLAY":
-                    StartCoroutine(PlayCard(friend, messages));
                     break;
                 case "UPDATE":
                     StartCoroutine(UpdateCard(friend, messages));
@@ -777,7 +790,9 @@ namespace MultiplayerBase.Handlers
             }
 
             CardEncoder.DecodeData(messages.Skip(5).ToArray(), entity.data);
+            Events.InvokeEntityCreated(entity);
             yield return CardEncoder.DecodeEntity2(entity, messages.Skip(5).ToArray());
+            entity.PromptUpdate();
             //entity.flipper.FlipUp(force: true);
         }
 

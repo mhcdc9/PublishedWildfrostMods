@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
+using WildfrostHopeMod.CommandsConsole;
 using static Console;
 
 namespace MultiplayerBase.ConsoleCommands
@@ -158,17 +159,21 @@ namespace MultiplayerBase.ConsoleCommands
             public static float duration = 0.5f;
             public override void Run(string args)
             {
-                VfxDeathSystem system = GameObject.FindObjectOfType<VfxDeathSystem>();
-                References.instance.StartCoroutine(SkullThingy(system.sacrificeFX.transform.GetChild(child)));
-            }
-
-            public IEnumerator SkullThingy(Transform transform)
-            {
-                GameObject obj = transform.gameObject.InstantiateKeepName();
-                yield return new WaitForSeconds(duration);
-                obj.GetComponent<ParticleSystem>().Pause();
-                yield return new WaitForSeconds(2f);
-                obj.Destroy();
+                if ((bool)ConsoleMod.hover)
+                {
+                    DeathMarkerManager marks = GameObject.FindObjectOfType<DeathMarkerManager>();
+                    if (marks != null)
+                    {
+                        foreach(Entity entity in Battle.GetAllCards())
+                        {
+                            if(entity?.data == ConsoleMod.hover)
+                            {
+                                marks.CreateMarker("ENEMY", entity.gameObject.transform.position);
+                            }
+                        }
+                        
+                    }
+                }
             }
 
             public override IEnumerator GetArgOptions(string currentArgs)
