@@ -97,16 +97,29 @@ namespace MultiplayerBase.Battles
     })]
     internal static class PatchCanPlayOnRow
     {
-        static bool Postfix(bool __result, Entity __instance, CardContainer container, bool ignoreRowCheck)
+        static bool Prefix(ref bool __result, Entity target)
         {
-            UnityEngine.Debug.Log("Starting...");
+            if (target == null)
+            {
+                __result = false;
+                return false;
+            }
+            return true;
+        }
+        static bool Postfix(bool __result, Entity __instance, Entity target, CardContainer container, bool ignoreRowCheck)
+        {
+            if (target == null)
+            {
+                return __result;
+            }
+            //UnityEngine.Debug.Log("Starting...");
             if (!NavigationStateMultiplayerCard.warpCanPlayOnMethods || container == null)
             {
-                UnityEngine.Debug.Log("Unwarped.");
+                //UnityEngine.Debug.Log("Unwarped.");
                 return __result;
             }
             
-            UnityEngine.Debug.Log("Warped.");
+            //UnityEngine.Debug.Log("Warped.");
             UnityEngine.Debug.Log($"{container.name}, {container is OtherCardViewer}, {ignoreRowCheck}");
             bool flag = container is OtherCardViewer;
             if (!flag)
