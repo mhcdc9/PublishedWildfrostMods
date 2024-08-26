@@ -174,19 +174,24 @@ namespace MultiplayerBase.Handlers
         }
 
         //CardData! customData! attackEffects! startWithEffects! traits! injuries! hp! damage! counter! upgrades! forceTitle! 
-        public static CardData DecodeData(string[] messages)
+        public static CardData DecodeData(string[] messages, CardData data = null)
         {
             /*foreach(string message in messages)
             {
                 Debug.Log(message);
             }*/
-            CardData data = AddressableLoader.Get<CardData>("CardData", messages[0]); //0. CardData
             if (data == null)
             {
-                return data;
+                data = AddressableLoader.Get<CardData>("CardData", messages[0]); //0. CardData
+
+                if (data == null)
+                {
+                    return data;
+                }
+                //Debug.Log("[Multiplayer] 0");
+                data = data.Clone(false);
             }
-            //Debug.Log("[Multiplayer] 0");
-            data = data.Clone(false);
+
             if (! messages[1].IsNullOrEmpty()) //1. CustomData: Fix Later
             {
                 if (data.cardType.name == "Leader")
