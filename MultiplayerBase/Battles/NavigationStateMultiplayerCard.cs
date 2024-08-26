@@ -92,10 +92,10 @@ namespace MultiplayerBase.Battles
 
     [HarmonyPatch(typeof(Entity), "CanPlayOn", new Type[]
     {
-        typeof(CardContainer),
+        typeof(Entity),
         typeof(bool)
     })]
-    internal static class PatchCanPlayOnRow
+    internal static class PatchCanPlayOnTarget
     {
         static bool Prefix(ref bool __result, Entity target)
         {
@@ -106,12 +106,17 @@ namespace MultiplayerBase.Battles
             }
             return true;
         }
-        static bool Postfix(bool __result, Entity __instance, Entity target, CardContainer container, bool ignoreRowCheck)
+    }
+
+    [HarmonyPatch(typeof(Entity), "CanPlayOn", new Type[]
+    {
+        typeof(CardContainer),
+        typeof(bool)
+    })]
+    internal static class PatchCanPlayOnRow
+    {
+        static bool Postfix(bool __result, Entity __instance, CardContainer container, bool ignoreRowCheck)
         {
-            if (target == null)
-            {
-                return __result;
-            }
             //UnityEngine.Debug.Log("Starting...");
             if (!NavigationStateMultiplayerCard.warpCanPlayOnMethods || container == null)
             {
