@@ -263,7 +263,6 @@ namespace MultiplayerBase.Handlers
 
         public static void SceneChanged(string sceneName)
         {
-            string s = $"SCENE!{sceneName}!";
             string s2 = "";
             if (sceneName == "Battle")
             {
@@ -283,7 +282,7 @@ namespace MultiplayerBase.Handlers
                 }
             }
             //Dashboard.friendIcons[self].SceneChanged(sceneName,s2);
-            SendMessageToAllOthers("MSC", s + s2);
+            SendMessageToAllOthers("MSC", HandlerSystem.ConcatMessage(true, "SCENE", sceneName, s2));
             FriendSceneChanged(self, sceneName, s2);
         }
     }
