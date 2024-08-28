@@ -26,7 +26,7 @@ namespace MultiplayerBase.Handlers
         private GameObject indicatorGroup;
         int nextID = 0;
 
-        protected void Start()
+        protected void Awake()
         {
             instance = this;
             transform.SetParent(GameObject.Find("CameraContainer/CameraMover/MinibossZoomer/CameraPositioner/CameraPointer/Animator/Rumbler/Shaker/InspectSystem").transform);

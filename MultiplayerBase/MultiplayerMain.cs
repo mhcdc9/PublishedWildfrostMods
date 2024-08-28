@@ -148,7 +148,7 @@ namespace MultiplayerBase
             Debug.Log($"[Multiplayer] {mod.Title}");
             if (mod.GUID == "hope.wildfrost.console")
             {
-                CoroutineManager.Start(AddCustomCommands(mod));
+                CoroutineManager.Start(Commands.AddCustomCommands(mod));
             }
         }
 
@@ -160,17 +160,9 @@ namespace MultiplayerBase
                 Debug.Log($"[Multiplayer] {mod.Title}");
                 if (mod.GUID == "hope.wildfrost.console" && mod.HasLoaded)
                 {
-                    CoroutineManager.Start(AddCustomCommands(mod));
+                    CoroutineManager.Start(Commands.AddCustomCommands(mod));
                 }
             }
-        }
-
-        private IEnumerator AddCustomCommands(WildfrostMod mod)
-        {
-            yield return new WaitUntil(() => WildfrostHopeMod.CommandsConsole.ConsoleMod.instantiated);
-            Console.commands.Add(new Commands.CommandMultASK());
-            Console.commands.Add(new Commands.CommandMultShuffle());
-            Console.commands.Add(new Commands.CommandMultSac());
         }
 
         private void SendMessageCreate(Result result, Lobby lobby) => SendMessage("Created lobby");

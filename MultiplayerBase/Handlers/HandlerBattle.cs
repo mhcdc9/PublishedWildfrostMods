@@ -18,6 +18,7 @@ using MultiplayerBase.Battles;
 using Steamworks.Data;
 using Color = UnityEngine.Color;
 using System.Xml;
+using HarmonyLib;
 
 namespace MultiplayerBase.Handlers
 {
@@ -52,19 +53,23 @@ namespace MultiplayerBase.Handlers
         internal OtherCardViewer[] playerLanes;
         internal OtherCardViewer[] enemyLanes;
 
+        internal OtherCardViewer invisContainer;
+
         Vector3 defaultPosition = new Vector3(0, 0, -8);
         Vector3 viewerPosition = new Vector3(0, 0, 2);
 
         static Button refreshButton;
         static Button fetchButton;
 
-        DeathMarkerManager marks;
+        MarkerManager marks;
 
-        protected void Start()
+        protected void Awake()
         {
+
             //Events.OnSceneUnload += DisableController;
             Events.OnEntityMove += EntityMove;
             Events.OnEntityKilled += EntityKilled;
+            Events.OnEntityPreTrigger += EntityTrigger;
             Events.OnBattlePreTurnStart += PreTurn;
             
             instance = this;
@@ -75,7 +80,7 @@ namespace MultiplayerBase.Handlers
             fetchButton = Dashboard.buttons[2];
             fetchButton.onClick.AddListener(Fetch);
 
-            marks = gameObject.AddComponent<DeathMarkerManager>();
+            marks = gameObject.AddComponent<MarkerManager>();
 
             /*
             cc.pressEvent = new UnityEventEntity();
@@ -124,25 +129,28 @@ namespace MultiplayerBase.Handlers
             }
         }
 
-        private void EntityKilled(Entity entity, DeathType deathType)
+        private void EntityTrigger(ref Trigger trigger)
         {
-            Debug.Log(entity.data.title);
-            foreach(CardContainer container in entity.preContainers)
+            if (trigger?.entity != null)
             {
-                Debug.Log($"[Multiplayer] preContainer: {container.name}");
+                CreateEffect(trigger.entity, trigger.entity.containers, "counter down");
             }
-            foreach (CardContainer container in entity.containers)
-            {
-                Debug.Log($"[Multiplayer] container: {container.name}");
-            }
+        }
 
-            if (entity.preContainers == null || entity.preContainers.Length == 0 || Battle.instance == null || !Battle.IsOnBoard(entity.preContainers[0]))
+        private void EntityKilled(Entity entity, DeathType _)
+        {
+            CreateEffect(entity, entity.preContainers, "death");
+        }
+
+        private void CreateEffect(Entity entity, CardContainer[] containers, string type)
+        {
+            if (containers == null || containers.Length == 0 || Battle.instance == null || !Battle.IsOnBoard(containers[0]))
             {
                 return;
             }
 
-            string side = (entity.preContainers[0].owner == References.Player) ? "PLAYER" : "ENEMY";
-            string message = HandlerSystem.ConcatMessage(true, "MARK", side, entity.data.id.ToString());
+            string side = (containers[0].owner == References.Player) ? "PLAYER" : "ENEMY";
+            string message = HandlerSystem.ConcatMessage(true, "MARK", side, entity.data.id.ToString(), type);
 
             Debug.Log("[Multiplayer] sending...");
 
@@ -150,7 +158,6 @@ namespace MultiplayerBase.Handlers
             {
                 HandlerSystem.SendMessage("BAT", friend, message);
             }
-            
         }
 
         private void EntityMove(Entity entity)
@@ -184,7 +191,7 @@ namespace MultiplayerBase.Handlers
 
         }
 
-        public static float delay = 0.5f;
+        public static float delay = 0.1f;
 
         private IEnumerator DelaySend(float f, string s)
         {
@@ -199,10 +206,10 @@ namespace MultiplayerBase.Handlers
             switch(side)
             {
                 case "PLAYER":
-                    lanes = Battle.instance.GetRows(References.Player).Cast<CardSlotLane>().ToList();
+                    lanes = Battle.instance.GetRows(References.Player).GetRange(0,2).Cast<CardSlotLane>().ToList();
                     break;
                 case "ENEMY":
-                    lanes = Battle.instance.GetRows(Battle.GetOpponent(References.Player)).Cast<CardSlotLane>().ToList();
+                    lanes = Battle.instance.GetRows(Battle.GetOpponent(References.Player)).GetRange(0, 2).Cast<CardSlotLane>().ToList();
                     break;
                 default:
                     return;
@@ -284,7 +291,14 @@ namespace MultiplayerBase.Handlers
                 cc.unHoverEvent.AddListener(enemyLanes[i].Unhover);
                 enemyLanes[i].AssignController(cb);
             }
-            
+
+            invisContainer = HelperUI.OtherCardViewer($"Invis Row", background.transform, cc);
+            invisContainer.transform.localPosition = new Vector3(0f, 10f, 0);
+            invisContainer.BattleCardViewer = true;
+            invisContainer.dir = 1;
+            invisContainer.gap = new Vector3(1f, 0, 0);
+            invisContainer.SetSize(3, 0.6667f);
+            invisContainer.AssignController(cb);
         }
 
         //BattleViewer should not be opened when interesting things can happen.
@@ -300,6 +314,14 @@ namespace MultiplayerBase.Handlers
                 {
                     return;
                 }
+                foreach(Entity entity in Battle.GetCardsOnBoard(References.Player))
+                {
+                    entity.silenceCount++;
+                }
+                foreach (Entity entity in Battle.GetCardsOnBoard(Battle.GetOpponent(References.Player)))
+                {
+                    entity.silenceCount++;
+                }
                 SetOwners(References.Player, Battle.GetOpponent(References.Player));
                 background.transform.SetParent(GameObject.Find("Battle/Canvas/CardController/Board/Canvas").transform);
                 background.transform.localScale = new Vector3(10f, 10f, 1);
@@ -310,13 +332,20 @@ namespace MultiplayerBase.Handlers
             else
             {
                 SetOwners(HandlerSystem.playerDummy, HandlerSystem.enemyDummy);
-                background.transform.localScale = new Vector3(3.5f, 3.5f, 1);
+                background.transform.localScale = new Vector3(10f, 10f, 1);
+                background.transform.position = new Vector3(0, 1.5f, 2.7f);
             }
             Clear();
             AskForData(friend);
-            background.transform.localPosition = defaultPosition;
+            
             background.SetActive(true);
-            LeanTween.moveLocal(background, viewerPosition, 0.75f).setEase(LeanTweenType.easeInOutQuart);
+
+            if (Battle.instance != null)
+            {
+                background.transform.localPosition = defaultPosition;
+                LeanTween.moveLocal(background, viewerPosition, 0.75f).setEase(LeanTweenType.easeInOutQuart);
+            }
+            
             //StartCoroutine(PopulateRows());
             HandlerBattle.friend = friend;
             InvokeOnBattleViewerOpen(friend);
@@ -330,6 +359,14 @@ namespace MultiplayerBase.Handlers
                 {
                     return;
                 }
+                foreach (Entity entity in Battle.GetCardsOnBoard(References.Player))
+                {
+                    entity.silenceCount--;
+                }
+                foreach (Entity entity in Battle.GetCardsOnBoard(Battle.GetOpponent(References.Player)))
+                {
+                    entity.silenceCount--;
+                }
                 RemoveRowsFromBattle();
             }
             marks.ClearMarkers("PLAYER");
@@ -339,6 +376,7 @@ namespace MultiplayerBase.Handlers
             Clear();
             if (friend is Friend f)
             {
+                HandlerSystem.SendMessage("BAT", f, "UNSUB");
                 InvokeOnBattleViewerClose(f);
             }
             
@@ -382,6 +420,7 @@ namespace MultiplayerBase.Handlers
             {
                 ocv.owner = enemyOwner;
             }
+            invisContainer.owner = playerOwner;
         }
 
         public void RemoveRowsFromBattle()
@@ -409,6 +448,7 @@ namespace MultiplayerBase.Handlers
             {
                 ocv.ClearAndDestroyAllImmediately();
             }
+            invisContainer.ClearAndDestroyAllImmediately();
         }
 
         public void AskForData(Friend friend)
@@ -557,6 +597,9 @@ namespace MultiplayerBase.Handlers
                 case "PLAY":
                     StartCoroutine(PlayCard(friend, messages));
                     break;
+                case "UNSUB":
+                    watchers.Remove(friend);
+                    break;
             }
 
             if (!Blocking || friend.Id != HandlerBattle.friend?.Id) { return; }
@@ -583,7 +626,7 @@ namespace MultiplayerBase.Handlers
             }
         }
 
-        //MARK! PLAYER/ENEMY! ID
+        //MARK! PLAYER/ENEMY! ID! TYPE
         public IEnumerator MarkCard(Friend friend, string[] messages)
         {
             if (!DetermineSide(messages[1], out OtherCardViewer[] ocvs) || !ulong.TryParse(messages[2], out ulong id))
@@ -596,7 +639,7 @@ namespace MultiplayerBase.Handlers
                 Entity entity = ocv.Find(friend, id);
                 if (entity != null)
                 {
-                    marks.CreateMarker(messages[1], entity.transform.position);
+                    marks.CreateMarker(messages[1], entity.transform.position, messages[3]);
                     yield break;
                 }
             }
@@ -628,8 +671,9 @@ namespace MultiplayerBase.Handlers
             marks.ClearMarkers(messages[1]);
 
             Dictionary<ulong, Entity> dictionary = CollectCardsFromOCVs(ocvs);
+            InspectSystem inspect = GameObject.FindObjectOfType<InspectSystem>();
 
-            for(int i = 2; i<messages.Length; i++)
+            for (int i = 2; i<messages.Length; i++)
             {
                 if(ulong.TryParse(messages[i], out ulong result))
                 {
@@ -644,7 +688,10 @@ namespace MultiplayerBase.Handlers
                         {
                             ocvs[1].Insert(index, dictionary[result], friend, result);
                         }
-                        ocvs[laneIndex].TweenChildPosition(dictionary[result]);
+                        if (inspect?.inspect != dictionary[result])
+                        {
+                            ocvs[laneIndex].TweenChildPosition(dictionary[result]);
+                        }
                         dictionary.Remove(result);
                         Debug.Log($"[Multiplayer] Removed {result}");
                     }
@@ -658,7 +705,15 @@ namespace MultiplayerBase.Handlers
             List<Entity> entities = dictionary.Values.ToList();
             for(int i = entities.Count - 1; i>=0; i--)
             {
-                CardManager.ReturnToPool(entities[i]);
+                if (inspect != null && inspect.inspect ==  entities[i])
+                {
+                    entities[i].actualContainers.Clear();
+                    entities[i].actualContainers.Add(invisContainer);
+                }
+                else
+                {
+                    CardManager.ReturnToPool(entities[i]);
+                }
             }
         }
 
@@ -967,5 +1022,33 @@ namespace MultiplayerBase.Handlers
         {
             OnPostSendCardToPlay?.Invoke(friend, entity);
         }
+
+        [HarmonyPatch(typeof(Card), "GetDescription", new Type[]
+        {
+            typeof(Entity)
+        })]
+        class PatchSuppressEffects
+        {
+            static void Prefix(Entity entity, ref bool __state)
+            {
+                Debug.Log("[Multiplayer] Asked for description");
+                if (entity.silenceCount >= 100)
+                {
+                    entity.silenceCount -= 100;
+                    __state = true;
+                }
+            }
+
+            static void Postfix(Entity entity, bool __state)
+            {
+                if (__state)
+                {
+                    entity.silenceCount += 100;
+                }
+            }
+        }
+
     }
+
+    
 }

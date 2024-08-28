@@ -1,4 +1,5 @@
-﻿using MultiplayerBase.Handlers;
+﻿using Deadpan.Enums.Engine.Components.Modding;
+using MultiplayerBase.Handlers;
 using MultiplayerBase.UI;
 using Steamworks;
 using System;
@@ -15,6 +16,16 @@ namespace MultiplayerBase.ConsoleCommands
 {
     internal class Commands
     {
+        public static IEnumerator AddCustomCommands(WildfrostMod _)
+        {
+            yield return new WaitUntil(() => ConsoleMod.instantiated);
+            commands.Add(new CommandMultASK());
+            commands.Add(new CommandMultShuffle());
+            commands.Add(new CommandMultSac());
+            commands.Add(new CommandMultCHAT());
+            commands.Add(new CommandMultEMOTE());
+        }
+
         public class CommandMultASK : Command
         {
             public override string id => "multiplayer";
@@ -64,21 +75,91 @@ namespace MultiplayerBase.ConsoleCommands
 
             public override IEnumerator GetArgOptions(string currentArgs)
             {
-                int length = currentArgs.Split(new Char[] { ' ' },options: StringSplitOptions.None).Length;
-                if (length == 2)
-                {
-                    IEnumerable<string> keys = HandlerSystem.HandlerRoutines.Keys;
-                    predictedArgs = keys.ToArray();
-                    yield break;
-                }
+                string[] args = currentArgs.Split(new Char[] { ' ' },options: StringSplitOptions.None);
+                int length = args.Length;
 
-                if (length == 1)
+                if (length <= 1)
                 {
                     IEnumerable<string> friends = HandlerSystem.friends.Select(x => x.Name);
                     predictedArgs = friends.ToArray();
                     yield break;
                 }
-                
+
+                else if (length == 2)
+                {
+                    IEnumerable<string> keys = HandlerSystem.HandlerRoutines.Keys;
+                    predictedArgs = keys.Select(s => $"{args[0]} {s}").ToArray();
+                    yield break;
+                }
+
+                else
+                {
+                    predictedArgs = new string[0];
+                    yield break;
+                }
+
+
+
+            }
+        }
+
+        public class CommandMultCHAT : Command
+        {
+            public override string id => "chat";
+
+            public override string format => "chat <friend> <message>";
+
+            public override string desc => "Sends an chat message to a friend";
+
+            public override bool IsRoutine => false;
+            public override void Run(string args)
+            {
+                UnityEngine.Debug.Log(args);
+                string[] parameters = args.Split(new char[] { ' ' }, StringSplitOptions.None);
+
+                if (parameters.Length < 2)
+                {
+                    Fail("Wrong number of arguments");
+                    return;
+                }
+                Friend? selectedFriend = null;
+                bool found = false;
+                foreach (Friend friend in HandlerSystem.friends)
+                {
+                    if (parameters[0].ToLower() == friend.Name.ToLower())
+                    {
+                        selectedFriend = friend;
+                        found = true;
+                        break;
+                    }
+                }
+
+                if (!found)
+                {
+                    Fail($"Friend {parameters[0].ToLower()} not found");
+                    return;
+                }
+
+                HandlerSystem.SendMessage(parameters[1], (Friend)selectedFriend, string.Join(" ", parameters.Skip(1)));
+            }
+
+            public override IEnumerator GetArgOptions(string currentArgs)
+            {
+                string[] args = currentArgs.Split(new char[] { ' ' }, options: StringSplitOptions.None);
+                int length = args.Length;
+
+                if (length <= 1)
+                {
+                    IEnumerable<string> friends = HandlerSystem.friends.Select(x => x.Name);
+                    predictedArgs = friends.ToArray();
+                    yield break;
+                }
+
+                else
+                {
+                    predictedArgs = new string[0];
+                    yield break;
+                }
             }
         }
 
@@ -150,7 +231,7 @@ namespace MultiplayerBase.ConsoleCommands
 
             public override string format => "multSac";
 
-            public override string desc => "Test";
+            public override string desc => "Places a death marker";
 
             public override bool IsRoutine => false;
 
@@ -161,23 +242,116 @@ namespace MultiplayerBase.ConsoleCommands
             {
                 if ((bool)ConsoleMod.hover)
                 {
-                    DeathMarkerManager marks = GameObject.FindObjectOfType<DeathMarkerManager>();
+                    MarkerManager marks = GameObject.FindObjectOfType<MarkerManager>();
                     if (marks != null)
                     {
-                        foreach(Entity entity in Battle.GetAllCards())
+                        foreach(OtherCardViewer ocv in HandlerBattle.instance.enemyLanes)
                         {
-                            if(entity?.data == ConsoleMod.hover)
+                            foreach (Entity entity in ocv.entities)
                             {
-                                marks.CreateMarker("ENEMY", entity.gameObject.transform.position);
+                                if (entity?.data == ConsoleMod.hover)
+                                {
+                                    marks.CreateDeathMarker("ENEMY", entity.gameObject.transform.position);
+                                    return;
+                                }
                             }
                         }
-                        
+
+                        foreach (OtherCardViewer ocv in HandlerBattle.instance.playerLanes)
+                        {
+                            foreach (Entity entity in ocv.entities)
+                            {
+                                if (entity?.data == ConsoleMod.hover)
+                                {
+                                    marks.CreateDeathMarker("PLAYER", entity.gameObject.transform.position);
+                                    return;
+                                }
+                            }
+                        }
                     }
                 }
             }
 
             public override IEnumerator GetArgOptions(string currentArgs)
             {
+                yield break;
+            }
+        }
+
+
+    }
+
+    public class CommandMultEMOTE : Command
+    {
+        public override string id => "multEmote";
+
+        public override string format => "multEmote <type>";
+
+        public override string desc => "Places a VFX";
+
+        public override bool IsRoutine => false;
+
+        public static ParticleSystem.Particle[] particles = new ParticleSystem.Particle[10];
+        public static int child = 4;
+        public static float duration = 0.5f;
+        public override void Run(string args)
+        {
+            if ((bool)ConsoleMod.hover)
+            {
+                MarkerManager marks = GameObject.FindObjectOfType<MarkerManager>();
+                if (marks != null)
+                {
+                    foreach (OtherCardViewer ocv in HandlerBattle.instance.enemyLanes)
+                    {
+                        foreach (Entity entity in ocv.entities)
+                        {
+                            if (entity?.data == ConsoleMod.hover)
+                            {
+                                if (!CreateEffect(args.Trim(), entity))
+                                {
+                                    Fail($"No apply effect found with name \"{args}\"");
+                                }
+                                return;
+                            }
+                        }
+                    }
+
+                    foreach (OtherCardViewer ocv in HandlerBattle.instance.playerLanes)
+                    {
+                        foreach (Entity entity in ocv.entities)
+                        {
+                            if (entity?.data == ConsoleMod.hover)
+                            {
+                                if (!CreateEffect(args.Trim(), entity))
+                                {
+                                    Fail($"No apply effect found with name \"{args}\"");
+                                }
+                                return;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        private bool CreateEffect(string type, Entity entity)
+        {
+            VfxStatusSystem system = GameObject.FindObjectOfType<VfxStatusSystem>();
+            if (system == null || !system.profileLookup.ContainsKey(type))
+            {
+                return false;
+            }
+
+            system.CreateEffect(system.profileLookup[type].applyEffectPrefab, entity.transform.position, entity.transform.lossyScale);
+            return true;
+        }
+
+        public override IEnumerator GetArgOptions(string currentArgs)
+        {
+            VfxStatusSystem system = GameObject.FindObjectOfType<VfxStatusSystem>();
+            if (system != null)
+            {
+                predictedArgs = system.profileLookup.Keys.ToArray();
                 yield break;
             }
         }

@@ -28,7 +28,7 @@ namespace MultiplayerBase.Handlers
         float spacing = 0.2f;
         List<int> ids = new List<int>();
 
-        protected void Start()
+        protected void Awake()
         {
             instance = this;
             transform.SetParent(GameObject.Find("CameraContainer/CameraMover/MinibossZoomer/CameraPositioner/CameraPointer/Animator/Rumbler/Shaker/InspectSystem").transform);

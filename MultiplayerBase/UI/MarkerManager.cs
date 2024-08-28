@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace MultiplayerBase.UI
 {
-    internal class DeathMarkerManager : MonoBehaviour
+    internal class MarkerManager : MonoBehaviour
     {
         List<GameObject> enemyMarks = new List<GameObject>();
         List<GameObject> playerMarks = new List<GameObject>();
@@ -36,7 +36,7 @@ namespace MultiplayerBase.UI
             return prefab == null;
         }
 
-        public void CreateMarker(string side, Vector3 positon)
+        public void CreateDeathMarker(string side, Vector3 position)
         {
             if (!markList(side, out List<GameObject> markers))
             {
@@ -52,8 +52,28 @@ namespace MultiplayerBase.UI
             markers.Add(obj);
             obj.SetActive(true);
             obj.GetComponent<ParticleSystemRenderer>().enabled = visible;
-            obj.transform.position = positon;
+            obj.transform.position = position;
             StartCoroutine(GrowAndStop(obj));
+        }
+
+        public static float scalingFactor = 1f;
+
+        public void CreateMarker(string side, Vector3 position, string type = "death")
+        {
+            if (type == "death")
+            {
+                CreateDeathMarker(side, position);
+            }
+
+            if (!visible || !markList(side, out List<GameObject> markers))
+            { return; }
+
+            VfxStatusSystem system = GameObject.FindObjectOfType<VfxStatusSystem>();
+
+            if (system == null || !system.profileLookup.ContainsKey(type))
+            { return; }
+
+            system.CreateEffect(system.profileLookup[type].applyEffectPrefab, position, scalingFactor*Vector3.one);
         }
 
         private IEnumerator GrowAndStop(GameObject obj)
@@ -94,8 +114,10 @@ namespace MultiplayerBase.UI
 
             for (int i = markers.Count - 1; i>=0; i--)
             {
-                markers[i].Destroy();
+                markers[i]?.Destroy();
             }
+
+            markers.Clear();
         }
 
         private bool markList(string side, out List<GameObject> markers)

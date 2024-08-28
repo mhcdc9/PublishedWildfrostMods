@@ -170,7 +170,12 @@ namespace MultiplayerBase.Handlers
             if (int.TryParse(messages[18], out i)) { entity.effectBonus = i; }//18. Effect Bonus
             if (float.TryParse(messages[19], out f)) { entity.effectFactor = f; }//19. Effect Factor
             Debug.Log($"[Multiplayer] More specific stats");
+            if (entity.silenceCount < 100)
+            {
+                entity.silenceCount += 100;
+            }
             entity.enabled = true;
+
         }
 
         //CardData! customData! attackEffects! startWithEffects! traits! injuries! hp! damage! counter! upgrades! forceTitle! 
@@ -186,35 +191,38 @@ namespace MultiplayerBase.Handlers
 
                 if (data == null)
                 {
-                    return data;
+                    data = MissingCardSystem.GetClone(messages[0]);
                 }
-                //Debug.Log("[Multiplayer] 0");
-                data = data.Clone(false);
+                else
+                {
+                    data = data.Clone(true);
+                }
             }
+        Debug.Log($"[Multiplayer] {data.name}");
 
             if (! messages[1].IsNullOrEmpty()) //1. CustomData: Fix Later
             {
                 if (data.cardType.name == "Leader")
                 {
                     Debug.Log("[Multiplayer] Leader Detected.");
-                    data.customData = References.PlayerData.inventory.deck.FirstOrDefault((deckcard) => deckcard.cardType.name == "Leader").customData;
+                    //data.customData = References.PlayerData.inventory.deck.FirstOrDefault((deckcard) => deckcard.cardType.name == "Leader").customData;
                 }
             }
             //Debug.Log("[Multiplayer] 1");
             data.attackEffects = DecodeToEffectStacks(messages[2]).ToArray(); //2. attackEffects
-            //Debug.Log("[Multiplayer] 2");
+        Debug.Log($"[Multiplayer] Attack Effects: {messages[2]}");
             data.startWithEffects = DecodeToEffectStacks(messages[3]).ToArray(); //3. startWithEffects
-            //Debug.Log("[Multiplayer] 3");
+        Debug.Log($"[Multiplayer] Starting Effects: {messages[3]}");
             data.traits = DecodeToTraitStacks(messages[4]); //4. traits
-            //Debug.Log("[Multiplayer] 4");
+        Debug.Log($"[Multiplayer] Traits: {messages[4]}");
             data.injuries = DecodeToEffectStacks(messages[5]); //5. injuries
-            Debug.Log("[Multiplayer] Effects and Traits");
+            //Debug.Log("[Multiplayer] Effects and Traits");
             int.TryParse(messages[6], out data.hp); //6. hp
             //Debug.Log("[Multiplayer] 6");
             int.TryParse(messages[7], out data.damage); //7. damage
             //Debug.Log("[Multiplayer] 7");
             int.TryParse(messages[8], out data.counter); //8. counter
-            //Debug.Log("[Multiplayer] 8");
+        Debug.Log($"[Multiplayer] ({data.hp}, {data.damage}, {data.counter})");
             data.upgrades = DecodeUpgrades(messages[9]); //9. upgrades
             //Debug.Log("[Multiplayer] 9");
             if (data.upgrades.Any((CardUpgradeData a) => a.becomesTargetedCard))
@@ -228,7 +236,7 @@ namespace MultiplayerBase.Handlers
                 data.needsTarget = true;
             }
             data.forceTitle = messages[10]; // 10. nickname
-            Debug.Log("[Multiplayer] Stats and Nickname");
+        Debug.Log($"[Multiplayer] Nickname: {data.forceTitle}");
             return data;
         }
 

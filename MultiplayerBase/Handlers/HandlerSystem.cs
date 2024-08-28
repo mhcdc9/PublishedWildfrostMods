@@ -138,10 +138,10 @@ namespace MultiplayerBase.Handlers
         public static string[] DecodeMessages(string message)
         {
             string[] messages = message.Split(new string[] { "! " },StringSplitOptions.None);
-            foreach(string s in messages)
+            /*foreach(string s in messages)
             {
                 Debug.Log(s);
-            }
+            }*/
             return messages.Select((s) => s.Replace("!:", "!")).ToArray();
         }
 
@@ -211,6 +211,7 @@ namespace MultiplayerBase.Handlers
 
         private static void FriendSceneChanged(Friend friend, string scene, string extra)
         {
+            Debug.Log($"[Multiplayer] {scene}");
             Dashboard.friendIcons[friend].SceneChanged(scene, extra);
             switch (scene)
             {

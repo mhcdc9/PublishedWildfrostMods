@@ -33,7 +33,7 @@ namespace MultiplayerBase.Handlers
         public Vector3 offset = new Vector3(0,-3f,0);
         protected Vector3 gap = new Vector3(0.3f, 0, 0);
 
-        protected void Start()
+        protected void Awake()
         {
 
             instance = this;
