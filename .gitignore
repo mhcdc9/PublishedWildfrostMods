@@ -397,3 +397,5 @@ FodyWeavers.xsd
 /TestMod/Extensions.cs
 /TestMod/PotentialDeckViewer.cs
 /TestMod/ScriptableImages.cs
+/RunHistoryMod
+/TestMod/CustomCommands.cs
