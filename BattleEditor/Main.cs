@@ -35,7 +35,6 @@ namespace BattleEditor
             .ConstructWaves(3, 9, "BPW", "BCW")
             .AddBattleToLoader().RegisterBattle(0, mandatory: true)
             .GiveMiniBossesCharms(new string[] { "Bolgo" }, "CardUpgradeAcorn", "CardUpgradeShellOnKill")
-            .GiveGobblers()
             .GiveGobblers();
         }
 
@@ -152,11 +151,16 @@ namespace BattleEditor
     public class BattleDataEditor
     {
         private readonly WildfrostMod mod;
-        public readonly BattleData bd;
+        public BattleData bd;
         private bool newBattle = false;
         private List<CardData> enemies = new List<CardData>();
         private Dictionary<char, CardData> dictionary = new Dictionary<char, CardData>();
         private int wavePoolIndex = 0;
+
+        public BattleDataEditor(WildfrostMod mod)
+        {
+            this.mod = mod;
+        }
 
         /// <summary>
         /// Starts a battle data editor for the desired battle. 
@@ -169,15 +173,20 @@ namespace BattleEditor
         public BattleDataEditor(WildfrostMod m, string name, int goldGivers = 1) 
         {
             mod = m;
+            Create<BattleData>(name, goldGivers);
+        }
+
+        public BattleDataEditor Create<T>(string name, int goldGivers = 1) where T : BattleData
+        {
             bd = mod.Get<BattleData>(name);
             if (bd == null)
             {
                 Debug.Log("[BattleEditor] Cound not find BattleData for " + name + ". Creating new BattleData instead.");
-                bd = ScriptableObject.CreateInstance<BattleData>();
-                bd.name = string.Concat(m.GUID,".",name);
+                bd = ScriptableObject.CreateInstance<T>();
+                bd.name = string.Concat(mod.GUID, ".", name);
                 bd.bonusUnitPool = new CardData[0];
                 bd.bonusUnitRange = new Vector2Int(0, 0);
-                bd.generationScript = null; //Unsure of what this is, so I'm going to set it to be the same as the other battles :P 
+                bd.generationScript = null; //Decides how the wave lists turn into actual waves. All vanilla fights use a similar generation script
                 bd.goldGivers = goldGivers;
                 bd.goldGiverPool = new CardData[0];
                 if (goldGivers != 0)
@@ -195,7 +204,9 @@ namespace BattleEditor
                 bd.ModAdded = mod;
                 newBattle = true;
             }
+            return this;
         }
+            
 
         public BattleDataEditor GiveMiniBossesCharms(string[] cardNames, params string[] upgradeNames)
         {

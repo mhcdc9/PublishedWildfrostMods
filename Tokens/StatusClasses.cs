@@ -1,4 +1,5 @@
-﻿using JetBrains.Annotations;
+﻿using Deadpan.Enums.Engine.Components.Modding;
+using JetBrains.Annotations;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -6,7 +7,10 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
+using TMPro;
 using UnityEngine;
+using UnityEngine.Localization;
+using UnityEngine.Localization.Tables;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using static Building;
@@ -61,6 +65,24 @@ namespace Tokens
 
     public class StatusTokenApplyX : StatusEffectApplyX, IStatusToken
     {
+        public static readonly string Key_Snowed = "mhcdc9.wildfrost.tokens.buttonSnowed";
+        public static readonly string Key_Inked = "mhcdc9.wildfrost.tokens.buttonInked";
+        public static readonly string Key_Default = "mhcdc9.wildfrost.tokens.buttonBlocked";
+        public static readonly string Key_Waiting = "mhcdc9.wildfrost.tokens.buttonWaiting";
+        public static readonly string Key_Misplaced = "mhcdc9.wildfrost.tokens.buttonMisplaced";
+        public static readonly string Key_Enemy = "mhcdc9.wildfrost.tokens.buttonEnemy";
+
+        public static void DefineStrings()
+        {
+            StringTable tooltips = LocalizationHelper.GetCollection("Tooltips", SystemLanguage.English);
+            tooltips.SetString(Key_Snowed, "Snowed!");
+            tooltips.SetString(Key_Inked, "Inked!");
+            tooltips.SetString(Key_Waiting, "Wait!");
+            tooltips.SetString(Key_Default, "Not right now!");
+            tooltips.SetString(Key_Misplaced, "Not here!");
+            tooltips.SetString(Key_Enemy, "{0} refused!");
+        }
+
         //Standard Code I wish I can put into IStatusToken
         public CardPlaces validPlaces = CardPlaces.Board | CardPlaces.Hand;
         public CardPlaces ValidPlaces { get => validPlaces; }
@@ -71,9 +93,59 @@ namespace Tokens
 
         public virtual void RunButtonClicked()
         {
-            if ((bool)References.Battle && References.Battle.phase == Battle.Phase.Play && this.CorrectPlace(target) && (!target.IsSnowed || snowOverride) && (!target.silenced) && target.owner == References.Player)
+            if (References.Battle == null)
             {
-                target.StartCoroutine(ButtonClicked());
+                return;
+            }
+            if (target.owner != References.Player)
+            {
+                Popup(Key_Enemy, target?.data?.title);
+                return;
+            }
+            if (!ActionQueue.Empty)
+            {
+                Popup(Key_Waiting);
+                return;
+            }
+            if (References.Battle.phase != Battle.Phase.Play && (References.Battle.phase != Battle.Phase.Init || endTurn))
+            {
+                Popup(Key_Default);
+                return;
+            }
+            if (!this.CorrectPlace(target))
+            {
+                Popup(Key_Misplaced);
+                return;
+            }
+            if (target.IsSnowed && !snowOverride)
+            {
+                Popup(Key_Snowed);
+                return;
+            }
+            if (target.silenced)
+            {
+                Popup(Key_Inked);
+                return;
+            }
+
+            target.StartCoroutine(ButtonClicked());
+        }
+
+        protected virtual void Popup(string s, string arg = null)
+        {
+            NoTargetTextSystem noText = GameSystem.FindObjectOfType<NoTargetTextSystem>();
+            if (noText != null)
+            {
+                TMP_Text textElement = noText.textElement;
+                StringTable tooltips = LocalizationHelper.GetCollection("Tooltips", SystemLanguage.English);
+                string text = tooltips.GetString(s).GetLocalizedString();
+                if (!arg.IsNullOrWhitespace())
+                {
+                    text = text.Replace("{0}", arg);
+                }
+                textElement.text = text;
+                
+                noText.PopText(target.transform.position);
             }
         }
 

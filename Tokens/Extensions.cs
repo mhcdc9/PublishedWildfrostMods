@@ -151,6 +151,8 @@ namespace Tokens
 
             gameObject.AddComponent<UINavigationItem>();
 
+            gameObject.hideFlags = HideFlags.HideInInspector;
+
             return gameObject;
         }
 

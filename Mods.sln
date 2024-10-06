@@ -37,6 +37,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sync", "Sync\Sync.csproj", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Backflip", "Backflip\Backflip.csproj", "{CD00DEAA-CA54-44B9-AEC5-13FC5CEB818A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RunHistoryMod", "RunHistoryMod\RunHistoryMod.csproj", "{3036094A-C701-4117-BD69-04863A92BE88}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EyeEyeEye", "EyeEyeEye\EyeEyeEye.csproj", "{CF6325F9-1701-456A-89BB-9AA220E724C7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -111,6 +115,14 @@ Global
 		{CD00DEAA-CA54-44B9-AEC5-13FC5CEB818A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CD00DEAA-CA54-44B9-AEC5-13FC5CEB818A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CD00DEAA-CA54-44B9-AEC5-13FC5CEB818A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3036094A-C701-4117-BD69-04863A92BE88}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3036094A-C701-4117-BD69-04863A92BE88}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3036094A-C701-4117-BD69-04863A92BE88}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3036094A-C701-4117-BD69-04863A92BE88}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CF6325F9-1701-456A-89BB-9AA220E724C7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CF6325F9-1701-456A-89BB-9AA220E724C7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CF6325F9-1701-456A-89BB-9AA220E724C7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CF6325F9-1701-456A-89BB-9AA220E724C7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

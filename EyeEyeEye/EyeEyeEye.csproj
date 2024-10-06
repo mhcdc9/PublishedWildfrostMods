@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{A7303724-47CA-43F5-A7A9-6AACC945CAEF}</ProjectGuid>
+    <ProjectGuid>{CF6325F9-1701-456A-89BB-9AA220E724C7}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Tokens</RootNamespace>
-    <AssemblyName>Tokens</AssemblyName>
+    <RootNamespace>EyeEyeEye</RootNamespace>
+    <AssemblyName>EyeEyeEye</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
@@ -35,14 +35,11 @@
     <Reference Include="0Harmony">
       <HintPath>..\..\..\..\Desktop\Managed\0Harmony.dll</HintPath>
     </Reference>
-    <Reference Include="Assembly-CSharp">
-      <HintPath>..\..\..\..\Desktop\Managed\Assembly-CSharp.dll</HintPath>
-    </Reference>
-    <Reference Include="Assembly-CSharp-firstpass">
-      <HintPath>..\..\..\..\Desktop\Managed\Assembly-CSharp-firstpass.dll</HintPath>
-    </Reference>
     <Reference Include="Assembly-CSharp-Publicized">
       <HintPath>..\..\..\..\Desktop\Managed\Assembly-CSharp-Publicized.dll</HintPath>
+    </Reference>
+    <Reference Include="Commands Console">
+      <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\workshop\content\1811990\3154932293\Commands Console.dll</HintPath>
     </Reference>
     <Reference Include="DeadExtensions">
       <HintPath>..\..\..\..\Desktop\Managed\DeadExtensions.dll</HintPath>
@@ -89,9 +86,33 @@
     <Reference Include="MonoMod.Utils">
       <HintPath>..\..\..\..\Desktop\Managed\MonoMod.Utils.dll</HintPath>
     </Reference>
+    <Reference Include="NaughtyAttributes.Core">
+      <HintPath>..\..\..\..\Desktop\Managed\NaughtyAttributes.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="NaughtyAttributes.Test">
+      <HintPath>..\..\..\..\Desktop\Managed\NaughtyAttributes.Test.dll</HintPath>
+    </Reference>
+    <Reference Include="netstandard">
+      <HintPath>..\..\..\..\Desktop\Managed\netstandard.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\Desktop\Managed\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="Rewired_Core">
+      <HintPath>..\..\..\..\Desktop\Managed\Rewired_Core.dll</HintPath>
+    </Reference>
+    <Reference Include="Rewired_Windows">
+      <HintPath>..\..\..\..\Desktop\Managed\Rewired_Windows.dll</HintPath>
+    </Reference>
+    <Reference Include="Rewired_Windows_Functions">
+      <HintPath>..\..\..\..\Desktop\Managed\Rewired_Windows_Functions.dll</HintPath>
+    </Reference>
+    <Reference Include="Steamworks">
+      <HintPath>..\..\..\..\Desktop\Managed\Steamworks.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Runtime" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -392,6 +413,9 @@
     <Reference Include="UnityEngine.UnityWebRequestWWWModule">
       <HintPath>..\..\..\..\Desktop\Managed\UnityEngine.UnityWebRequestWWWModule.dll</HintPath>
     </Reference>
+    <Reference Include="UnityEngine.UnityWebRequestWWWModule-Publicized">
+      <HintPath>..\..\..\..\Desktop\Managed\UnityEngine.UnityWebRequestWWWModule-Publicized.dll</HintPath>
+    </Reference>
     <Reference Include="UnityEngine.VehiclesModule">
       <HintPath>..\..\..\..\Desktop\Managed\UnityEngine.VehiclesModule.dll</HintPath>
     </Reference>
@@ -413,13 +437,17 @@
     <Reference Include="UnityEngine.XRModule">
       <HintPath>..\..\..\..\Desktop\Managed\UnityEngine.XRModule.dll</HintPath>
     </Reference>
+    <Reference Include="UnityExplorer">
+      <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\workshop\content\1811990\3145754526\UnityExplorer.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityExplorer.STANDALONE.Mono, Version=4.9.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\workshop\content\1811990\3154932293\UnityExplorer.STANDALONE.Mono.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ButtonExt.cs" />
-    <Compile Include="Extensions.cs" />
-    <Compile Include="ScriptableAmountClasses.cs" />
-    <Compile Include="StatusClasses.cs" />
-    <Compile Include="TokenMain.cs" />
+    <Compile Include="Class1.cs" />
+    <Compile Include="CustomCommands.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
