@@ -399,3 +399,5 @@ FodyWeavers.xsd
 /TestMod/ScriptableImages.cs
 /RunHistoryMod
 /TestMod/CustomCommands.cs
+/TestMod/Scriptables.cs
+/TestMod/InBattleShopSequence.cs
