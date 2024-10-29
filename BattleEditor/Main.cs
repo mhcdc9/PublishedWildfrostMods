@@ -24,7 +24,7 @@ namespace BattleEditor
         public void ExampleCode()
         {
             new BattleDataEditor(this, "Spare Shells")
-            .SetSprite(this.ImagePath("Spare Shells.png").ToSprite())
+            .SetSprite("Spare Shells.png")
             .SetNameRef("The Other Shelled Husks")
             .EnemyDictionary(('C', "Conker"), ('W', "ShellWitch"), ('P', "Pecan"), ('K', "Prickle"), ('B', "Bolgo"))
             .StartWavePoolData(0, "Wave 1: The first of the husks")
@@ -56,7 +56,7 @@ namespace BattleEditor
             "For modders who want to use this, here is an example code on how you would make the Shelled Husks fight and make it the first mandatory fight. " +
             "This code should be placed some time after all of the cards are loaded (if you are following the documentation tutorial, this code should run after base.Load):\r\n\r\n" +
             "new BattleDataEditor(this, \"Spare Shells\")\r\n" +
-            ".SetSprite(this.ImagePath(\"Spare Shells.png\").ToSprite())\r\n" +
+            ".SetSprite(\"Spare Shells.png\")\r\n" +
             ".SetNameRef(\"The Other Shelled Husks\")\r\n" +
             ".EnemyDictionary(('C', \"Conker\"), ('W', \"ShellWitch\"), ('P', \"Pecan\"), ('K', \"Prickle\"), ('B', \"Bolgo\"))\r\n" +
             ".StartWavePoolData(0, \"Wave 1: The first of the husks\")\r\n.ConstructWaves(3, 0, \"CWW\", \"CWP\")\r\n" +
@@ -64,6 +64,7 @@ namespace BattleEditor
             ".ConstructWaves(3, 1, \"PCW\", \"CPW\", \"CKW\", \"KCW\")\r\n.StartWavePoolData(2, \"Wave 3: Bolgo is here!\")\r\n" +
             ".ConstructWaves(3, 9, \"BPW\", \"BCW\")\r\n.AddBattleToLoader().RegisterBattle(0, mandatory: true)\r\n" +
             ".GiveMiniBossesCharms(new string[] { \"Bolgo\" }, \"CardUpgradeAcorn\", \"CardUpgradeShellOnKill\");\r\n\r\n" +
+            "The sprite size should be 105x120px IF you are using a pixelDensity of 100 (this can be changed with SetSprite). \r\n" +
             "If you have further questions, reach out to me on the Wildfrost Discord (@Michael C).\r\n\r\n" +
             "Have fun!";
 
@@ -104,7 +105,7 @@ namespace BattleEditor
                 BattleData bd = AddressableLoader.Get<BattleData>("BattleData", VanillaBattles[tier, i]);
                 if (bd == null)
                 {
-                    Debug.Log($"[BattleEditor] Could not find a vanilla fight named {VanillaBattles[tier, i]}. Go yell at Michael.");
+                    Debug.LogWarning($"[BattleEditor] Could not find a vanilla fight named {VanillaBattles[tier, i]}. Go yell at Michael.");
                 }
                 else
                 {
@@ -280,6 +281,18 @@ namespace BattleEditor
         {
             bd.sprite = sprite;
             return this;
+        }
+
+        /// <summary>
+        /// Assumes a 105x120px image
+        /// </summary>
+        /// <param name="sprite"></param>
+        /// <param name="pixelDensity"></param>
+        /// <returns></returns>
+        public BattleDataEditor SetSprite(string sprite, int pixelDensity = 100)
+        {
+            Texture2D tex = mod.ImagePath(sprite).ToTex();
+            return SetSprite(Sprite.Create(tex, new Rect(0,0,tex.width,tex.height), new Vector2(0.5f,0.5f), pixelDensity));
         }
 
         /// <summary>

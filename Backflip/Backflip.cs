@@ -27,10 +27,7 @@ namespace Backflip
 
         public override string Title => "The Backflip Mod";
 
-        public override string Description => "This mod amplifies the coolness of all cards by letting them perform backflips after they defeated their enemies. " +
-            "Instead of the usual \"No Target To Attack\" animation, cards will perform a backflip instead. " +
-            "Eack card has their own backflip counter so you can tell who is leading the team in style. \n\n" +
-            "Credits to KDeveloper for volunteering to refine the backflip animation.";
+        public override string Description => "This mod amplifies the coolness of all cards by letting them perform backflips after they defeated their enemies. Instead of the usual \"No Target To Attack\" animation, cards will perform a backflip instead. Each card has their own backflip counter so you can tell who is leading the team in style.\r\n\r\nCredits to\r\n- @KDeveloper for volunteering to refine the backflip animation.\r\n- @Josh for the icon.\r\n- @Abigail for suggesting this mod in the Discord.\r\n- Voyix for the idea.";
 
         public Backflip(string modDirectory) : base(modDirectory) { }
 
@@ -137,6 +134,8 @@ namespace Backflip
                 stat.type = GameStatData.Type.Count;
                 stat.statName = "backflips";
                 stat.priority = priority;
+                stat.priorityAddOverPar = 1f;
+                stat.par = 10;
 
                 StringTable collection = LocalizationHelper.GetCollection("UI Text", new LocaleIdentifier(SystemLanguage.English));
                 collection.SetString(BackflipKey, "Backflips Performed: {0}");
@@ -145,13 +144,13 @@ namespace Backflip
                 __instance.stats = __instance.stats.AddItem(stat).ToArray();
             }
 
-            static void Postfix(StatsPanel __instance)
+            /*static void Postfix(StatsPanel __instance)
             {
                 foreach(GameStatData data in __instance.stats)
                 {
                     Debug.Log($"{data.name}: {data.priority}");
                 }
-            }
+            }*/
         }
     }
 }

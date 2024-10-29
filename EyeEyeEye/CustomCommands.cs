@@ -3,6 +3,7 @@ using Steamworks;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using UnityEngine;
@@ -19,12 +20,15 @@ namespace EyeEyeEye
         public static IEnumerator AddCustomCommands(WildfrostMod _)
         {
             yield return new WaitUntil(() => ConsoleMod.instantiated);
-            commands.Add(new CommandMultEYE());
-            commands.Add(new CommandMultEYERESET());
+            commands.Add(new CommandEYE());
+            commands.Add(new CommandEYERESET());
+            commands.Add(new CommandEYERECORD());
+            commands.Add(new CommandEYEOUTPUT());
         }
 
-        public class CommandMultEYE : Command
+        public class CommandEYE : Command
         {
+
             public static List<Transform> transforms = new List<Transform>();
             public override string id => "eye";
 
@@ -56,7 +60,7 @@ namespace EyeEyeEye
                     {
                         eye = new EyeData.Eye()
                         {
-                            position = transform.InverseTransformPoint(Camera.main.ScreenToWorldPoint(Input.mousePosition + new Vector3(0, 0, 10))),
+                            position = transform.InverseTransformPoint(Camera.main.ScreenToWorldPoint(Input.mousePosition + new Vector3(0, 0, 9.5f))),
                             scale = Vector2.one,
                             rotation = 0
                         };
@@ -144,9 +148,8 @@ namespace EyeEyeEye
             }
         }
 
-        public class CommandMultEYERESET : Command
+        public class CommandEYERESET : Command
         {
-            public static List<Transform> transforms = new List<Transform>();
             public override string id => "eyereset";
 
             public override string format => "eyereset";
@@ -156,12 +159,105 @@ namespace EyeEyeEye
             public override bool IsRoutine => false;
             public override void Run(string args)
             {
-                for (int i = CommandMultEYE.transforms.Count-1; i>=0; i-- )
+                for (int i = CommandEYE.transforms.Count-1; i>=0; i-- )
                 {
-                    CommandMultEYE.transforms[i].gameObject.Destroy();
-                    CommandMultEYE.transforms.RemoveAt(i);
+                    CommandEYE.transforms[i].gameObject.Destroy();
+                    CommandEYE.transforms.RemoveAt(i);
                 }
-                CommandMultEYE.transforms.Clear();
+                CommandEYE.transforms.Clear();
+            }
+
+            public override IEnumerator GetArgOptions(string currentArgs)
+            {
+                yield break;
+            }
+        }
+
+        public class CommandEYERECORD : Command
+        {
+            public override string id => "recordeyes";
+
+            public override string format => "recordeyes";
+
+            public override string desc => "Records ALL eye data onto the currently hovered card, then resets";
+
+            public override bool IsRoutine => false;
+            public override void Run(string args)
+            {
+                Entity entity = hover ?? GameObject.FindObjectOfType<InspectSystem>()?.inspect;
+                if (entity == null) { Fail("A card needs to be inspected or hovered over"); return; }
+
+                if (!(entity.display is Card card))
+                {
+                    return;
+                }
+
+                List<(float, float, float, float, float)> list = new List<(float, float, float, float, float)>();
+                if (EyeEyeEye.eyeData.ContainsKey(entity.data.name))
+                {
+                    list = EyeEyeEye.eyeData[entity.data.name];              
+                }
+
+                for (int i = CommandEYE.transforms.Count - 1; i >= 0; i--)
+                {
+                    Transform tr = CommandEYE.transforms[i];
+                    (float, float, float, float, float) data = (tr.localPosition.x, tr.localPosition.y, tr.localScale.x, tr.localScale.y, tr.rotation.eulerAngles.z);
+                    list.Insert(0,data);
+                    CommandEYE.transforms[i].gameObject.Destroy();
+                    CommandEYE.transforms.RemoveAt(i);
+                }
+                CommandEYE.transforms.Clear();
+                EyeEyeEye.eyeData[entity.data.name] = list;
+            }
+
+            public override IEnumerator GetArgOptions(string currentArgs)
+            {
+                yield break;
+            }
+        }
+
+        public class CommandEYEOUTPUT : Command
+        {
+            public override string id => "outputeyes";
+
+            public override string format => "outputeyes <fileName>";
+
+            public override string desc => "Outputs all eye data into the file with designated name";
+
+            public override bool IsRoutine => false;
+            public override void Run(string args)
+            {
+                if (args.IsNullOrEmpty()) { Fail("Type a nonempty file name!"); return; }
+
+                string fileName = Path.Combine(EyeEyeEye.instance.ModDirectory, args);
+                if (!fileName.Contains(".txt"))
+                {
+                    fileName += ".txt";
+                }
+
+                List<string> list = new List<string>();
+                if (System.IO.File.Exists(fileName))
+                {
+                    list.AddRange(File.ReadAllLines(fileName));
+                }
+
+                foreach(string key in EyeEyeEye.eyeData.Keys)
+                {
+                    string s = $"Eyes(\"{key}\",";
+                    var data = EyeEyeEye.eyeData[key];
+                    for(int i =0; i<data.Count; i++)
+                    {
+                        s += string.Format(" ({0:f2}f,{1:f2}f,{2:f2}f,{3:f2}f,{4:f0}f)", data[i].Item1, data[i].Item2, data[i].Item3, data[i].Item4, data[i].Item5);
+                        if (i != data.Count-1)
+                        {
+                            s += ",";
+                        }
+                    }
+                    s += "),";
+                    list.Add(s);
+                }
+                File.WriteAllLines(fileName, list);
+                EyeEyeEye.eyeData.Clear();
             }
 
             public override IEnumerator GetArgOptions(string currentArgs)
