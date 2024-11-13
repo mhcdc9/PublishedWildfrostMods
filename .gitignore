@@ -401,3 +401,5 @@ FodyWeavers.xsd
 /TestMod/CustomCommands.cs
 /TestMod/Scriptables.cs
 /TestMod/InBattleShopSequence.cs
+/BodyDropper
+/GamemodeAndClasses/TaggedClass.cs
