@@ -15,6 +15,11 @@ using UnityEngine.UI;
 using static StatusEffectBonusDamageEqualToX;
 using static UINavigationHistory;
 using UnityEngine.XR;
+using System.IO;
+using UnityEngine.AddressableAssets.ResourceLocators;
+using UnityEngine.AddressableAssets;
+using UnityEngine.U2D;
+using System.Runtime.InteropServices.ComTypes;
 
 namespace Tokens
 {
@@ -38,6 +43,9 @@ namespace Tokens
             "There are 11 different tokens (8 general, 3 class-exclusive) that have varied effects (see icon picture). " +
             "Tokens may be a free action or end your turn.\n\n" +
             "The developer can be contacted through Steam and/or Discord (@Michael C).";
+
+        public static string AssetFolder => Path.Combine(instance.ModDirectory, "Assets");
+        public static string CatalogPath => Path.Combine(AssetFolder, "catalog.json");
 
         public static bool OverrideDrag = false;
 
@@ -115,7 +123,7 @@ namespace Tokens
             {
                 new CardUpgradeDataBuilder(this)
                 .CreateToken("CardUpgradePotion", "Potion Token")
-                .WithImage("potionToken.png")
+                .WithAImage("potionToken.png")
                 .WithText("Equip <keyword=mhcdc9.wildfrost.tokens.potiontoken>" + RemoveableString)
                 .AddTokenPool("General")
                 .SubscribeToAfterAllBuildEvent(
@@ -127,7 +135,7 @@ namespace Tokens
 
                 new CardUpgradeDataBuilder(this)
                 .CreateToken("CardUpgradeSword", "Sword Token")
-                .WithImage("swordToken.png")
+                .WithAImage("swordToken.png")
                 .WithText("Equip <keyword=mhcdc9.wildfrost.tokens.swordtoken>" + RemoveableString)
                 .AddTokenPool("General")
                 .SubscribeToAfterAllBuildEvent(
@@ -139,7 +147,7 @@ namespace Tokens
 
                 new CardUpgradeDataBuilder(this)
                 .CreateToken("CardUpgradeLumin", "Lumin Token")
-                .WithImage("luminToken.png")
+                .WithAImage("luminToken.png")
                 .WithText("Equip <keyword=mhcdc9.wildfrost.tokens.lumintoken>" + RemoveableString)
                 .AddTokenPool("General")
                 .SubscribeToAfterAllBuildEvent(
@@ -151,7 +159,7 @@ namespace Tokens
 
                 new CardUpgradeDataBuilder(this)
                 .CreateToken("CardUpgradeBow", "Bow Token")
-                .WithImage("bowToken.png")
+                .WithAImage("bowToken.png")
                 .WithText("Equip <keyword=mhcdc9.wildfrost.tokens.bowtoken>" + RemoveableString)
                 .AddTokenPool("General")
                 .SubscribeToAfterAllBuildEvent(
@@ -163,7 +171,7 @@ namespace Tokens
 
                 new CardUpgradeDataBuilder(this)
                 .CreateToken("CardUpgradeFist", "Fist Token")
-                .WithImage("fistToken.png")
+                .WithAImage("fistToken.png")
                 .WithText("Equip <keyword=mhcdc9.wildfrost.tokens.fisttoken>" + RemoveableString)
                 .AddTokenPool("General")
                 .SubscribeToAfterAllBuildEvent(
@@ -175,7 +183,7 @@ namespace Tokens
 
                 new CardUpgradeDataBuilder(this)
                 .CreateToken("CardUpgradeDeck","Deck Token")
-                .WithImage("deckToken.png")
+                .WithAImage("deckToken.png")
                 .WithText("Equip <keyword=mhcdc9.wildfrost.tokens.decktoken>" + RemoveableString)
                 .AddTokenPool("General")
                 .SubscribeToAfterAllBuildEvent(
@@ -187,7 +195,7 @@ namespace Tokens
 
                 new CardUpgradeDataBuilder(this)
                 .CreateToken("CardUpgradePrism","Prism Token")
-                .WithImage("prismToken.png")
+                .WithAImage("prismToken.png")
                 .WithText("Equip <keyword=mhcdc9.wildfrost.tokens.prismtoken>" + RemoveableString)
                 .AddTokenPool("General")
                 .SubscribeToAfterAllBuildEvent(
@@ -199,7 +207,7 @@ namespace Tokens
 
                 new CardUpgradeDataBuilder(this)
                 .CreateToken("CardUpgradeFrost","Frost Token")
-                .WithImage("frostToken.png")
+                .WithAImage("frostToken.png")
                 .WithText("Equip <keyword=mhcdc9.wildfrost.tokens.frosttoken>" + RemoveableString)
                 .AddTokenPool("General")
                 .SubscribeToAfterAllBuildEvent(
@@ -211,7 +219,7 @@ namespace Tokens
 
                 new CardUpgradeDataBuilder(this)
                 .CreateToken("CardUpgradeSpice","Spice Token")
-                .WithImage("spiceToken.png")
+                .WithAImage("spiceToken.png")
                 .WithText("Equip <keyword=mhcdc9.wildfrost.tokens.spicetoken>" + RemoveableString)
                 .AddTokenPool("Player (Basic)")
                 .SubscribeToAfterAllBuildEvent(
@@ -223,7 +231,7 @@ namespace Tokens
 
                 new CardUpgradeDataBuilder(this)
                 .CreateToken("CardUpgradeTeeth","Teeth Token")
-                .WithImage("teethToken.png")
+                .WithAImage("teethToken.png")
                 .WithText("Equip <keyword=mhcdc9.wildfrost.tokens.teethtoken>" + RemoveableString)
                 .AddTokenPool("Player (Magic)")
                 .SubscribeToAfterAllBuildEvent(
@@ -235,7 +243,7 @@ namespace Tokens
 
                 new CardUpgradeDataBuilder(this)
                 .CreateToken("CardUpgradeJunk","Junk Token")
-                .WithImage("junkToken.png")
+                .WithAImage("junkToken.png")
                 .WithText("Equip <keyword=mhcdc9.wildfrost.tokens.junktoken>" + RemoveableString)
                 .AddTokenPool("Player (Clunk)")
                 .SubscribeToAfterAllBuildEvent(
@@ -276,18 +284,18 @@ namespace Tokens
                 .WithCanStack(true)
             };
 
-            Extensions.CreateTokenIcon("potionToken", ImagePath("potionToken.png").ToSprite(), "potionToken", "snow", Color.white);
-            Extensions.CreateTokenIcon("swordToken", ImagePath("swordToken.png").ToSprite(), "swordToken", "snow", Color.white);
-            Extensions.CreateTokenIcon("luminToken", ImagePath("luminToken.png").ToSprite(), "luminToken", "snow", Color.white);
-            Extensions.CreateTokenIcon("bowToken", ImagePath("bowToken.png").ToSprite(), "bowToken", "", Color.white);
-            Extensions.CreateTokenIcon("fistToken", ImagePath("fistToken.png").ToSprite(), "fistToken", "", Color.white);
-            Extensions.CreateTokenIcon("deckToken", ImagePath("deckToken.png").ToSprite(), "deckToken", "", Color.white);
-            Extensions.CreateTokenIcon("prismToken", ImagePath("prismToken.png").ToSprite(), "prismToken", "", Color.white);
-            Extensions.CreateTokenIcon("frostToken", ImagePath("frostToken.png").ToSprite(), "frostToken", "snow", Color.white);
-            Extensions.CreateTokenIcon("spiceToken", ImagePath("spiceToken.png").ToSprite(), "spiceToken", "", Color.black);
-            Extensions.CreateTokenIcon("teethToken", ImagePath("teethToken.png").ToSprite(), "teethToken", "", Color.black);
-            Extensions.CreateTokenIcon("junkToken", ImagePath("junkToken.png").ToSprite(), "junkToken", "", Color.white);
-            Extensions.CreateTokenIcon("mysteryToken", ImagePath("mysteryToken.png").ToSprite(), "mysteryToken", "", Color.white);
+            Extensions.CreateTokenIcon("potionToken", ASprite("potionToken"), "potionToken", "snow", Color.white);
+            Extensions.CreateTokenIcon("swordToken", ASprite("swordToken"), "swordToken", "snow", Color.white);
+            Extensions.CreateTokenIcon("luminToken", ASprite("luminToken.png"), "luminToken", "snow", Color.white);
+            Extensions.CreateTokenIcon("bowToken", ASprite("bowToken.png"), "bowToken", "", Color.white);
+            Extensions.CreateTokenIcon("fistToken", ASprite("fistToken.png"), "fistToken", "", Color.white);
+            Extensions.CreateTokenIcon("deckToken", ASprite("deckToken.png"), "deckToken", "", Color.white);
+            Extensions.CreateTokenIcon("prismToken", ASprite("prismToken.png"), "prismToken", "", Color.white);
+            Extensions.CreateTokenIcon("frostToken", ASprite("frostToken.png"), "frostToken", "snow", Color.white);
+            Extensions.CreateTokenIcon("spiceToken", ASprite("spiceToken.png"), "spiceToken", "", Color.black);
+            Extensions.CreateTokenIcon("teethToken", ASprite("teethToken.png"), "teethToken", "", Color.black);
+            Extensions.CreateTokenIcon("junkToken", ASprite("junkToken.png"), "junkToken", "", Color.white);
+            Extensions.CreateTokenIcon("mysteryToken", ASprite("mysteryToken.png"), "mysteryToken", "", Color.white);
 
             effects = new List<StatusEffectDataBuilder>()
             {
@@ -613,7 +621,11 @@ namespace Tokens
 
         public override void Load()
         {
-            if (!preLoaded) { CreateModAssets(); }
+            if (!preLoaded) 
+            {
+                LoadAtlas();
+                CreateModAssets();
+            }
             base.Load();
             CreateTokenPrefab();
             CreateTokenHolder();
@@ -622,6 +634,21 @@ namespace Tokens
             Events.OnSceneLoaded += SceneLoaded;
             Events.OnPreCampaignPopulate += ResetPool;
             DisableDrag();
+        }
+
+        public static SpriteAtlas Icons;
+
+        public void LoadAtlas()
+        {
+            if (!Addressables.ResourceLocators.Any(r => r is ResourceLocationMap map && map.LocatorId == CatalogPath))
+                Addressables.LoadContentCatalogAsync(CatalogPath).WaitForCompletion();
+
+            Icons = (SpriteAtlas)Addressables.LoadAssetAsync<UnityEngine.Object>($"Assets/mhcdc9.tokens/TokenAtlas.spriteatlas").WaitForCompletion();
+        }
+
+        public static Sprite ASprite(string spriteName)
+        {
+            return Icons.GetSprite(spriteName.Replace(".png", ""));
         }
 
         public override void Unload()
@@ -665,7 +692,7 @@ namespace Tokens
             TokenPrefab.name = "Token";
             //((RectTransform)TokenPrefab.transform).sizeDelta = new Vector2(1, 1);
             Image image = TokenPrefab.AddComponent<Image>();
-            image.sprite = this.ImagePath("tokenTest.png").ToSprite();
+            image.sprite = ASprite("tokenTest.png");
             //UINavigationItem
             UINavigationItem item = TokenPrefab.AddComponent<UINavigationItem>();
             item.selectionPriority = UINavigationItem.SelectionPriority.Highest;
@@ -736,7 +763,7 @@ namespace Tokens
                 ButtonAnimator animator = takeTokenButton.GetComponentInChildren<ButtonAnimator>();
                 animator.baseColour = new Color(0.96f, 0.875f, 0.589f, 1);
                 Button button = takeTokenButton.GetComponentInChildren<Button>();
-                button.image.sprite = this.ImagePath("takeToken.png").ToSprite();
+                button.image.sprite = ASprite("takeToken.png");
                 button.onClick.SetPersistentListenerState(0, UnityEngine.Events.UnityEventCallState.Off);
                 button.onClick.AddListener(TakeToken);
 

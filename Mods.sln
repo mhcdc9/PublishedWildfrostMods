@@ -43,6 +43,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EyeEyeEye", "EyeEyeEye\EyeE
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LocalFixes", "LocalFixes\LocalFixes.csproj", "{070B3975-4234-40FE-B6CA-3BF669BD2009}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stabilizer", "Stabilizer\Stabilizer.csproj", "{8C45272B-EE16-46E4-A65B-38EB7FDBBE55}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BodyDropper", "BodyDropper\BodyDropper.csproj", "{B6C280A1-ECCC-4FA7-A59C-7A55C4E629B4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -129,6 +133,14 @@ Global
 		{070B3975-4234-40FE-B6CA-3BF669BD2009}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{070B3975-4234-40FE-B6CA-3BF669BD2009}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{070B3975-4234-40FE-B6CA-3BF669BD2009}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8C45272B-EE16-46E4-A65B-38EB7FDBBE55}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8C45272B-EE16-46E4-A65B-38EB7FDBBE55}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8C45272B-EE16-46E4-A65B-38EB7FDBBE55}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8C45272B-EE16-46E4-A65B-38EB7FDBBE55}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B6C280A1-ECCC-4FA7-A59C-7A55C4E629B4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B6C280A1-ECCC-4FA7-A59C-7A55C4E629B4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B6C280A1-ECCC-4FA7-A59C-7A55C4E629B4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B6C280A1-ECCC-4FA7-A59C-7A55C4E629B4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

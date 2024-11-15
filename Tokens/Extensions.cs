@@ -24,6 +24,11 @@ namespace Tokens
             Everywhere = 15
         }
 
+        public static CardUpgradeDataBuilder WithAImage(this CardUpgradeDataBuilder b, string sprite)
+        {
+            return b.WithImage(TokenMain.ASprite(sprite));
+        }
+
         public static CardUpgradeDataBuilder AddTokenPool(this CardUpgradeDataBuilder builder, string @class)
         {
             return builder.SubscribeToAfterAllBuildEvent(
