@@ -17,8 +17,11 @@ namespace BattleEditor
         public static bool ListeningReset = false;
 
         public static bool ListeningGobbler = false;
+
+        public static Main instance;
         public Main(string modDirectory) : base(modDirectory)
         {
+            instance = this;
         }
 
         public void ExampleCode()
@@ -33,7 +36,7 @@ namespace BattleEditor
             .ConstructWaves(3, 1, "PCW", "CPW", "CKW", "KCW")
             .StartWavePoolData(2, "Wave 3: Bolgo is here!")
             .ConstructWaves(3, 9, "BPW", "BCW")
-            .AddBattleToLoader().RegisterBattle(0, mandatory: true)
+            .AddBattleToLoader().RegisterBattle(0, exclusivity: BattleStack.Exclusivity.removeUnmodded)
             .GiveMiniBossesCharms(new string[] { "Bolgo" }, "CardUpgradeAcorn", "CardUpgradeShellOnKill")
             .GiveGobblers();
         }
@@ -81,15 +84,17 @@ namespace BattleEditor
             {"Final Final Boss", "", "", ""}
         };
 
-        public static void CheckReset(WildfrostMod mod)
+        public void CheckReset(WildfrostMod mod)
         {
             if (Main.resetModList.Contains(mod))
             {
                 Main.resetModList.Remove(mod);
-                ResetAllTiers();
+                //ResetAllTiers();
+                RunReset(mod);
             }
         }
 
+        [Obsolete("Do not ever use this method.")]
         public static void ResetTier(int tier, string gameMode = "GameModeNormal")
         {
             GameMode game = AddressableLoader.Get<GameMode>("GameMode", gameMode);
@@ -117,11 +122,31 @@ namespace BattleEditor
             Debug.Log($"[BattleEditor] Tier {tier} reset.");
         }
 
+        [Obsolete("Do not ever use this method")]
         public static void ResetAllTiers(string gameMode = "GameModeNormal")
         {
             for (int i = 0; i < VanillaBattles.GetLength(0); i++)
             {
                 ResetTier(i, gameMode);
+            }
+        }
+
+        private void RunReset(WildfrostMod mod)
+        {
+            string[] keys = BattleDataEditor.changelog.Keys.ToArray();
+            foreach(string key in keys)
+            {
+                if (Get<GameMode>(key) == null)
+                {
+                    BattleDataEditor.changelog.Remove(key);
+                }
+                else
+                {
+                    foreach(BattleStack stack in BattleDataEditor.changelog[key])
+                    {
+                        stack.Remove(mod);
+                    }
+                }
             }
         }
 
@@ -158,6 +183,8 @@ namespace BattleEditor
         private Dictionary<char, CardData> dictionary = new Dictionary<char, CardData>();
         private int wavePoolIndex = 0;
 
+        internal static Dictionary<string, List<BattleStack>> changelog = new Dictionary<string, List<BattleStack>>();
+
         public BattleDataEditor(WildfrostMod mod)
         {
             this.mod = mod;
@@ -182,7 +209,7 @@ namespace BattleEditor
             bd = mod.Get<BattleData>(name);
             if (bd == null)
             {
-                Debug.Log("[BattleEditor] Cound not find BattleData for " + name + ". Creating new BattleData instead.");
+                //Debug.Log("[BattleEditor] Cound not find BattleData for " + name + ". Creating new BattleData instead.");
                 bd = ScriptableObject.CreateInstance<T>();
                 bd.name = string.Concat(mod.GUID, ".", name);
                 bd.bonusUnitPool = new CardData[0];
@@ -192,7 +219,7 @@ namespace BattleEditor
                 bd.goldGiverPool = new CardData[0];
                 if (goldGivers != 0)
                 {
-                    bd.goldGiverPool = new CardData[1] { mod.Get<CardData>("Gobling").Clone() };
+                    bd.goldGiverPool = new CardData[1] { mod.Get<CardData>("Gobling") };
                 }
                 bd.title = name;
                 bd.setUpScript = ScriptableObject.CreateInstance<ScriptBattleSetUp>();
@@ -229,7 +256,7 @@ namespace BattleEditor
                 }
                 else
                 {
-                    Debug.Log($"[BattleDataEditor] Could not find a CardUpgrade named {name}");
+                    Debug.LogWarning($"[BattleDataEditor] Could not find a CardUpgrade named {name}");
                 }
             }
             ScriptUpgradeMinibosses.Profile profile = new ScriptUpgradeMinibosses.Profile();
@@ -341,7 +368,7 @@ namespace BattleEditor
             CardData[] cards = new CardData[cardNames.Length];
             for (int i = 0; i < cardNames.Length; i++)
             {
-                cards[i] = mod.Get<CardData>(cardNames[i]).Clone();
+                cards[i] = mod.Get<CardData>(cardNames[i]);
                 if (!cards[i])
                 {
                     Debug.LogWarning("[BattleEditor] The card " + cardNames[i] + " does not exist. Check the name again.");
@@ -379,17 +406,13 @@ namespace BattleEditor
             for (int i = 0; i < keyValuePairs.Length; i++)
             {
                 CardData card = mod.Get<CardData>(keyValuePairs[i].Item2) ?? throw new ArgumentException("CardData name is not valid.", keyValuePairs[i].Item2);
-                enemies.Add(card.Clone());
+                enemies.Add(card);
                 dictionary.Add(keyValuePairs[i].Item1, enemies[i]);
             }
             return this;
         }
 
-        /// <summary>
-        /// Loads enemies into memory to be used later. Use this before the first ConstructWaves(). Order matter later. EnemyKeys are also cleared to default.
-        /// </summary>
-        /// <param name="cardNames"></param>
-        /// <returns></returns>
+        [Obsolete("Use EnemyDictionary instead")]
         public BattleDataEditor PossibleEnemies(params string[] cardNames)
         {
             enemies = new List<CardData>(cardNames.Length);
@@ -397,16 +420,12 @@ namespace BattleEditor
             for (int i = 0; i < cardNames.Length; i++)
             {
                 CardData card = mod.Get<CardData>(cardNames[i]) ?? throw new ArgumentException("CardData name is not valid.", cardNames[i]);
-                enemies.Add(card.Clone());
+                enemies.Add(card);
             }
             return this;
         }
 
-        /// <summary>
-        /// Add keys for enemies added by Possible Enemies(). If not specified, numbers can be used instead.
-        /// </summary>
-        /// <param name="enemyKeys"></param>
-        /// <returns></returns>
+        [Obsolete("Use EnemyDictionary instead")]
         public BattleDataEditor EnemyKeys(params char[] enemyKeys)
         {
             dictionary.Clear();
@@ -471,7 +490,7 @@ namespace BattleEditor
             
             if (index >= bd.pools.Length)
             {
-                Debug.Log("[BattleEditor] Adding a new WavePool.");
+                //Debug.Log("[BattleEditor] Adding a new WavePool.");
                 bd.pools = bd.pools.AddItem(null).ToArray();
                 index = bd.pools.Length-1;
             }
@@ -531,11 +550,11 @@ namespace BattleEditor
                     string c = formation.Substring(j, 1);
                     if (dictionary.ContainsKey(c[0]))
                     {
-                        wave.units.Add(dictionary[c[0]].Clone());
+                        wave.units.Add(dictionary[c[0]]);
                     }
                     else
                     {
-                        wave.units.Add(enemies[int.Parse(c)].Clone());
+                        wave.units.Add(enemies[int.Parse(c)]);
                     }
                 }
                 waves[i] = wave;
@@ -568,18 +587,16 @@ namespace BattleEditor
             return this;
         }
 
-        /// <summary>
-        /// [Important] Places the battle in the pool of other battles of the same tiers:
-        /// 0 = Pengoons/Snowbo, 1=Bears/Shroom/Berries/Ringer, 2=Infernoko/Bamboozle, etc.
-        /// Setting mandatory to true removes all other battles in the tier.
-        /// </summary>
-        /// <param name="tier"></param>
-        /// <param name="gameMode"></param>
-        /// <param name="mandatory"></param>
-        /// <returns></returns>
+        [Obsolete("Use the version of RegisterBattle with an exclusivity parameter")]
         public BattleDataEditor RegisterBattle(int tier, string gameMode = "GameModeNormal", bool mandatory = false)
         {
-            return RegisterBattle(tier, true, gameMode, mandatory);
+            return RegisterBattle(tier, true, gameMode, mandatory ? BattleStack.Exclusivity.removeUnmodded : BattleStack.Exclusivity.removeNone);
+        }
+
+        [Obsolete("Use the version of RegisterBattle with an exclusivity parameter")]
+        public BattleDataEditor RegisterBattle(int tier, bool resetAllOnClear, string gameMode = "GameModeNormal", bool mandatory = false)
+        {
+            return RegisterBattle(tier, resetAllOnClear, gameMode, mandatory ? BattleStack.Exclusivity.removeUnmodded : BattleStack.Exclusivity.removeNone);
         }
 
         /// <summary>
@@ -591,37 +608,59 @@ namespace BattleEditor
         /// <param name="gameMode"></param>
         /// <param name="mandatory"></param>
         /// <returns></returns>
-        public BattleDataEditor RegisterBattle(int tier, bool resetAllOnClear, string gameMode = "GameModeNormal", bool mandatory = false)
+        public BattleDataEditor RegisterBattle(int tier, bool resetAllOnClear = true, string gameMode = "GameModeNormal", BattleStack.Exclusivity exclusivity = BattleStack.Exclusivity.removeNone, bool startActive = true)
         {
             GameMode game = mod.Get<GameMode>(gameMode);
             if (!game)
             {
-                Debug.LogWarning("Gamemode does not exist.");
-            }
-            if (mandatory)
-            {
-                game.populator.tiers[tier].battlePool = new BattleData[] { bd };
-                Debug.Log("[BattleEditor] The " + bd.name + "is the only battle in tier " + tier.ToString());
-            }
-            else
-            {
-                game.populator.tiers[tier].battlePool = game.populator.tiers[tier].battlePool.AddToArray(bd);
-                Debug.Log("[BattleEditor] The " + bd.name + "is in tier " + tier.ToString());
+                throw new Exception($"Gamemode [{gameMode}] or [{mod.GUID + "." + gameMode} does not exist");
             }
 
+            if (!changelog.ContainsKey(game.name))
+            {
+                changelog[game.name] = new List<BattleStack>();
+            }
+
+            BattleStack stack = changelog[game.name].FirstOrDefault(s => s.tier == tier);
+            if (stack == null)
+            {
+                stack = new BattleStack(mod, game.name, tier);
+                changelog[game.name].Add(stack);
+            }
+            stack.Add(mod, bd, exclusivity, startActive);
             if (resetAllOnClear)
             {
                 if (!Main.ListeningReset)
                 {
-                    Events.OnModUnloaded += Main.CheckReset;
+                    Events.OnModUnloaded += Main.instance.CheckReset;
                     Main.ListeningReset = true;
                 }
                 Main.resetModList.Add(mod);
             }
-
             return this;
         }
 
+        public BattleDataEditor ToggleBattle(bool active, string gameMode = "GameModeNormal")
+        {
+            ToggleBattle(mod, bd, active, gameMode);
+            return this;
+        }
 
+        public static void ToggleBattle(WildfrostMod mod, BattleData battle, bool active, string gameMode = "GameModeNormal")
+        {
+            GameMode game = mod.Get<GameMode>(gameMode);
+            if (!game)
+            {
+                throw new Exception($"Gamemode [{gameMode}] or [{mod.GUID + "." + gameMode} does not exist");
+            }
+            if (!battle)
+            {
+                throw new Exception($"BattleData does not exist");
+            }
+            foreach (var stack in changelog[game.name])
+            {
+                stack.ChangeActive(battle, active);
+            }
+        }
     }
 }
