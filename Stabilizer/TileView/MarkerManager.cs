@@ -7,7 +7,6 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using System.IO;
-using static Mono.Security.X509.X520;
 using System.Threading;
 using HarmonyLib;
 using Deadpan.Enums.Engine.Components.Modding;
@@ -220,11 +219,21 @@ namespace Stabilizer.TileView
             }
             else
             {
-                markers["01-Favorites"] = new Marker("Favorites", new List<string> { "!mhcdc9.wildfrost.stabilizer" }, "<sprite name=health>");
-                markers["02-Local Mods"] = new Marker("Local Mods", new List<string> { "!mhcdc9.wildfrost.stabilizer", "mhcdc9.wildfrost.battle", "mhcdc9.wildfrost.tokens",  }, "<sprite name=scrap>");
-                markers["03-Battles"] = new Marker("Battles", new List<string> { "!mhcdc9.wildfrost.stabilizer", "websiteofsites.wildfrost.pokefrost" }, "<sprite name=attack>");
-                markers["04-Cosmetic"] = new Marker("Cosmetic", new List<string> { "!mhcdc9.wildfrost.stabilizer" }, "<sprite name=lumin>");
-                markers["05-Frost"] = new Marker("Hidden", new List<string> { "!mhcdc9.wildfrost.stabilizer" }, "<sprite name=frost>");
+                markers["00-Quick Access"] = new Marker("Quick Access", new List<string> { }, "<sprite name=crown>");
+                markers["01-Favorites"] = new Marker("Favorites", new List<string> { }, "<sprite name=health>")
+                {
+                    visibleOnTiles = true
+                };
+                markers["02-Local Mods"] = new Marker("Local Mods", new List<string> { }, "<sprite name=scrap>");
+                markers["03-Battles"] = new Marker("Battles", new List<string> { }, "<sprite name=attack>");
+                markers["04-Spicy"] = new Marker("Spicy", new List<string> { }, "<sprite name=spice>");
+                markers["05-Cosmetic"] = new Marker("Cosmetic", new List<string> { }, "<sprite name=lumin>");
+                markers["06-Frost"] = new Marker("Hidden", new List<string> { }, "<sprite name=frost>")
+                {
+                    startup = true,
+                    visibleOnTiles = true,
+                    hidden = true
+                };
             }
         }
 

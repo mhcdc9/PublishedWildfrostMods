@@ -7,6 +7,9 @@ using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using Stabilizer.Compatibility;
+using System.Collections;
+using static Building;
 
 namespace Stabilizer.TileView
 {
@@ -31,11 +34,11 @@ namespace Stabilizer.TileView
             GameObject modHolder = GameObject.Instantiate(GameObject.FindObjectOfType<ModsSceneManager>().ModPrefab, parent.transform);
             Instance.holder = modHolder.GetComponent<ModHolder>();
 
-            GameObject bottomPanel = new GameObject("Bottom Panel", new Type[2] { typeof(RectTransform), typeof(Image) });
+            GameObject bottomPanel = new GameObject("Bottom Panel", new Type[3] { typeof(RectTransform), typeof(Image), typeof(Wobbler) });
             bottomPanel.transform.SetParent(parent.transform);
             Instance.bottomPanel = bottomPanel;
+            bottomPanel.AddComponent<Mask>();
             bottomPanel.GetComponent<Image>().color = new Color(0.4f, 0.2f, 0.2f, 0.9f);
-            
         }
 
         public static void StartInspect(WildfrostMod mod, Vector3 position)
@@ -47,14 +50,20 @@ namespace Stabilizer.TileView
 
             Instance.SetSize(position);
             Instance.gameObject.SetActive(true);
+            Instance.StartCoroutine(StartCosmeticLayer(mod, Instance.bottomPanel.transform.GetChild(0) as RectTransform));
+            StartContentLayer(mod, Instance.bottomPanel.transform.GetChild(1) as RectTransform);
             Instance.GetComponent<Image>().color = new Color(0, 0, 0, 0.7f);
             Instance.holder.Mod = mod;
             Instance.holder.UpdateInfo();
             MarkerManager.ResetMarkerColors();
         }
 
+
+
         public static void EndInspect()
         {
+            Instance.StopAllCoroutines();
+            Instance.bottomPanel.transform.DestroyAllChildren();
             Instance.gameObject.SetActive(false);
             MarkerManager.ResetMarkerColors();
             TileViewManager.Filter();
@@ -86,8 +95,28 @@ namespace Stabilizer.TileView
             Vector3 panelPosition = new Vector2(0, -y / 2 + t3.sizeDelta.y / 2 + 0.1f);
             t3.position = fixedStartPos;
             LeanTween.moveLocal(bottomPanel, panelPosition, dur).setEaseOutQuart();
+
+            GameObject cosmeticLayer = new GameObject("Cosmetic Layer", new Type[] {typeof(RectTransform)});
+            cosmeticLayer.transform.SetParent(bottomPanel.transform, false);
+            cosmeticLayer.GetComponent<RectTransform>().sizeDelta = t3.sizeDelta;
+
+            GameObject contentLayer = new GameObject("Content Layer", new Type[] { typeof(RectTransform) });
+            contentLayer.transform.SetParent(bottomPanel.transform, false);
+            contentLayer.GetComponent<RectTransform>().sizeDelta = t3.sizeDelta;
         }
 
-        
+        internal static IEnumerator StartCosmeticLayer(WildfrostMod mod, RectTransform parent)
+        {
+            yield return Sequences.Wait(dur);
+            if (!Instance.enabled) { yield break; }
+            Instance.bottomPanel.GetComponent<Wobbler>()?.WobbleRandom();
+            yield return ModInspectComp.RunCosmetic(mod, parent);
+        }
+
+        internal static void StartContentLayer(WildfrostMod mod, RectTransform parent)
+        {
+            ModInspectComp.RunContent(mod, parent);
+            StabilizerEvents.InvokeModInspect(mod, parent);
+        }
     }
 }

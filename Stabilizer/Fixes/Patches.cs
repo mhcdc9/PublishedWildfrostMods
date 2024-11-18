@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using Deadpan.Enums.Engine.Components.Modding;
 using FMOD;
 using HarmonyLib;
 using D = UnityEngine.Debug;
@@ -95,6 +96,13 @@ namespace Stabilizer.Fixes
                     playerData.classData = dummyTribe;
                 }
             }
+        }
+
+        [HarmonyPatch(typeof(WildfrostMod.DebugLoggerTextWriter), nameof(WildfrostMod.DebugLoggerTextWriter.WriteLine))]
+        internal class PatchHarmony
+        {
+            static bool Prefix() { Postfix(); return false; }
+            static void Postfix() => HarmonyLib.Tools.Logger.ChannelFilter = HarmonyLib.Tools.Logger.LogChannel.Warn | HarmonyLib.Tools.Logger.LogChannel.Error;
         }
     }
 }

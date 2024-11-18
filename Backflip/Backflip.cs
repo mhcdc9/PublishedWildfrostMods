@@ -31,7 +31,7 @@ namespace Backflip
 
         public Backflip(string modDirectory) : base(modDirectory) { }
 
-        private void MakeBackflipCurves()
+        internal static void MakeBackflipCurves()
         {
             rotateCurve = new AnimationCurve(
                 new Keyframe(0f, 0f),

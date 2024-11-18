@@ -44,7 +44,7 @@ namespace Stabilizer.TileView
         internal static GameObject decrement;
         static IEnumerator Postfix(IEnumerator __result, ModsSceneManager __instance)
         {
-            bool notTileView = (!properOpen || !Stabilizer.startAsTileView);
+            bool notTileView = (!properOpen || !Stabilizer.Instance.startAsTileView);
             yield return __result;
             if (properOpen)
             {
@@ -102,6 +102,8 @@ namespace Stabilizer.TileView
             if (newContent == null)
             {
                 References.instance.StartCoroutine(CreateTileView(GameObject.FindObjectOfType<ModsSceneManager>()));
+                Stabilizer.Instance.startAsTileView = true;
+                Stabilizer.Instance.SaveConfigs();
                 return;
             }
             bool toggle = newContent.activeSelf;
@@ -116,30 +118,34 @@ namespace Stabilizer.TileView
             Filter();
             GameObject content = GameObject.FindObjectOfType<ModsSceneManager>().Content;
             content.SetActive(toggle);
-            Stabilizer.startAsTileView = !toggle;
+            Stabilizer.Instance.startAsTileView = !toggle;
             SmoothScrollRect scroll = GameObject.Find("Canvas/SafeArea/Menu/Panel/Positioner/Scroll View").GetComponent<SmoothScrollRect>();
             scroll.content = (toggle) ? content.transform as RectTransform : newContent.transform as RectTransform;
+            Stabilizer.Instance.SaveConfigs();
         }
 
         static void IncreaseTilePerRow()
         {
-            Stabilizer.tilesPerRow += 1;
+            if (Stabilizer.Instance.tilesPerRow >= 10) { return; }
+            Stabilizer.Instance.tilesPerRow += 1;
             if (populated)
             {
                 AdjustGrid(newContent.GetComponent<RectTransform>().sizeDelta.x, newContent.transform.childCount, 0.1f);
                 UpdateTileSizes();
+                Stabilizer.Instance.SaveConfigs();
             }
 
         }
 
         static void DecreaseTilePerRow()
         {
-            if (Stabilizer.tilesPerRow <= 1) { return; }
-            Stabilizer.tilesPerRow -= 1;
+            if (Stabilizer.Instance.tilesPerRow <= 1) { return; }
+            Stabilizer.Instance.tilesPerRow -= 1;
             if (populated)
             {
                 AdjustGrid(newContent.GetComponent<RectTransform>().sizeDelta.x, newContent.transform.childCount, 0.1f);
                 UpdateTileSizes();
+                Stabilizer.Instance.SaveConfigs();
             }
         }
 
@@ -154,8 +160,8 @@ namespace Stabilizer.TileView
 
         static float AdjustGrid(float width, float amount, float gapRatio)
         {
-            float idealTileSize = (width / (Stabilizer.tilesPerRow));
-            newContent.GetComponent<RectTransform>().sizeDelta = new Vector2(width, idealTileSize * (float)Math.Ceiling(amount / Stabilizer.tilesPerRow));
+            float idealTileSize = (width / (Stabilizer.Instance.tilesPerRow));
+            newContent.GetComponent<RectTransform>().sizeDelta = new Vector2(width, idealTileSize * (float)Math.Ceiling(amount / Stabilizer.Instance.tilesPerRow));
 
             GridLayoutGroup grid = newContent.GetComponent<GridLayoutGroup>();
             grid.cellSize = (1 - gapRatio) * idealTileSize * Vector2.one;

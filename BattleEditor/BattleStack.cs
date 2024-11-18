@@ -93,8 +93,12 @@ namespace BattleEditor
                 if (changes[i].active) { changes[i].Run(list); }
             }
             gamemode.populator.tiers[tier].battlePool = list.ToArray();
+        }
+
+        public void Output()
+        {
             Debug.LogWarning($"[BattleDataEditor] ======= Tier {tier} =======");
-            foreach (BattleData data in list)
+            foreach (BattleData data in gamemode.populator.tiers[tier].battlePool)
             {
                 Debug.Log($"[BattleDataEditor] {data.title}");
             }

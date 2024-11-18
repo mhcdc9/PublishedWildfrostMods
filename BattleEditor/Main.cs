@@ -36,9 +36,23 @@ namespace BattleEditor
             .ConstructWaves(3, 1, "PCW", "CPW", "CKW", "KCW")
             .StartWavePoolData(2, "Wave 3: Bolgo is here!")
             .ConstructWaves(3, 9, "BPW", "BCW")
-            .AddBattleToLoader().RegisterBattle(0, exclusivity: BattleStack.Exclusivity.removeUnmodded)
+            .AddBattleToLoader().LoadBattle(0, exclusivity: BattleStack.Exclusivity.removeUnmodded)
             .GiveMiniBossesCharms(new string[] { "Bolgo" }, "CardUpgradeAcorn", "CardUpgradeShellOnKill")
             .GiveGobblers();
+
+            BattleDataEditor.DisplayOutput();
+        }
+
+        public void ExampleCode2(bool active)
+        {
+            BattleDataEditor.ToggleBattle(this, Get<BattleData>("Spare Shells"), active);
+            BattleDataEditor.DisplayOutput();
+        }
+
+        public void ExampleCode3()
+        {
+            new BattleDataEditor(this, "Spikers")
+                .AddCardsToWavePool(0, "WoollyDrek", "Makoko");
         }
 
         public void Debug1()
@@ -65,7 +79,7 @@ namespace BattleEditor
             ".StartWavePoolData(0, \"Wave 1: The first of the husks\")\r\n.ConstructWaves(3, 0, \"CWW\", \"CWP\")\r\n" +
             ".StartWavePoolData(1, \"Wave 2: Some more husks\")\r\n" +
             ".ConstructWaves(3, 1, \"PCW\", \"CPW\", \"CKW\", \"KCW\")\r\n.StartWavePoolData(2, \"Wave 3: Bolgo is here!\")\r\n" +
-            ".ConstructWaves(3, 9, \"BPW\", \"BCW\")\r\n.AddBattleToLoader().RegisterBattle(0, mandatory: true)\r\n" +
+            ".ConstructWaves(3, 9, \"BPW\", \"BCW\")\r\n.AddBattleToLoader().LoadBattle(0, exclusivity: BattleEditor.BattleStack.Exclusivity.removeUnmodded)\r\n" +
             ".GiveMiniBossesCharms(new string[] { \"Bolgo\" }, \"CardUpgradeAcorn\", \"CardUpgradeShellOnKill\");\r\n\r\n" +
             "The sprite size should be 105x120px IF you are using a pixelDensity of 100 (this can be changed with SetSprite). \r\n" +
             "If you have further questions, reach out to me on the Wildfrost Discord (@Michael C).\r\n\r\n" +
@@ -148,6 +162,19 @@ namespace BattleEditor
                     }
                 }
             }
+
+            for(int i = BattleDataEditor.edits.Count-1; i>=0; i--)
+            {
+                if (BattleDataEditor.edits[i].data == null || BattleDataEditor.edits[i].data.ModAdded == mod)
+                {
+                    BattleDataEditor.edits.RemoveAt(i);
+                }
+                else if(BattleDataEditor.edits[i].mod == mod)
+                {
+                    BattleDataEditor.edits[i].Undo();
+                    BattleDataEditor.edits.RemoveAt(i);
+                }
+            }
         }
 
         public static void CheckGobblerProfiles(WildfrostMod mod)
@@ -184,7 +211,7 @@ namespace BattleEditor
         private int wavePoolIndex = 0;
 
         internal static Dictionary<string, List<BattleStack>> changelog = new Dictionary<string, List<BattleStack>>();
-
+        internal static List<Edit> edits = new List<Edit>();
         public BattleDataEditor(WildfrostMod mod)
         {
             this.mod = mod;
@@ -385,13 +412,21 @@ namespace BattleEditor
         /// <returns></returns>
         public BattleDataEditor AddCardsToWavePool(int index, params CardData[] cards)
         {
-            BattleWavePoolData.Wave[] waves = GetWavesPools(index).waves;
+            edits.Add(new Edit(mod, bd, index, cards));
+            if (!Main.ListeningReset)
+            {
+                Events.OnModUnloaded += Main.instance.CheckReset;
+                Main.ListeningReset = true;
+            }
+            Main.resetModList.Add(mod);
+            return this;
+            /*BattleWavePoolData.Wave[] waves = GetWavesPools(index).waves;
             for (int i = 0; i < waves.Length; i++)
             {
                 waves[i].units.AddRange(cards);
                 waves[i].maxSize += cards.Length;
             }
-            return this;
+            return this;*/
         }
 
         /// <summary>
@@ -587,16 +622,16 @@ namespace BattleEditor
             return this;
         }
 
-        [Obsolete("Use the version of RegisterBattle with an exclusivity parameter")]
-        public BattleDataEditor RegisterBattle(int tier, string gameMode = "GameModeNormal", bool mandatory = false)
+        [Obsolete("Use the version of LoadBattle with an exclusivity parameter")]
+        public BattleDataEditor RegisterBattle(int tier = 0, string gameMode = "GameModeNormal", bool mandatory = false)
         {
-            return RegisterBattle(tier, true, gameMode, mandatory ? BattleStack.Exclusivity.removeUnmodded : BattleStack.Exclusivity.removeNone);
+            return LoadBattle(tier, true, gameMode, mandatory ? BattleStack.Exclusivity.removeUnmodded : BattleStack.Exclusivity.removeNone);
         }
 
-        [Obsolete("Use the version of RegisterBattle with an exclusivity parameter")]
+        [Obsolete("Use the version of LoadBattle with an exclusivity parameter")]
         public BattleDataEditor RegisterBattle(int tier, bool resetAllOnClear, string gameMode = "GameModeNormal", bool mandatory = false)
         {
-            return RegisterBattle(tier, resetAllOnClear, gameMode, mandatory ? BattleStack.Exclusivity.removeUnmodded : BattleStack.Exclusivity.removeNone);
+            return LoadBattle(tier, resetAllOnClear, gameMode, mandatory ? BattleStack.Exclusivity.removeUnmodded : BattleStack.Exclusivity.removeNone);
         }
 
         /// <summary>
@@ -608,7 +643,7 @@ namespace BattleEditor
         /// <param name="gameMode"></param>
         /// <param name="mandatory"></param>
         /// <returns></returns>
-        public BattleDataEditor RegisterBattle(int tier, bool resetAllOnClear = true, string gameMode = "GameModeNormal", BattleStack.Exclusivity exclusivity = BattleStack.Exclusivity.removeNone, bool startActive = true)
+        public BattleDataEditor LoadBattle(int tier, bool resetAllOnClear = true, string gameMode = "GameModeNormal", BattleStack.Exclusivity exclusivity = BattleStack.Exclusivity.removeNone, bool startActive = true)
         {
             GameMode game = mod.Get<GameMode>(gameMode);
             if (!game)
@@ -660,6 +695,17 @@ namespace BattleEditor
             foreach (var stack in changelog[game.name])
             {
                 stack.ChangeActive(battle, active);
+            }
+        }
+
+        public static void DisplayOutput()
+        {
+            foreach(var list in changelog.Values)
+            {
+                foreach(var item in list)
+                {
+                    item.Output();
+                }
             }
         }
     }

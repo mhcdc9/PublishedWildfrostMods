@@ -534,9 +534,13 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Compatibility\CompFinder.cs" />
+    <Compile Include="Compatibility\ModInspectComp.cs" />
+    <Compile Include="Compatibility\Tags.cs" />
     <Compile Include="Fixes\UtilMethods.cs" />
     <Compile Include="Fixes\Patches.cs" />
     <Compile Include="Main.cs" />
+    <Compile Include="StabilizerEvents.cs" />
     <Compile Include="TileView\ModInspectView.cs" />
     <Compile Include="TileView\ModTile.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

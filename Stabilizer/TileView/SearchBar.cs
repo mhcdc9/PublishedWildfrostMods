@@ -25,7 +25,7 @@ namespace Stabilizer.TileView
         public static Vector2 Ratio(Vector2 v) => new Vector2(30 * v.x / 0.4f, 30f);
 
         public static string text = "";
-        public static TMP_InputField CreateSearchBar(Transform t)
+        internal static TMP_InputField CreateSearchBar(Transform t)
         {
             if (Instance != null) { return Instance; }
 

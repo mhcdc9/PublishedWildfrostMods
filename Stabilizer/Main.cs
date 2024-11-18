@@ -17,6 +17,10 @@ using UnityEngine.UI;
 using Stabilizer.TileView;
 using Stabilizer.Fixes;
 using Patches = Stabilizer.Fixes.Patches;
+using System.IO;
+using Stabilizer.Compatibility;
+using System.Reflection;
+using ConfigItemAttribute = Deadpan.Enums.Engine.Components.Modding.WildfrostMod.ConfigItemAttribute;
 
 namespace Stabilizer
 {
@@ -50,9 +54,24 @@ namespace Stabilizer
 
         public override string[] Depends => new string[0];
 
-        public override string Title => "Mod Stabilizer";
+        public override string Title => "Mod Stabilizer v0.7";
 
-        public override string Description => "The goal is to stabilize things";
+        public override string Description => "[WIP] This mod enhances the experience of playing and dealing with multiple mods. Curently, it replaces the mod menu with an optional tile view with a search bar and a marker system." +
+            " It also runs various procedures so that most mods no longer require a full restart after unloading them. Future plans is to add an infrastructure to allow mods to better interact with each other (or at least not conflict)." +
+            " Bugs and suggestion may be sent to @Michael C on the Wildfrost Discord. Enjoy!\n\n\n" +
+            "Current Features:\n" +
+            "- Mod Tile View\n" +
+            "- Reward pool cleaning\n" +
+            "- Final boss swapper cleaning\n" +
+            "- Various once-of patches" +
+            "- Failsafes on TargetConstraints that check for cards, statuses, or traits" +
+            "- Mod Inspect Customization (See the modding forum post: Mod Project: Crossover & Compatibility for more details)\n\n" +
+            "Planned Featurs:\n" +
+            "- Allow modders to define the archetypes of their moddeed tribe\n" +
+            "- Allow other modders to place cards in other modded tribes (adhering to the archetypes given above)\n" +
+            "- Deal with CampaignNodeType conflicts if they become an issue\n" +
+            "- Whatever else is suggested, I guess.";
+
 
         public static Stabilizer Instance;
 
@@ -61,15 +80,16 @@ namespace Stabilizer
         public static bool NeedsCleaning = false;
 
         [ConfigItem(true, comment: "", forceTitle: "StartAsTileView")]
-        public static bool startAsTileView = true;
+        public bool startAsTileView = true;
 
         [ConfigItem(6, comment: "", forceTitle: "TilesPerRow")]
-        public static int tilesPerRow = 6;
+        public int tilesPerRow = 5;
         public Stabilizer(string modDirectory) : base(modDirectory) 
         {
             Instance = this;
 
-            
+            HarmonyInstance.PatchAll(typeof(Patches.PatchHarmony));
+
         }
 
 
@@ -86,6 +106,10 @@ namespace Stabilizer
                 MarkerManager.LoadDictionary();
             }
 
+            Bootstrap.Mods.Where(m => m.HasLoaded).Do(m => Frisk(m));
+            Events.OnModLoaded += Frisk;
+            Events.OnModUnloaded += Defrisk;
+
             Events.OnEntityCreated += UtilMethods.FixImage;
             Events.OnModUnloaded += PrepareCleaning;
             Events.OnSceneLoaded += SceneLoaded;
@@ -96,10 +120,37 @@ namespace Stabilizer
         {
             base.Unload();
 
+            Events.OnModLoaded -= Frisk;
+            Events.OnModUnloaded -= Defrisk;
+
             Events.OnEntityCreated -= UtilMethods.FixImage;
             Events.OnModUnloaded -= PrepareCleaning;
             Events.OnSceneLoaded -= SceneLoaded;
             Events.OnSceneUnload -= SceneUnloaded;
+        }
+
+        Dictionary<WildfrostMod, Delegate> OnModInspectDelegates = new Dictionary<WildfrostMod, Delegate>();
+        internal void Frisk(WildfrostMod mod)
+        {
+            Type type = CompFinder.FindCompClass(mod);
+            MethodInfo method = CompFinder.FindCompMethod(mod, "Event_OnModInspect");
+            if (method != null)
+            {
+                EventInfo ev = typeof(StabilizerEvents).GetEvent("OnModInspect");
+                Delegate d = Delegate.CreateDelegate(ev.EventHandlerType, method);
+                ev.AddEventHandler(null, d);
+                OnModInspectDelegates[mod] = d;
+            }
+        }
+
+        internal void Defrisk(WildfrostMod mod)
+        {
+            if (OnModInspectDelegates.ContainsKey(mod))
+            {
+                EventInfo ev = typeof(StabilizerEvents).GetEvent("OnModInspect");
+                ev.RemoveEventHandler(null, OnModInspectDelegates[mod]);
+            }
+            
         }
 
         internal static ModTile MakeTile(Transform t, WildfrostMod mod, float size = 1.5f, bool active = true)
@@ -141,6 +192,17 @@ namespace Stabilizer
         {
             TileViewManager.properOpen = true;
             References.instance.StartCoroutine(SceneManager.Load("Mods",SceneType.Temporary));
+        }
+
+        internal void SaveConfigs()
+        {
+            ConfigStorage configs = FromConfigs();
+            (ConfigItemAttribute, FieldInfo)[] store = configs.Store;
+            foreach (var data in store)
+            {
+                data.Item1.defaultValue = data.Item2.GetValue(this).ToString();
+            }
+            configs.WriteToFile(Path.Combine(ModDirectory, "config.cfg"));
         }
     }
 }
