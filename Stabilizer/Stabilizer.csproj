@@ -17,7 +17,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>..\..\..\..\..\..\Program Files %28x86%29\Steam\steamapps\common\Wildfrost\Modded\Wildfrost_Data\StreamingAssets\Mods\Stabilizer\</OutputPath>
+    <OutputPath>..\..\..\..\..\..\Program Files %28x86%29\Steam\steamapps\common\Wildfrost\Modded\Wildfrost_Data\StreamingAssets\Mods\!!Stabilizer\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -42,6 +42,10 @@
     </Reference>
     <Reference Include="Assembly-CSharp-Publicized">
       <HintPath>..\..\..\..\Desktop\Managed\Assembly-CSharp-Publicized.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Config Manager">
+      <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\workshop\content\1811990\3175889529\Config Manager.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="DeadExtensions">
@@ -537,8 +541,9 @@
     <Compile Include="Compatibility\CompFinder.cs" />
     <Compile Include="Compatibility\ModInspectComp.cs" />
     <Compile Include="Compatibility\Tags.cs" />
+    <Compile Include="Fixes\PatchesModLocalUpdate.cs" />
     <Compile Include="Fixes\UtilMethods.cs" />
-    <Compile Include="Fixes\Patches.cs" />
+    <Compile Include="Fixes\PatchesGeneral.cs" />
     <Compile Include="Main.cs" />
     <Compile Include="StabilizerEvents.cs" />
     <Compile Include="TileView\ModInspectView.cs" />

@@ -80,10 +80,10 @@ namespace Stabilizer.TileView
             content.SetActive(false);
 
             Transform menu = scroll.transform.parent.parent.parent;
-            increment = UI.NewButton("Increment Button", menu, new Vector3(6.66f, 2.9f), new Vector2(0.5f, 1f), UI.OffYellow, IncreaseTilePerRow)
+            increment = UI.NewButton("Plus Button", menu, new Vector3(6.66f, 2.9f), new Vector2(0.5f, 1f), UI.OffYellow, DecreaseTilePerRow)
                 .WithText(0.4f, Vector3.zero, 0.1f * Vector2.one, "+", Color.black)
                 .parent.gameObject;
-            decrement = UI.NewButton("Decrement Button", menu, new Vector3(6.66f, 1.7f), new Vector2(0.5f, 1f), UI.OffYellow, DecreaseTilePerRow)
+            decrement = UI.NewButton("Minus Button", menu, new Vector3(6.66f, 1.7f), new Vector2(0.5f, 1f), UI.OffYellow, IncreaseTilePerRow)
                 .WithText(0.4f, Vector3.zero, 0.1f * Vector2.one, "-", Color.black)
                 .parent.gameObject;
 

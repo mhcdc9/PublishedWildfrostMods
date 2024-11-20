@@ -43,7 +43,10 @@ namespace Stabilizer.Fixes
             Log(list.Count.ToString());
             list.Do(t =>
             {
-                t.overrides = RemoveNulls(t.overrides);
+                if (t.overrides != null)
+                {
+                    t.overrides = RemoveNulls(t.overrides);
+                }
             });
             Log("Cleaned [Trait Overrides]");
         }

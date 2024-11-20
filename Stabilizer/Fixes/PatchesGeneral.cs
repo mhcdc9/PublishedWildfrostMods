@@ -11,7 +11,7 @@ using D = UnityEngine.Debug;
 
 namespace Stabilizer.Fixes
 {
-    internal static class Patches
+    internal static class PatchesGeneral
     {
         internal static T Get<T>(string name) where T : DataFile
         {
@@ -27,6 +27,7 @@ namespace Stabilizer.Fixes
             static void Postfix(ref ClassData[] __result) => __result = AddressableLoader.GetGroup<ClassData>("ClassData").ToArray();
         }
 
+        #region TargetConstraintPatches
         [HarmonyPatch()]
         class SkipStatusCheck
         {
@@ -97,6 +98,8 @@ namespace Stabilizer.Fixes
                 }
             }
         }
+        #endregion
+
 
         [HarmonyPatch(typeof(WildfrostMod.DebugLoggerTextWriter), nameof(WildfrostMod.DebugLoggerTextWriter.WriteLine))]
         internal class PatchHarmony
@@ -104,5 +107,7 @@ namespace Stabilizer.Fixes
             static bool Prefix() { Postfix(); return false; }
             static void Postfix() => HarmonyLib.Tools.Logger.ChannelFilter = HarmonyLib.Tools.Logger.LogChannel.Warn | HarmonyLib.Tools.Logger.LogChannel.Error;
         }
+
+
     }
 }

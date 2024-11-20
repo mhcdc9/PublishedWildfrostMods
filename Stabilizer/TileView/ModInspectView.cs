@@ -52,6 +52,7 @@ namespace Stabilizer.TileView
             Instance.gameObject.SetActive(true);
             Instance.StartCoroutine(StartCosmeticLayer(mod, Instance.bottomPanel.transform.GetChild(0) as RectTransform));
             StartContentLayer(mod, Instance.bottomPanel.transform.GetChild(1) as RectTransform);
+            Instance.bottomPanel.GetComponent<Wobbler>()?.WobbleRandom();
             Instance.GetComponent<Image>().color = new Color(0, 0, 0, 0.7f);
             Instance.holder.Mod = mod;
             Instance.holder.UpdateInfo();
@@ -109,7 +110,6 @@ namespace Stabilizer.TileView
         {
             yield return Sequences.Wait(dur);
             if (!Instance.enabled) { yield break; }
-            Instance.bottomPanel.GetComponent<Wobbler>()?.WobbleRandom();
             yield return ModInspectComp.RunCosmetic(mod, parent);
         }
 

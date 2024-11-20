@@ -134,7 +134,7 @@ namespace Backflip
                 stat.type = GameStatData.Type.Count;
                 stat.statName = "backflips";
                 stat.priority = priority;
-                stat.priorityAddOverPar = 1f;
+                stat.priorityAddOverPar = 2f;
                 stat.par = 10;
 
                 StringTable collection = LocalizationHelper.GetCollection("UI Text", new LocaleIdentifier(SystemLanguage.English));
