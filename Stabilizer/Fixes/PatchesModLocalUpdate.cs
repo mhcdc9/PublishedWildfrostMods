@@ -48,7 +48,7 @@ namespace Stabilizer.Fixes
             assemblyQualifiedDeclaringType: "System.Reflection.RuntimeAssembly, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089",
             nameof(Assembly.Location), MethodType.Getter)]
         public static bool Prefix(Assembly __instance, ref string __result)
-            => !AssemblyLocations.TryGetValue(__instance.FullName, out __result);
+            => !(enabled && AssemblyLocations.TryGetValue(__instance.FullName, out __result));
 
 
 

@@ -22,6 +22,7 @@ using Stabilizer.Compatibility;
 using System.Reflection;
 using ConfigItemAttribute = Deadpan.Enums.Engine.Components.Modding.WildfrostMod.ConfigItemAttribute;
 using WildfrostHopeMod;
+using WildfrostHopeMod.Configs;
 
 namespace Stabilizer
 {
@@ -55,7 +56,7 @@ namespace Stabilizer
 
         public override string[] Depends => new string[] { "hope.wildfrost.configs" };
 
-        public override string Title => "Mod Stabilizer v0.72";
+        public override string Title => "Mod Stabilizer v0.74";
 
         public override string Description => "[WIP] This mod enhances the experience of playing and dealing with multiple mods. Curently, it replaces the mod menu with an optional tile view with a search bar and a marker system. It also runs various procedures so that most mods no longer require a full restart after unloading them. Future plans is to add an infrastructure to allow mods to better interact with each other (or at least not conflict). Bugs and suggestion may be sent to @Michael C on the Wildfrost Discord. Enjoy!" +
             "\r\n\r\n[h3] Current Features [/h3]\r\n- Mod Tile View (requires leaving the main menu to first take effect)\r\n- Reward pool cleaning\r\n- Final boss swapper cleaning\r\n- Various once-of patches*\r\n- Failsafes on TargetConstraints that check for cards, statuses, or traits\r\n- (If enabled in the journal, restart required) Local mods can be updated without restarting Wildfrost. Simply place the new dll into the right place and unload/reload*\r\n- Mod Inspect Customization (See the modding forum post: Mod Project: Crossover & Compatibility for more details)\r\n\r\n" +
@@ -105,9 +106,16 @@ namespace Stabilizer
             GameObject.DontDestroyOnLoad(prefabHolder);
             prefabHolder.SetActive(false);
 
+            CreateLocalizedStrings();
+
             if (MarkerManager.markers.Count == 0)
             {
                 MarkerManager.LoadDictionary();
+            }
+
+            if (SceneManager.IsLoaded("MainMenu"))
+            {
+                PrepareModButton();
             }
 
             Bootstrap.Mods.Where(m => m.HasLoaded).Do(m => Frisk(m));
@@ -118,6 +126,7 @@ namespace Stabilizer
             Events.OnModUnloaded += PrepareCleaning;
             Events.OnSceneLoaded += SceneLoaded;
             Events.OnSceneUnload += SceneUnloaded;
+            ConfigManager.GetConfigSection(this).OnConfigChanged += ConfigChanged;
         }
 
         public override void Unload()
@@ -128,6 +137,11 @@ namespace Stabilizer
             HarmonyInstance.PatchAll(typeof(PatchesGeneral.PatchHarmony));
             HarmonyInstance.PatchAll(typeof(PatchModLocalUpdate));
 
+            if (SceneManager.IsLoaded("MainMenu"))
+            {
+                RevertModButton();
+            }
+
             Events.OnModLoaded -= Frisk;
             Events.OnModUnloaded -= Defrisk;
 
@@ -135,6 +149,41 @@ namespace Stabilizer
             Events.OnModUnloaded -= PrepareCleaning;
             Events.OnSceneLoaded -= SceneLoaded;
             Events.OnSceneUnload -= SceneUnloaded;
+            ConfigManager.GetConfigSection(this).OnConfigChanged -= ConfigChanged;
+        }
+
+        private void CreateLocalizedStrings()
+        {
+            string yesKey = "mhcdc9.wildfrost.stabilizer.yes";
+            string noKey = "mhcdc9.wildfrost.stabilizer.no";
+            string titleKey = "mhcdc9.wildfrost.stabilizer.cofirm";
+
+            StringTable ui = LocalizationHelper.GetCollection("UI Text", SystemLanguage.English);
+
+            ui.SetString(yesKey, "Yes");
+            ui.SetString(noKey, "No");
+            ui.SetString(titleKey, "Confirmation|\"Local Mod Update\" is intended only for modders and will affect the game even when this mod is unloaded. Do you still wish to continue?");
+
+            localization["yes"] = ui.GetString(yesKey);
+            localization["no"] = ui.GetString(noKey);
+            localization["confirm"] = ui.GetString(titleKey);
+
+        }
+
+        internal static Dictionary<string, LocalizedString> localization = new Dictionary<string, LocalizedString>();
+        private void ConfigChanged(ConfigItem item, object value)
+        {
+            if (item.fieldName == "dynamicLocalModUpdate")
+            {
+                Debug.Log("[Stabilizer] Config Item");
+                if (value is bool b && b == true)
+                {
+                    HelpPanelSystem.Show(localization["confirm"]);
+                    HelpPanelSystem.SetEmote(Prompt.Emote.Type.Scared);
+                    HelpPanelSystem.AddButton(HelpPanelSystem.ButtonType.Negative, localization["yes"], "Select", () => { dynamicLocalModUpdate = true; SaveConfigs(); });
+                    HelpPanelSystem.AddButton(HelpPanelSystem.ButtonType.Positive, localization["no"], "Back", () => { dynamicLocalModUpdate = false; SaveConfigs(); });
+                }
+            }
         }
 
         Dictionary<WildfrostMod, Delegate> OnModInspectDelegates = new Dictionary<WildfrostMod, Delegate>();
@@ -180,11 +229,24 @@ namespace Stabilizer
         {
             if (scene.name == "MainMenu")
             {
-                GameObject obj = GameObject.Find("Canvas/Safe Area/Menu/ButtonLayout/ModsButton/Animator/Button");
-                Button button = obj.GetComponent<Button>();
-                button.onClick.SetPersistentListenerState(0, UnityEngine.Events.UnityEventCallState.Off);
-                button.onClick.AddListener(LoadModScene);
+                PrepareModButton();
             }
+        }
+
+        private void PrepareModButton()
+        {
+            GameObject obj = GameObject.Find("Canvas/Safe Area/Menu/ButtonLayout/ModsButton/Animator/Button");
+            Button button = obj.GetComponent<Button>();
+            button.onClick.SetPersistentListenerState(0, UnityEngine.Events.UnityEventCallState.Off);
+            button.onClick.AddListener(LoadModScene);
+        }
+
+        private void RevertModButton()
+        {
+            GameObject obj = GameObject.Find("Canvas/Safe Area/Menu/ButtonLayout/ModsButton/Animator/Button");
+            Button button = obj.GetComponent<Button>();
+            button.onClick.SetPersistentListenerState(0, UnityEngine.Events.UnityEventCallState.EditorAndRuntime);
+            button.onClick.RemoveListener(LoadModScene);
         }
 
         private void SceneUnloaded(Scene scene)

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -7,6 +8,8 @@ using System.Threading.Tasks;
 using Deadpan.Enums.Engine.Components.Modding;
 using FMOD;
 using HarmonyLib;
+using TMPro;
+using UnityEngine;
 using D = UnityEngine.Debug;
 
 namespace Stabilizer.Fixes
@@ -80,6 +83,8 @@ namespace Stabilizer.Fixes
                 __instance.allowedCards = __instance.allowedCards.Where(x => x != null).ToArray();
             }
         }
+        #endregion
+
 
         [HarmonyPatch(typeof(OverallStatsSystem), "CampaignEnd")]
         class PreventEndRunCrash
@@ -96,9 +101,10 @@ namespace Stabilizer.Fixes
                     }
                     playerData.classData = dummyTribe;
                 }
+                playerData.inventory.upgrades = playerData.inventory.upgrades.Where(x => x != null).ToList();
             }
         }
-        #endregion
+        
 
 
         [HarmonyPatch(typeof(WildfrostMod.DebugLoggerTextWriter), nameof(WildfrostMod.DebugLoggerTextWriter.WriteLine))]
@@ -108,6 +114,88 @@ namespace Stabilizer.Fixes
             static void Postfix() => HarmonyLib.Tools.Logger.ChannelFilter = HarmonyLib.Tools.Logger.LogChannel.Warn | HarmonyLib.Tools.Logger.LogChannel.Error;
         }
 
+        [HarmonyPatch]
+        internal class PatchModAdded
+        {
+            [HarmonyPostfix]
+            [HarmonyPatch(typeof(InspectSystem), nameof(InspectSystem.CreatePopups))]
+            static void OnInspect(InspectSystem __instance)
+            {
+                WildfrostMod mod = Stabilizer.Instance.Get<CardData>(__instance.inspect.data.name)?.ModAdded;
+                if (mod != null)
+                {
+                    CreatePopup(mod, __instance.inspect, __instance.popUpPrefab, __instance.leftPopGroup, __instance.popups);
+                }
+            }
 
+            [HarmonyPostfix]
+            [HarmonyPatch(typeof(CardInspector), nameof(CardInspector.CreatePopups))]
+            internal static void OnCardInspect(CardInspector __instance, Entity inspect)
+            {
+                WildfrostMod mod = Stabilizer.Instance.Get<CardData>(inspect.data.name)?.ModAdded;
+                if (mod != null)
+                {
+                    PatchModAdded.CreatePopup(mod, inspect, __instance.popUpPrefab, __instance.leftPopGroup, __instance.popups, true);
+                }
+            }
+
+            static void CreatePopup(WildfrostMod mod, Entity inspect, CardPopUpPanel popUpPrefab, RectTransform leftPopGroup, List<Tooltip> popups, bool ignoreTimeScale = false)
+            {
+                CardPopUpPanel cardPopUpPanel = GameObject.Instantiate(popUpPrefab, leftPopGroup);
+                cardPopUpPanel.ignoreTimeScale = ignoreTimeScale;
+                cardPopUpPanel.gameObject.name = "Mod Added";
+                popups.Add(cardPopUpPanel);
+                cardPopUpPanel.Set("<size=0.2>Mod Added</size>", Color.white, $"<size=0.3>{mod.Title}</size>", new Color(1, 0.79f, 0.34f));
+            }
+
+            [HarmonyPostfix]
+            [HarmonyPatch(typeof(JournalCharm), nameof(JournalCharm.Hover))]
+            static void OnJournalCharmHover(JournalCharm __instance)
+            {
+                WildfrostMod mod = __instance.upgradeData?.ModAdded;
+                if (mod != null)
+                {
+                    if (!__instance.hover)
+                    {
+                        CardPopUp.AssignTo(__instance.rectTransform, __instance.popUpOffset.x, __instance.popUpOffset.y);
+                    }
+                    CardPopUp.AddPanel("Mod Added", "<color=#FFFFFF><size=0.2>Mod Added</size></color>", $"<color=#FFCA57><size=0.3>{mod.Title}</size></color>");
+                }
+            }
+
+            [HarmonyPostfix]
+            [HarmonyPatch(typeof(JournalCharm), nameof(JournalCharm.UnHover))]
+            [HarmonyPatch(typeof(CardCharmInteraction), nameof(CardCharmInteraction.HideDescription))]
+            static void OnJounalCharmUnHover()
+            {
+                CardPopUp.RemovePanel("Mod Added");
+            }
+
+            [HarmonyPostfix]
+            [HarmonyPatch(typeof(CardCharmInteraction), nameof(CardCharmInteraction.PopUpDescription))]
+            static void OnCharmHover(CardCharmInteraction __instance)
+            {
+                WildfrostMod mod = Stabilizer.Instance.Get<CardUpgradeData>(__instance.upgradeDisplay?.data?.name ?? "")?.ModAdded;
+                if (mod != null)
+                {
+                    CardPopUp.AddPanel("Mod Added", "<color=#FFFFFF><size=0.2>Mod Added</size></color>", $"<color=#FFCA57><size=0.3>{mod.Title}</size></color>");
+                }
+            }
+        }
+
+        [HarmonyPatch(typeof(JournalCharmManager), nameof(JournalCharmManager.LoadCharmData))]
+        class PatchCharmConflict
+        {
+            static bool Prefix(ref List<KeyValuePair<string, CardUpgradeData>> __result)
+            {
+                __result = (from a in (from a in AddressableLoader.GetGroup<CardUpgradeData>("CardUpgradeData")
+                                   where a.type == CardUpgradeData.Type.Charm && a.tier >= -2
+                                   select a).ToDictionary((CardUpgradeData a) => (a?.ModAdded?.GUID ?? "!!!") + a.title, (CardUpgradeData a) => a)
+                        orderby a.Value.tier >= 0 descending, a.Key
+                        select a).ToList();
+
+                return false;
+            }
+        }
     }
 }

@@ -104,6 +104,7 @@ namespace Stabilizer.TileView
                 References.instance.StartCoroutine(CreateTileView(GameObject.FindObjectOfType<ModsSceneManager>()));
                 Stabilizer.Instance.startAsTileView = true;
                 Stabilizer.Instance.SaveConfigs();
+                Toggle.GetComponentInChildren<TextMeshProUGUI>().text = "Tile View";
                 return;
             }
             bool toggle = newContent.activeSelf;
@@ -168,7 +169,7 @@ namespace Stabilizer.TileView
             grid.spacing = gapRatio * idealTileSize * Vector2.one;
 
             float y = newContent.GetComponent<RectTransform>().sizeDelta.y;
-            newContent.transform.localPosition = new Vector3(-newContent.transform.parent.transform.position.x, -y / 2, 0);
+            newContent.transform.localPosition = new Vector3(-newContent.transform.parent.transform.localPosition.x, -y / 2, 0);
 
             return idealTileSize;
         }
@@ -176,22 +177,7 @@ namespace Stabilizer.TileView
         {
             string s = SearchBar.text;
 
-            if (newContent?.gameObject?.activeSelf == false)
-            {
-                ModsSceneManager manager = GameObject.FindObjectOfType<ModsSceneManager>();
-                foreach (ModHolder holder in manager.Content.GetComponentsInChildren<ModHolder>(true))
-                {
-                    if (SearchBar.Satisfies(holder.Mod.Title.ToLower()) && MarkerManager.Satisfies(holder.Mod.GUID))
-                    {
-                        holder.gameObject.SetActive(true);
-                    }
-                    else
-                    {
-                        holder.gameObject.SetActive(false);
-                    }
-                }
-            }
-            else
+            if (newContent != null && newContent.activeSelf)
             {
                 foreach (ModTile tile in newContent.GetComponentsInChildren<ModTile>(true))
                 {
@@ -202,6 +188,22 @@ namespace Stabilizer.TileView
                     else
                     {
                         tile.gameObject.SetActive(false);
+                    }
+                }
+            }
+            else
+            {
+
+                ModsSceneManager manager = GameObject.FindObjectOfType<ModsSceneManager>();
+                foreach (ModHolder holder in manager.Content.GetComponentsInChildren<ModHolder>(true))
+                {
+                    if (SearchBar.Satisfies(holder.Mod.Title.ToLower()) && MarkerManager.Satisfies(holder.Mod.GUID))
+                    {
+                        holder.gameObject.SetActive(true);
+                    }
+                    else
+                    {
+                        holder.gameObject.SetActive(false);
                     }
                 }
             }

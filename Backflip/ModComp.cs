@@ -43,7 +43,7 @@ namespace Backflip
             {
                 booshuHolder.transform.eulerAngles = new Vector3(0, 0, 0);
                 LeanTween.moveLocal(booshuHolder, new Vector3(0,2,0), 0.6667f).setEase(Backflip.jumpCurve);
-                LeanTween.rotate(booshuHolder, new Vector3(0,0,-1), 0.6667f).setEase(Backflip.rotateCurve);
+                LeanTween.rotate(booshuHolder, new Vector3(0,0,1), 0.6667f).setEase(Backflip.rotateCurve);
                 yield return Sequences.Wait(0.6667f);
                 yield return Sequences.Wait(waitRange.Random());
             }
