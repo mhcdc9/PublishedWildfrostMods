@@ -403,3 +403,12 @@ FodyWeavers.xsd
 /TestMod/InBattleShopSequence.cs
 /BodyDropper
 /GamemodeAndClasses/TaggedClass.cs
+/Events/MiniEvents.csproj
+/Events/DetourSystem.cs
+/Events/DetourMain.cs
+/Events/MiniEvent.cs
+/Events/MiniEventComponents.cs
+/Events/MiniEventManager.cs
+/Events/UI.cs
+/Events/Examples/Misc.cs
+/Events/Properties/AssemblyInfo.cs
