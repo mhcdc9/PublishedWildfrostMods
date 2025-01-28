@@ -412,3 +412,4 @@ FodyWeavers.xsd
 /Events/UI.cs
 /Events/Examples/Misc.cs
 /Events/Properties/AssemblyInfo.cs
+/TestMod/SeperateDLL.cs
