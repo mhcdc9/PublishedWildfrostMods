@@ -94,7 +94,7 @@ namespace Detours.Examples
                     });
             }
 
-            public override bool RunFrame()
+            public override bool RunPreFrame()
             {
                 if (nextFrame == START)
                 {

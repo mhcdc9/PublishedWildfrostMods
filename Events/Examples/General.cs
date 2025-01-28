@@ -146,7 +146,7 @@ namespace Detours.Examples
             return false;
         }
 
-        public override bool RunFrame()
+        public override bool RunPreFrame()
         {
             if (nextFrame == "SUCCESS" || nextFrame == "YANKED")
             {
@@ -289,7 +289,7 @@ namespace Detours.Examples
             return false;
         }
 
-        public override bool RunFrame()
+        public override bool RunPreFrame()
         {
             switch(nextFrame)
             {
@@ -402,7 +402,7 @@ namespace Detours.Examples
                 choices: leave);
         }
 
-        public override bool RunFrame()
+        public override bool RunPreFrame()
         {
             if (nextFrame == START)
             {

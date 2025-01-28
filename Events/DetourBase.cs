@@ -18,46 +18,48 @@ namespace Detours
     public abstract class Detour
     {
         #region RunX and Routine Methods
-        public delegate IEnumerator ChoiceHandler(FrameChoice choice, Detour @event);
+        //public delegate IEnumerator ChoiceHandler(FrameChoice choice, Detour detour);
+        public delegate IEnumerator Handler();
 
-        public static event ChoiceHandler OnChoiceSelected;
+        public event Handler OnChoiceSelected;
+        public event Handler OnPreFrameStart;
 
-        public static IEnumerator InvokeChoiceSelected(FrameChoice choice, Detour @event)
+        /*public IEnumerator InvokeChoiceSelected(FrameChoice choice, Detour detour)
         {
             if (OnChoiceSelected == null) { yield break; }
 
             Delegate[] delegates = OnChoiceSelected.GetInvocationList();
             for (int i = 0; i < delegates.Length; i++)
             {
-                if (delegates[i] is ChoiceHandler ch)
+                if (delegates[i] is Handler ch)
                 {
-                    yield return ch(choice, @event);
+                    yield return ch(choice, detour);
                 }
             }
+        }*/
+
+        public virtual IEnumerator ChoiceSelectedRoutine()
+        {
+            yield return OnChoiceSelected?.Invoke();
         }
-        
+
         public virtual bool RunChoiceSelected()
         {
             return true;
         }
 
-        public virtual bool HasChoiceSelectedRoutine => false;
+        public virtual bool HasChoiceSelectedRoutine => (OnChoiceSelected != null);
 
-        public virtual IEnumerator ChoiceSelectedRoutine()
-        {
-            yield break;
-        }
+        public virtual bool HasFrameRoutine => (OnPreFrameStart != null);
 
-        public virtual bool HasFrameRoutine => false;
-
-        public virtual bool RunFrame()
+        public virtual bool RunPreFrame()
         {
             return true;
         }
 
-        public virtual IEnumerator FrameRoutine()
+        public virtual IEnumerator PreFrameRoutine()
         {
-            yield break;
+            yield return OnPreFrameStart?.Invoke();
         }
         #endregion RunX and Routine Methods
 
@@ -258,9 +260,9 @@ namespace Detours
             main.transform.SetParent(DetourHolder.instance.transform, false);
             while (nextFrame != END && nextFrame != SKIP)
             {
-                if (RunFrame() && HasFrameRoutine)
+                if (RunPreFrame() && HasFrameRoutine)
                 {
-                    yield return FrameRoutine();
+                    yield return PreFrameRoutine();
                 }
                 promptUpdate = false;
                 currentFrame = nextFrame;
@@ -270,7 +272,7 @@ namespace Detours
                 {
                     yield return ChoiceSelectedRoutine();
                 }
-                yield return InvokeChoiceSelected(selectedChoice, this);
+                //yield return InvokeChoiceSelected(selectedChoice, this);
             }
             DetourHolder.skip = (nextFrame == SKIP);
             End();
