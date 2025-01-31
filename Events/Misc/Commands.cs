@@ -87,7 +87,7 @@ namespace Detours.Misc
                 string[] args = currentArgs.Split(new Char[] { ' ' }, options: StringSplitOptions.None);
                 int length = args.Length;
 
-                predictedArgs = DetourSystem.allDetours.Keys.Select((s) => s).ToArray();
+                predictedArgs = DetourSystem.allDetours.Keys.Where((s) => s.ToLower().Contains(currentArgs.ToLower())).ToArray();
                 yield break;
             }
         }

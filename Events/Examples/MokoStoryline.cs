@@ -20,14 +20,8 @@ namespace Detours.Examples
 
         public override void Setup()
         {
-            if (TryGetData<int>("index", out int value))
-            {
-                currentIndex = value;
-            }
-            else
-            {
-                SetData("index", currentIndex);
-            }
+            currentIndex = 1;
+            SetData("index", currentIndex);
         }
         public override bool CanActivate(CampaignNode node)
         {

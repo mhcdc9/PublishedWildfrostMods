@@ -39,7 +39,7 @@ namespace Detours.Examples
                 new FrameChoice("FROST", "Take the \"Frost\" path. [+1 Frost]", "FROST", mod),
                 new FrameChoice("BORING", "Retrace your steps. [+1 Boring]", "BORING", mod),
             });
-            SetFrame(frame: "BORING", sprite: mod.ImagePath("wrong.png").ToSprite(),
+            SetFrame(frame: "BORING", sprite: DetourMain.instance.TryGet<CardData>("SpikeWall").mainSprite,
             text: "You turn around to find that there is no path behind you. Huh...",
             choices: new FrameChoice[]
             {
@@ -254,8 +254,13 @@ namespace Detours.Examples
         public override IEnumerator Run(CampaignNode node, string startFrame = "START")
         {
             //This could be checked a different way, but this way prevents deck manip strats :)
-            crewmate = References.PlayerData.inventory.deck.Where((c) => c.cardType.name == "Friendly").RandomItems(1)[0];
-            crewName = crewmate.title;
+            IEnumerable<CardData> companions = References.PlayerData.inventory.deck.Where((c) => c.cardType.name == "Friendly");
+            if (companions.Any())
+            {
+                crewmate = companions.InRandomOrder().First();
+                crewName = crewmate.title;
+            }
+            
             return base.Run(node,startFrame);
         }
 
@@ -324,7 +329,7 @@ namespace Detours.Examples
             };
 
             SetTitle("Item Trader");
-            SetFrame(START, sprite: DetourMain.instance.ImagePath("trader.png").ToSprite(),
+            SetFrame(START, sprite: DetourMain.instance.TryGet<CardData>("Spoof").mainSprite,
                 text: "You come across a mysterious man who wants to perform a bizarre trade where we won't know what we are offering: \n\n\"One for you, one for me. What could be more fair?\"",
                 choices: new FrameChoice[]
                 {
@@ -340,6 +345,12 @@ namespace Detours.Examples
             SetFrame("DECLINE",
                 text: "\"You're no fun. Guess I'll take my leave then.\"\n\nA the snap of his fingers, a gust of wind whisks the mysterious man from sight.",
                 choices: leaveArray);
+        }
+
+        public override IEnumerator Run(CampaignNode node, string startFrame)
+        {
+            cards = AddressableLoader.GetGroup<CardData>("CardData").Where((c) => c.cardType.name == "Item" || c.cardType.name == "Item").InRandomOrder().Take(15).Select((c) => c.name).ToArray();
+            return base.Run(node, startFrame);
         }
 
         public override bool RunChoiceSelected()
@@ -358,7 +369,7 @@ namespace Detours.Examples
         public string[] cards = new string[] { "Vimifier", "Peppereaper", "ZapOrb", "Peppermaton", "LuminSealant", "Junk", "Junk", "Junk", "Junk", "Junk", "Deadweight", "Deadweight", "Deadweight", "Deadweight", "Deadweight" };
         public CardData[] AvailableCards()
         {
-            return cards.Select((s) => DetourMain.instance.TryGet<CardData>(s).Clone()).InRandomOrder().ToArray();
+            return cards.Select((s) => DetourMain.instance.TryGet<CardData>(s).Clone()).ToArray();
         }
     }
 
@@ -376,7 +387,7 @@ namespace Detours.Examples
 
 
             SetTitle("Guessing Game");
-            SetFrame(START,
+            SetFrame(START, sprite: DetourMain.instance.ImagePath("quiz.png").ToSprite(),
                 text: "\"Welcome to the {edition}-th edition of <color=#000000>Quizley's Quiz Show</color>! I am your wonderful host Quizley, and today we have a special visitor today. You are in the presence of the Wildfrost Warrior, the Snowdwell Saviour, the Pride of the Tribe... Give a round of applause to...\"\n\n\"(Quick: What's your name?)\"",
                 choices: new FrameChoice[]
                 {

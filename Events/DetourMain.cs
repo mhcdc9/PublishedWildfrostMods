@@ -16,29 +16,43 @@ using UnityEngine.Localization.Tables;
 using UnityEngine.SceneManagement;
 using MonoMod.RuntimeDetour.Platforms;
 using Detours.Misc;
+using WildfrostHopeMod;
+using WildfrostHopeMod.Configs;
 
 namespace Detours
 {
     public class DetourMain : WildfrostMod
     {
-        [ConfigItem(0.7f, "", "Detour Chance")]
-        public float detourChance = 0.7f;
+        [ConfigManagerTitle("Detour Frequency")]
+        [ConfigManagerDesc("Determines how many generic detours you see in a run. Setting this config to 0 will remove all detours.")]
+        [ConfigSlider(0f,1f)]
+        [ConfigItem(0.3f, "", "Detour Chance")]
+        public float detourChance = 0.3f;
 
-        [ConfigItem(true, "", "Repeat Detours")]
-        public bool replenish = true;
+        [ConfigManagerTitle("Repeat Detours?")]
+        [ConfigManagerDesc("Determines whether generic detours can repeat multiple times in a run.")]
+        [ConfigItem(false, "", "Repeat Detours")]
+        public bool replenish = false;
 
+        [ConfigManagerTitle("Include Proof-of-Concepts")]
+        [ConfigManagerDesc("Determines if the proof-of concept detours are added to the pool (Warning: not recommended for a normal run)")]
         [ConfigItem(false, "", "Include Examples")]
         public bool addTestDetours = false;
 
+        [ConfigManagerTitle("# of Storylines")]
+        [ConfigManagerDesc("Determines the maximum amount of storylines (a curated sequence of detours) that can be added in a single run.")]
         [ConfigItem(3, "", "# of Storylines")]
         public int storylines = 3;
         public override string GUID => "mhcdc9.wildfrost.detours";
 
         public override string[] Depends => new string[0];
 
-        public override string Title => "Detours";
+        public override string Title => "Detour Framework";
 
-        public override string Description => "Add a framework for populating and creating \"detours\": smaller events that can occur before map events.";
+        public override string Description => "Inspired by Faster Than Light/Slay The Spire events, detours are small events that occur before a proper map event. These detours can be a group of small encounters or an overarching storyline. \n\n" +
+            "This mod is primarily a framework, but does include a couple of test detours (including FTL's giant alien spiders). To access them, turn on \"Include Proof-of-Concepts\" in the mod configs and start a new run. \n\n" +
+            "If you have the Another Console mod active, there are two new commands to help find and test detours: [detour start] and [detour frame]. \n\n" +
+            "For more information, please contact the developer on Steam or Discord (@Michael C).";
 
         public static DetourMain instance;
 
@@ -67,29 +81,62 @@ namespace Detours
             Events.OnCampaignGenerated += InsertDetours;
             Events.OnCampaignLoaded += CampaignLoaded;
             Events.OnModLoaded += Commands.CheckAnotherConsoleMod;
-            AddDetours();
+            ConfigManager.GetConfigSection(this).OnConfigChanged += ConfigChanged;
+            PackHelper.Initialize(this);
             base.Load();
         }
 
-        public static DetourPack examples;
-        public static Storyline exampleStory;
-        public void AddDetours()
+        //Holds the detours and storylines in a way irrespecitve of reference order (unnecessart for this mod; essential for all others)
+        internal class PackHelper
         {
-            if (examples == null)
+            public static PackHelper instance;
+
+            public WildfrostMod mod;
+            public DetourPack examples;
+            public Storyline exampleStory;
+            
+            public PackHelper(DetourMain mod)
             {
-                examples = new DetourPack(this, "Proof Of Concepts")
-                {
-                    new IllusionOfChoice("Illusion Of Choice", this),
-                    new CraneMachine("Skill Crane", this),
-                    new AlienSpiders("Giant Ice Spiders", this),
-                    new HiLowGame("Quiz Show", this),
-                    new CardTrader("Card Trader", this)
-                };
-                exampleStory = new MokoStoryline(this, "The Path of the Moko");
+                this.mod = mod;
             }
-            examples.Register();
-            exampleStory.Register();
+
+            public static void Initialize(DetourMain mod)
+            {
+                if (instance == null)
+                {
+                    instance = new PackHelper(mod);
+                }
+                if (mod.addTestDetours)
+                {
+                    instance.AddDetours();
+                }
+            }
+
+            public void AddDetours()
+            {
+                if (examples == null)
+                {
+                    examples = new DetourPack(mod, "Proof Of Concepts")
+                {
+                    new IllusionOfChoice("Illusion Of Choice", mod),
+                    new CraneMachine("Skill Crane", mod),
+                    new AlienSpiders("Giant Ice Spiders", mod),
+                    new HiLowGame("Quiz Show", mod),
+                    new CardTrader("Card Trader", mod)
+                };
+                    exampleStory = new MokoStoryline(mod, "The Path of the Moko");
+                }
+                examples.Register();
+                exampleStory.Register();
+            }
+
+            public void RemoveDetours()
+            {
+                examples.Unregister();
+                exampleStory.Unregister();
+            }
         }
+        
 
         public override void Unload()
         {
@@ -97,7 +144,24 @@ namespace Detours
             Events.OnCampaignGenerated -= InsertDetours;
             Events.OnCampaignLoaded -= CampaignLoaded;
             Events.OnModLoaded -= Commands.CheckAnotherConsoleMod;
+            ConfigManager.GetConfigSection(this).OnConfigChanged -= ConfigChanged;
             base.Unload();
+        }
+
+        private void ConfigChanged(ConfigItem item, object value)
+        {
+            if (item.fieldName == "addTestDetours")
+            {
+                bool b = (bool)value;
+                if (b)
+                {
+                    PackHelper.instance.AddDetours();
+                }
+                else
+                {
+                    PackHelper.instance.RemoveDetours();
+                }
+            }
         }
 
         private void CampaignLoaded()

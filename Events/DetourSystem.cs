@@ -38,6 +38,11 @@ namespace Detours
                 Storyline.StoryNode.data = new Dictionary<string, object>();
             }
             Storyline.StoryNode.data.Add(storylineTitle, collection);
+            for(int i = 0; i < collection.Count; i++)
+            {
+                string item = collection[i];
+                allStorylines[item].Setup();
+            }
             
         }
 

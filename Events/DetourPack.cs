@@ -102,6 +102,11 @@ namespace Detours
             }
         }
 
+        public virtual void Unregister()
+        {
+            DetourSystem.packs.Remove(this);
+        }
+
         public List<Detour> GetList()
         {
             return _list;
@@ -137,6 +142,12 @@ namespace Detours
             DetourSystem.storylines.Add(this);
             DetourSystem.allStorylines[QualifiedName] = this;
         }
+
+        public override void Unregister()
+        {
+            DetourSystem.storylines.Remove(this);
+        }
+
         public virtual void Setup()
         {
 

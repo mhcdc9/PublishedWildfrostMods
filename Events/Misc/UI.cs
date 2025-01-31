@@ -106,6 +106,7 @@ namespace Detours.Misc
             _text.color = color;
             _text.text = text;
             _text.alignment = alignment;
+            _text.fontSizeMin = 0.6f * fontSize;
 
             return obj.GetOrAdd<RectTransform>();
         }
