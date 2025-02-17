@@ -106,13 +106,25 @@ namespace Stabilizer.Fixes
         }
         
 
-
+        //This is internal so that main can reference it.
         [HarmonyPatch(typeof(WildfrostMod.DebugLoggerTextWriter), nameof(WildfrostMod.DebugLoggerTextWriter.WriteLine))]
         internal class PatchHarmony
         {
             static bool Prefix() { Postfix(); return false; }
             static void Postfix() => HarmonyLib.Tools.Logger.ChannelFilter = HarmonyLib.Tools.Logger.LogChannel.Warn | HarmonyLib.Tools.Logger.LogChannel.Error;
         }
+
+        [HarmonyPatch(typeof(Text), nameof(Text.ToKeyword))]
+        class PatchKeywordText
+        {
+            static KeywordData Postfix(KeywordData __result)
+            {
+                return __result ?? Stabilizer.missingKeyword;
+            }
+        }
+
+
+        #region ModAdded
 
         [HarmonyPatch]
         internal class PatchModAdded
@@ -197,5 +209,9 @@ namespace Stabilizer.Fixes
                 return false;
             }
         }
+
+        #endregion ModAdded
+
+
     }
 }

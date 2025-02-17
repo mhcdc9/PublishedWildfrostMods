@@ -564,6 +564,8 @@
     <Compile Include="Fixes\PatchesModLocalUpdate.cs" />
     <Compile Include="Fixes\UtilMethods.cs" />
     <Compile Include="Fixes\PatchesGeneral.cs" />
+    <Compile Include="Journal\JournalFilterManager.cs" />
+    <Compile Include="Journal\JournalFilterSearch.cs" />
     <Compile Include="Main.cs" />
     <Compile Include="StabilizerEvents.cs" />
     <Compile Include="TileView\ModInspectView.cs" />

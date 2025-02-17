@@ -16,8 +16,11 @@ namespace Stabilizer
         public static Color MenuYellow => new Color(1f, 0.7f, 0.3f);
         public static Color MenuToggle => new Color(1f, 1f, 0.5f, 0.5f);
         public static Color OffYellow => new Color(1f, 0.9f, 0.6f, 0.9f);
+        public static Color TabTan => new Color(0.75f, 0.5f, 0.3f, 1);
+        public static Color SelectedTan => new Color(0.9f, 0.8f, 0.7f, 0.95f);
 
         public static Color Reddish => new Color(1f, 0f, 0f, 0.5f);
+        public static Color ExitRed => new Color(1f, 0.3f, 0.3f, 1f);
         public static Color Empty => new Color(1, 1, 1, 0);
         public static Color Translucent => new Color(1f, 1f, 1f, 0.5f);
         public static RectTransform NewButton(string name, Transform t, Vector3 position, Vector2 size, Color color, UnityAction action)

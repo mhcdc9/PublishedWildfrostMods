@@ -87,6 +87,12 @@ namespace VolatileDeck
                         type = "Units";
                         break;
                     case "Item":
+                        if (card.name == "LuminVase")
+                        {
+                            continue;
+                        }
+                        type = "Items";
+                        break;
                     case "Clunker":
                         type = "Items";
                         break;

@@ -87,12 +87,14 @@ namespace Stabilizer.TileView
                 .WithText(0.4f, Vector3.zero, 0.1f * Vector2.one, "-", Color.black)
                 .parent.gameObject;
 
+            int pauseIndex = 0;
             foreach (var mod in Bootstrap.Mods)
             {
                 bool active = SearchBar.Satisfies(mod.Title.ToLower()) && MarkerManager.Satisfies(mod.GUID);
                 ModTile tile = Stabilizer.MakeTile(newContent.transform, mod, (1-gapRatio)*idealTileSize, active);
                 //tile.transform.position = new Vector2(Dead.PettyRandom.Range(-10f, 10f), Dead.PettyRandom.Range(-5f, 5f));
-                if (active) { yield return Sequences.Wait(0.02f); }
+                pauseIndex++;
+                if (active && pauseIndex == Stabilizer.Instance.tilesPerRow) { pauseIndex = 0;  yield return Sequences.Wait(0.05f); }
             }
             populated = true;
         }

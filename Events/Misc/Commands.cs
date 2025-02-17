@@ -7,7 +7,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
-using WildfrostHopeMod.CommandsConsole;
 using static Console;
 
 namespace Detours.Misc
@@ -36,9 +35,12 @@ namespace Detours.Misc
 
         private static IEnumerator AddCustomCommands(WildfrostMod mod)
         {
-            yield return new WaitUntil(() => ConsoleMod.instantiated);
-            commands.Add(new CommandSTART());
-            commands.Add(new CommandTOFRAME());
+            yield return new WaitUntil(() => SceneManager.Loaded.ContainsKey("MainMenu"));
+            if (commands != null)
+            {
+                commands.Add(new CommandSTART());
+                commands.Add(new CommandTOFRAME());
+            }
         }
 
         public class CommandSTART : Command

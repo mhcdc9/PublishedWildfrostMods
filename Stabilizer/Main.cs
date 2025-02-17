@@ -23,6 +23,8 @@ using System.Reflection;
 using ConfigItemAttribute = Deadpan.Enums.Engine.Components.Modding.WildfrostMod.ConfigItemAttribute;
 using WildfrostHopeMod;
 using WildfrostHopeMod.Configs;
+using Stabilizer.Journal;
+using static Stabilizer.Journal.JournalFilterManager;
 
 namespace Stabilizer
 {
@@ -97,10 +99,21 @@ namespace Stabilizer
 
         }
 
+        public static KeywordData missingKeyword;
 
         public override void Load()
         {
             base.Load();
+
+            if (missingKeyword == null)
+            {
+                missingKeyword = new KeywordDataBuilder(this).Create("missingkeyword")
+                    .WithTitle("Missing Keyword!")
+                    .WithDescription("A game restart may fix this")
+                    .WithTitleColour(new Color(1f, 0f, 0.25f))
+                    .WithTitleColour(new Color(1f, 0f, 0f))
+                    .Build();
+            }
 
             prefabHolder = new GameObject(GUID);
             GameObject.DontDestroyOnLoad(prefabHolder);
@@ -116,6 +129,11 @@ namespace Stabilizer
             if (SceneManager.IsLoaded("MainMenu"))
             {
                 PrepareModButton();
+            }
+
+            if (SceneManager.IsLoaded("PauseScreen"))
+            {
+                JournalFilterManager.StartJournalFilter();
             }
 
             Bootstrap.Mods.Where(m => m.HasLoaded).Do(m => Frisk(m));
@@ -140,6 +158,11 @@ namespace Stabilizer
             if (SceneManager.IsLoaded("MainMenu"))
             {
                 RevertModButton();
+            }
+
+            if(SceneManager.IsLoaded("PauseScreen"))
+            {
+                JournalFilterManager.StartJournalFilter();
             }
 
             Events.OnModLoaded -= Frisk;
@@ -198,6 +221,7 @@ namespace Stabilizer
                 ev.AddEventHandler(null, d);
                 OnModInspectDelegates[mod] = d;
             }
+            PatchJournalCardManager.reset = true;
         }
 
         internal void Defrisk(WildfrostMod mod)
@@ -230,6 +254,10 @@ namespace Stabilizer
             if (scene.name == "MainMenu")
             {
                 PrepareModButton();
+            }
+            else if (scene.name == "PauseScreen")
+            {
+                JournalFilterManager.StartJournalFilter();
             }
         }
 
