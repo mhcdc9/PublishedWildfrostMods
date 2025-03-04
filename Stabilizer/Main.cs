@@ -58,7 +58,7 @@ namespace Stabilizer
 
         public override string[] Depends => new string[] { "hope.wildfrost.configs" };
 
-        public override string Title => "Mod Stabilizer v0.74";
+        public override string Title => "Mod Stabilizer v0.8";
 
         public override string Description => "[WIP] This mod enhances the experience of playing and dealing with multiple mods. Curently, it replaces the mod menu with an optional tile view with a search bar and a marker system. It also runs various procedures so that most mods no longer require a full restart after unloading them. Future plans is to add an infrastructure to allow mods to better interact with each other (or at least not conflict). Bugs and suggestion may be sent to @Michael C on the Wildfrost Discord. Enjoy!" +
             "\r\n\r\n[h3] Current Features [/h3]\r\n- Mod Tile View (requires leaving the main menu to first take effect)\r\n- Reward pool cleaning\r\n- Final boss swapper cleaning\r\n- Various once-of patches*\r\n- Failsafes on TargetConstraints that check for cards, statuses, or traits\r\n- (If enabled in the journal, restart required) Local mods can be updated without restarting Wildfrost. Simply place the new dll into the right place and unload/reload*\r\n- Mod Inspect Customization (See the modding forum post: Mod Project: Crossover & Compatibility for more details)\r\n\r\n" +
@@ -77,6 +77,10 @@ namespace Stabilizer
 
         [ConfigItem(5, comment: "", forceTitle: "Tiles Per Row")]
         public int tilesPerRow = 5;
+
+        [ConfigItem(true, comment: "", forceTitle: "Journal Filter")]
+        //[ConfigManagerDesc("The search bar and groupings still work in list view")]
+        public bool journalFilter = true;
 
         [ConfigItem(false, comment:"", forceTitle = "Local Mod Update")]
         //[ConfigManagerDesc("Update mods while still in game\n!!Restart required to take effect!!")]
@@ -109,7 +113,7 @@ namespace Stabilizer
             {
                 missingKeyword = new KeywordDataBuilder(this).Create("missingkeyword")
                     .WithTitle("Missing Keyword!")
-                    .WithDescription("A game restart may fix this")
+                    .WithDescription("A game restart (or a respelling) may fix this")
                     .WithTitleColour(new Color(1f, 0f, 0.25f))
                     .WithTitleColour(new Color(1f, 0f, 0f))
                     .Build();
@@ -131,7 +135,7 @@ namespace Stabilizer
                 PrepareModButton();
             }
 
-            if (SceneManager.IsLoaded("PauseScreen"))
+            if (SceneManager.IsLoaded("PauseScreen") && journalFilter)
             {
                 JournalFilterManager.StartJournalFilter();
             }
@@ -162,7 +166,7 @@ namespace Stabilizer
 
             if(SceneManager.IsLoaded("PauseScreen"))
             {
-                JournalFilterManager.StartJournalFilter();
+                JournalFilterManager.EndFilter();
             }
 
             Events.OnModLoaded -= Frisk;
@@ -205,6 +209,22 @@ namespace Stabilizer
                     HelpPanelSystem.SetEmote(Prompt.Emote.Type.Scared);
                     HelpPanelSystem.AddButton(HelpPanelSystem.ButtonType.Negative, localization["yes"], "Select", () => { dynamicLocalModUpdate = true; SaveConfigs(); });
                     HelpPanelSystem.AddButton(HelpPanelSystem.ButtonType.Positive, localization["no"], "Back", () => { dynamicLocalModUpdate = false; SaveConfigs(); });
+                }
+            }
+
+            if (item.fieldName == "journalFilter")
+            {
+                Debug.Log("[Stabilizer] Config Item");
+                if (value is bool b)
+                {
+                    if (b)
+                    {
+                        JournalFilterManager.StartJournalFilter();
+                    }
+                    else
+                    {
+                        JournalFilterManager.EndFilter();
+                    }
                 }
             }
         }
@@ -255,7 +275,7 @@ namespace Stabilizer
             {
                 PrepareModButton();
             }
-            else if (scene.name == "PauseScreen")
+            else if (scene.name == "PauseScreen" && journalFilter)
             {
                 JournalFilterManager.StartJournalFilter();
             }

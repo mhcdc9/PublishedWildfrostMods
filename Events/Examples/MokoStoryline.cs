@@ -12,6 +12,7 @@ namespace Detours.Examples
     internal class MokoStoryline : Storyline
     {
         static int currentIndex = 1;
+        static int timesSkipped = 0;
 
         public MokoStoryline(WildfrostMod mod, string name, bool active = true, int copies = 1) : base(mod, name, active, copies)
         {
@@ -21,6 +22,7 @@ namespace Detours.Examples
         public override void Setup()
         {
             currentIndex = 1;
+            timesSkipped = 0;
             SetData("index", currentIndex);
         }
         public override bool CanActivate(CampaignNode node)
@@ -29,7 +31,7 @@ namespace Detours.Examples
             {
                 currentIndex = value;
             }
-            return (currentIndex <= 4 && node.type.isBattle);
+            return (currentIndex <= 4 && node.type.isBattle && Dead.PettyRandom.Range(0f,1f) < 1f - 0.5f* timesSkipped);
         }
         public override IEnumerator Run(CampaignNode node, string startFrame = "START")
         {
@@ -137,6 +139,9 @@ namespace Detours.Examples
                         case "moko_makoko":
                             leader.counter = 1;
                             currentIndex++;
+                            break;
+                        case "DECLINE":
+                            timesSkipped++;
                             break;
 
                     }

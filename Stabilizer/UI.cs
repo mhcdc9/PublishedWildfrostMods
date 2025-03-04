@@ -23,7 +23,19 @@ namespace Stabilizer
         public static Color ExitRed => new Color(1f, 0.3f, 0.3f, 1f);
         public static Color Empty => new Color(1, 1, 1, 0);
         public static Color Translucent => new Color(1f, 1f, 1f, 0.5f);
-        public static RectTransform NewButton(string name, Transform t, Vector3 position, Vector2 size, Color color, UnityAction action)
+
+        public static RectTransform AddLayoutElement(this RectTransform t, Vector2 min, Vector2 pref, Vector2 flex)
+        {
+            LayoutElement element = t.gameObject.AddComponent<LayoutElement>();
+            element.minWidth = min.x;
+            element.minHeight = min.y;
+            element.preferredWidth = pref.x;
+            element.preferredHeight = pref.y;
+            element.flexibleWidth = flex.x;
+            element.flexibleHeight = flex.y;
+            return t;
+        }
+        public static RectTransform NewButton(this Transform t, string name, Vector3 position, Vector2 size, Color color, UnityAction action)
         {
             GameObject button = new GameObject(name, new Type[] { typeof(RectTransform), typeof(Image), typeof(Button) });
             button.GetComponent<RectTransform>().sizeDelta = size;

@@ -50,7 +50,7 @@ namespace Stabilizer.TileView
             {
                 SmoothScrollRect scroll = GameObject.Find("Canvas/SafeArea/Menu/Panel/Positioner/Scroll View").GetComponent<SmoothScrollRect>();
                 Transform menu = scroll.transform.parent.parent.parent;
-                Toggle = UI.NewButton("Toggle Button", menu, new Vector3(-4.3f, 5.1f), new Vector2(2f, 0.4f), UI.MenuToggle, ToggleTileView);
+                Toggle = menu.NewButton("Toggle Button", new Vector3(-4.3f, 5.1f), new Vector2(2f, 0.4f), UI.MenuToggle, ToggleTileView);
                 (Toggle as RectTransform).WithText(0.4f, Vector3.zero, Vector2.zero, notTileView ? "List View" : "Tile View", Color.black);
                 SearchBar.CreateSearchBar(menu);
                 MarkerManager.CreateTagManager(menu);
@@ -80,10 +80,10 @@ namespace Stabilizer.TileView
             content.SetActive(false);
 
             Transform menu = scroll.transform.parent.parent.parent;
-            increment = UI.NewButton("Plus Button", menu, new Vector3(6.66f, 2.9f), new Vector2(0.5f, 1f), UI.OffYellow, DecreaseTilePerRow)
+            increment = menu.NewButton("Plus Button", new Vector3(6.66f, 2.9f), new Vector2(0.5f, 1f), UI.OffYellow, DecreaseTilePerRow)
                 .WithText(0.4f, Vector3.zero, 0.1f * Vector2.one, "+", Color.black)
                 .parent.gameObject;
-            decrement = UI.NewButton("Minus Button", menu, new Vector3(6.66f, 1.7f), new Vector2(0.5f, 1f), UI.OffYellow, IncreaseTilePerRow)
+            decrement = menu.NewButton("Minus Button", new Vector3(6.66f, 1.7f), new Vector2(0.5f, 1f), UI.OffYellow, IncreaseTilePerRow)
                 .WithText(0.4f, Vector3.zero, 0.1f * Vector2.one, "-", Color.black)
                 .parent.gameObject;
 

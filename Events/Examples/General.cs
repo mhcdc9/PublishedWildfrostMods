@@ -357,7 +357,7 @@ namespace Detours.Examples
         {
             if (selectedChoice is FrameChoiceSelectCard e)
             {
-                CardData offering = References.PlayerData.inventory.deck.Where((c) => c.cardType.name == "Item" || c.cardType.name == "Clunker").RandomItems(1)[0];
+                CardData offering = References.PlayerData.inventory.deck.Where((c) => (c.cardType.name == "Item" || c.cardType.name == "Clunker") && c.name != "LuminSealant" && c.name != "BrokenVase").RandomItems(1)[0];
                 References.PlayerData.inventory.deck.Remove(offering);
                 References.PlayerData.inventory.deck.Add(e.selected);
                 stolenCard = offering.title;

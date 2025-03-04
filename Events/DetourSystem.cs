@@ -32,7 +32,7 @@ namespace Detours
 
         public static void SelectStorylines()
         {
-            SaveCollection<string> collection = new SaveCollection<string>(storylines.Take(Math.Min(storylines.Count, DetourMain.instance.storylines)).Select(s => s.QualifiedName).ToArray());
+            SaveCollection<string> collection = new SaveCollection<string>(storylines.InRandomOrder().Take(Math.Min(storylines.Count, DetourMain.instance.storylines)).Select(s => s.QualifiedName).ToArray());
             if (Storyline.StoryNode.data == null)
             {
                 Storyline.StoryNode.data = new Dictionary<string, object>();

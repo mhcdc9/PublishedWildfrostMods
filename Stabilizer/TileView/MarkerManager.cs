@@ -103,7 +103,7 @@ namespace Stabilizer.TileView
             public Transform highlightBox;
             public void Assign(Transform t)
             {
-                highlightBox = UI.NewButton(title, t, Vector3.zero, new Vector2(0.6f, 0.6f), new Color(1, 1, 1, 0f), Toggle)
+                highlightBox = t.NewButton(title, Vector3.zero, new Vector2(0.6f, 0.6f), new Color(1, 1, 1, 0f), Toggle)
                 .WithBox(Vector3.zero, new Vector2(0.05f,0.05f), new Color(1,1,1,0))
                 .WithText(0.3f, new Vector3(0, -0.03f, 0), Vector2.zero, symbol, Color.black)
                 .parent;
@@ -268,7 +268,7 @@ namespace Stabilizer.TileView
             parent.transform.SetParent(t);
             parent.transform.localPosition = position;
 
-            GameObject editMarkersButton = UI.NewButton("Edit Button", parent.transform, new Vector3(-.6f, -.1f, 0), new Vector2(1.75f, 0.45f), UI.OffYellow, StartEditing)
+            GameObject editMarkersButton = parent.transform.NewButton("Edit Button", new Vector3(-.6f, -.1f, 0), new Vector2(1.75f, 0.45f), UI.OffYellow, StartEditing)
                 .WithText(0.4f, Vector3.zero, Vector2.zero, "Edit", Color.black, TextAlignmentOptions.Center).parent.gameObject;
             t_edit = editMarkersButton.GetComponent<RectTransform>();
             t_edit.pivot = new Vector2(1f, 0.5f);

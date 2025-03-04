@@ -14,38 +14,55 @@ namespace Stabilizer.Journal
     internal class JournalFilterManager : MonoBehaviour
     {
         static JournalFilterManager instance;
+        internal static bool Active => _active;
+        static bool _active = false;
 
         internal static JournalCardManager jcm;
         internal static List<WildfrostMod> mods = new List<WildfrostMod>(); 
         internal static int index = -1;
         public static void StartJournalFilter()
         {
-            if (instance != null) { return; }
+            if (instance != null) 
+            { 
+                instance.transform.parent.gameObject.SetActive(true); 
+                _active = true; 
+                return; 
+            }
             //Canvas/SafeArea/Menu/Journal/Positioner/Pages/Page1/
             Transform parent = new GameObject("Journal Filter Group").transform;
             parent.SetParent(GameObject.Find("Canvas/SafeArea/Menu/Journal/Positioner").transform);
 
             parent.position = new Vector3(0, -0.45f, 0);
 
-            RectTransform text = UI.NewButton("Filter Tab", parent, new Vector3(-3.6f,5.0f), new Vector2(4f, 0.6f), UI.SelectedTan, OpenSearch)
+            RectTransform text = parent.NewButton("Filter Tab", new Vector3(-3.6f,5.0f), new Vector2(4f, 0.6f), UI.SelectedTan, OpenSearch)
                 .WithText(0.4f, new Vector3(0,0.05f,0), 0.2f*Vector2.one, "Filter: None", Color.black);
             text.GetComponent<TextMeshProUGUI>().enableAutoSizing = true;
             Transform transform = text.parent;
 
-            UI.NewButton("Left Button", parent, new Vector3(-6f, 5f), new Vector2(0.6f, 0.6f), UI.SelectedTan, DecrementFilter)
+            parent.NewButton("Left Button", new Vector3(-6f, 5f), new Vector2(0.6f, 0.6f), UI.SelectedTan, DecrementFilter)
                 .WithText(0.5f, new Vector3(0, 0.05f, 0), Vector2.zero, "<", Color.black);
 
-            UI.NewButton("Right Button", parent, new Vector3(-1.2f, 5f), new Vector2(0.6f, 0.6f), UI.SelectedTan, IncrementFilter)
+            parent.NewButton("Right Button", new Vector3(-1.2f, 5f), new Vector2(0.6f, 0.6f), UI.SelectedTan, IncrementFilter)
                 .WithText(0.5f, new Vector3(0, 0.05f, 0), Vector2.zero, ">", Color.black);
 
-            UI.NewButton("Clear Button", parent, new Vector3(-0.5f, 5f), new Vector2(0.6f, 0.6f), UI.ExitRed, ClearFilter)
+            parent.NewButton("Clear Button", new Vector3(-0.5f, 5f), new Vector2(0.6f, 0.6f), UI.ExitRed, ClearFilter)
                 .WithText(0.45f, new Vector3(0, 0.05f, 0), Vector2.zero, "X", Color.black);
 
             parent.SetSiblingIndex(1);
             instance = transform.gameObject.AddComponent<JournalFilterManager>();
 
+            _active = true;
             //UI.NewButton("Search Tab", parent, new Vector3(1.4f, 4.96f), new Vector2(1.75f, 0.45f), UI.OffYellow, OpenFilter)
                 //.WithText(0.4f, Vector3.zero, Vector2.zero, "Search", Color.black, TMPro.TextAlignmentOptions.Center);
+        }
+
+        public static void EndFilter()
+        {
+            if (instance != null)
+            {
+                instance.transform.parent.gameObject.SetActive(false);
+                _active = false;
+            }
         }
 
         public static void OpenSearch()
@@ -133,6 +150,10 @@ namespace Stabilizer.Journal
             [HarmonyPatch(typeof(JournalCardManager), nameof(JournalCardManager.OnEnable), new Type[0])]
             internal static void CreateList(JournalCardManager __instance)
             {
+                if (!Active)
+                {
+                    return;
+                }
                 jcm = __instance;
                 if (!reset) 
                 { 
@@ -170,7 +191,10 @@ namespace Stabilizer.Journal
             })]
             internal static void KeepFilter()
             {
-                Filter(index);
+                if (Active)
+                {
+                    Filter(index);
+                }
             }
         }
     }
