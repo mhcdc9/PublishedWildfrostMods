@@ -188,7 +188,7 @@ namespace Detours
                 {
                     node.data.Add(DetourSystem.detourTitle, detour.QualifiedName);
                     detour.Setup(node);
-                    Debug.Log($"[Detour] Assigned detour [{detour.name}]");
+                    Debug.Log($"[Detours] Assigned detour [{detour.name}]");
                     detours.Remove(detour);
                 }
                 else if (replenish)

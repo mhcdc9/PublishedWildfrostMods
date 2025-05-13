@@ -41,6 +41,14 @@ namespace MultiplayerBase.UI
             return newButtonObject.GetComponent<Button>();
         }
 
+        public static Transform AddLayoutElement(this Transform t, Vector2 minDim)
+        {
+            LayoutElement el = t.gameObject.AddComponent<LayoutElement>();
+            el.minWidth = minDim.x;
+            el.minHeight = minDim.y;
+            return t;
+        }
+
         public static GameObject ButtonTemplateWithIcon(Transform transform, Vector2 totalDim, Vector2 iconDim, Vector3 pos, string text, Color color, float innerPadding, float outerPadding)
         {
             GameObject obj1 = HelperUI.ButtonTemplate(transform, totalDim, pos, text, color).gameObject;

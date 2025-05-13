@@ -34,7 +34,7 @@ namespace EyeEyeEye
 
             public override string format => "eye <posX> <posY> <scaleX> <scaleY> <rotation> or eye here";
 
-            public override string desc => "Create a frosty eye";
+            public override string desc => "Create frosty eyes for frosty cards.";
 
             public override bool IsRoutine => false;
             public override void Run(string args)
@@ -201,7 +201,16 @@ namespace EyeEyeEye
                 for (int i = CommandEYE.transforms.Count - 1; i >= 0; i--)
                 {
                     Transform tr = CommandEYE.transforms[i];
+                    if (tr == null)
+                        continue;
                     (float, float, float, float, float) data = (tr.localPosition.x, tr.localPosition.y, tr.localScale.x, tr.localScale.y, tr.rotation.eulerAngles.z);
+                    if (entity.data.cardType.name == "Leader")
+                    {
+                        data.Item1 += 0.05f;
+                        data.Item2 += 0.45f;
+                        data.Item3 += 0.08f;
+                        data.Item4 += 0.08f;
+                    }
                     list.Insert(0,data);
                     CommandEYE.transforms[i].gameObject.Destroy();
                     CommandEYE.transforms.RemoveAt(i);

@@ -26,6 +26,7 @@ namespace Detours
 
         public static string PostProcess(string s, Color highlight)
         {
+            s = Text.Process(s);
             int state = 0;
             int startIndex = -1;
             int endIndex = -1;
@@ -112,6 +113,8 @@ namespace Detours
                 panel.GetComponent<RectUpdater>().mod = DetourHolder.current.mod;
             }
             textbox = panel.GetComponent<RectTransform>().WithText(fontSize, Vector3.zero, padding * Vector2.one, "", color, alignment).GetComponent<TextMeshProUGUI>();
+            textbox.enableAutoSizing = true;
+            textbox.fontSizeMax = fontSize;
             textbox.GetComponent<RectTransform>().sizeDelta = panel.GetComponent<RectTransform>().sizeDelta - padding * Vector2.one;
             textbox.transform.localPosition = Vector3.zero;
             lastText = texts[Detour.START].GetLocalizedString();
@@ -146,7 +149,7 @@ namespace Detours
 
             public void OnPointerEnter(PointerEventData eventData)
             {
-                if (mod != null && !popped)
+                if (mod != null && !popped && tps.textbox.textInfo.characterCount > 0)
                 {
                     Vector3 v = tps.textbox.textInfo.characterInfo[tps.textbox.textInfo.characterCount - 1].bottomRight;
                     Vector3 w = tps.textbox.transform.TransformPoint(v);
@@ -179,9 +182,12 @@ namespace Detours
     {
         public Dictionary<string, Sprite> sprites = new Dictionary<string, Sprite>();
 
+        protected GameObject imageObject;
         protected Image image;
         protected string lastFrame = "";
         protected Sprite lastSprite;
+
+        protected bool lockAspectRatio = false;
 
         public ImagePanelSetter()
         {
@@ -202,7 +208,11 @@ namespace Detours
             {
                 return false;
             }
-            image = panel.GetComponent<Image>();
+            RectUpdater updater = panel.AddComponent<RectUpdater>();
+            imageObject = (panel.transform as RectTransform).WithBox(Vector3.zero, 0.2f*Vector2.one, Color.white).gameObject;
+            image = imageObject.GetComponent<Image>();
+            updater.rt = imageObject.transform as RectTransform;
+            updater.borders = 0.2f*Vector2.one;
             return true;
         }
         public override void Update(string frame, string subframe)
@@ -220,6 +230,18 @@ namespace Detours
         public override void End()
         {
             lastFrame = "";
+        }
+
+        class RectUpdater : UIBehaviour
+        {
+            internal RectTransform rt;
+            internal Vector2 borders;
+            internal bool lockAspectRatio;
+
+            protected override void OnRectTransformDimensionsChange()
+            {
+                rt.sizeDelta = GetComponent<RectTransform>().sizeDelta - borders;
+            }
         }
     }
 
@@ -331,11 +353,14 @@ namespace Detours
             button.GetComponent<RectTransform>().WithText(0.4f, Vector3.zero, Vector2.zero, description.GetLocalizedString(), Color.white, TextAlignmentOptions.Left);
             textbox = button.transform.GetChild(0).GetComponent<TextMeshProUGUI>();
             textbox.color = color;
+            textbox.enableAutoSizing = true;
+            textbox.fontSizeMax = 0.4f;
             button.gameObject.AddComponent<RectUpdater>().Set(button, textbox, UI.MenuGray, color);
         }
 
         public virtual void Select()
         {
+            button?.GetComponent<RectUpdater>()?.OnPointerExit(null);
             Detour.current.PromptUpdate(this, toFrame);
         }
 
@@ -345,6 +370,7 @@ namespace Detours
             {
                 Start(panel);
             }
+            button.transform.SetAsLastSibling();
             string desc = description.GetLocalizedString();
             bool enabled = CheckConditions(ref desc);
             button.gameObject.SetActive(visibleIfDisabled || enabled);
@@ -505,6 +531,7 @@ namespace Detours
     {
         protected string name;
         protected LocalizedString description;
+        protected Color color;
 
         public ChoiceCondition(WildfrostMod mod, string name, string description, SystemLanguage lang = SystemLanguage.English)
         {
@@ -513,13 +540,20 @@ namespace Detours
             table.SetString(key, description);
             this.name = name;
             this.description = table.GetString(key);
+            color = new Color(1,0.25f,0.25f);
+        }
+
+        public ChoiceCondition SetColor(Color c)
+        {
+            color = c;
+            return this;
         }
 
         public abstract bool Check();
 
         public virtual string GetText()
         {
-            return "<color=#ff4040>" + description.GetLocalizedString() + "</color>";
+            return $"<color=#{color.ToHexRGB()}>" + description.GetLocalizedString() + "</color>";
         }
 
         public virtual string GetContext()

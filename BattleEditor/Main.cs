@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Localization;
+using UnityEngine.Localization.Components;
 
 namespace BattleEditor
 {
@@ -36,7 +37,8 @@ namespace BattleEditor
             .ConstructWaves(3, 1, "PCW", "CPW", "CKW", "KCW")
             .StartWavePoolData(2, "Wave 3: Bolgo is here!")
             .ConstructWaves(3, 9, "BPW", "BCW")
-            .AddBattleToLoader().LoadBattle(0, exclusivity: BattleStack.Exclusivity.removeUnmodded)
+            .AddBattleToLoader().LoadBattle(7, exclusivity: BattleStack.Exclusivity.removeUnmodded)
+            .LoadBattle(8, exclusivity: BattleStack.Exclusivity.removeUnmodded)
             .GiveMiniBossesCharms(new string[] { "Bolgo" }, "CardUpgradeAcorn", "CardUpgradeShellOnKill")
             .GiveGobblers();
 
@@ -97,6 +99,37 @@ namespace BattleEditor
             { "Final Boss", "", "", "" },
             {"Final Final Boss", "", "", ""}
         };
+
+        public override void Load()
+        {
+            //MapNodeBattle/NameRibbon/BattleNameRibbon/
+            //MapNodeBattle/Scaler/Animator/
+            SpriteSetterCustom ss;
+
+            //Final Boss
+            MapNode finalNode = Get<CampaignNodeType>("CampaignNodeFinalBoss").mapNodePrefab;
+            ss = finalNode.gameObject.AddComponent<SpriteSetterCustom>();
+            finalNode.spriteSetter = ss;
+            ss.icon = finalNode.spriteRenderer;
+            ss.battleNameString = finalNode.transform.Find("NameRibbon").Find("Text").GetComponent<LocalizeStringEvent>();
+
+            //Final Final Boss
+            finalNode = Get<CampaignNodeType>("CampaignNodeFinalFinalBoss").mapNodePrefab;
+            ss = finalNode.gameObject.AddComponent<SpriteSetterCustom>();
+            finalNode.spriteSetter = ss;
+            ss.icon = finalNode.spriteRenderer;
+            ss.battleNameString = finalNode.transform.Find("NameRibbon").Find("Text").GetComponent<LocalizeStringEvent>();
+
+            base.Load();
+        }
+
+        public override void Unload()
+        {
+            base.Unload();
+
+            Get<CampaignNodeType>("CampaignNodeFinalBoss")?.mapNodePrefab?.gameObject?.GetComponent<SpriteSetterCustom>()?.Destroy();
+            Get<CampaignNodeType>("CampaignNodeFinalFinalBoss")?.mapNodePrefab?.gameObject?.GetComponent<SpriteSetterCustom>()?.Destroy();
+        }
 
         public void CheckReset(WildfrostMod mod)
         {
@@ -440,7 +473,12 @@ namespace BattleEditor
             dictionary.Clear();
             for (int i = 0; i < keyValuePairs.Length; i++)
             {
-                CardData card = mod.Get<CardData>(keyValuePairs[i].Item2) ?? throw new ArgumentException("CardData name is not valid.", keyValuePairs[i].Item2);
+                CardData card = mod.Get<CardData>(keyValuePairs[i].Item2) ?? throw new ArgumentException("CardData name is not valid (GUID optional): ", keyValuePairs[i].Item2);
+                if (card.cardType == null)
+                {
+                    throw new ArgumentException("CardData does not have a cardType: ", keyValuePairs[i].Item2);
+
+                }
                 enemies.Add(card);
                 dictionary.Add(keyValuePairs[i].Item1, enemies[i]);
             }

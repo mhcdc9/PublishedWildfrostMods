@@ -63,14 +63,30 @@ namespace MultiplayerBase.Handlers
 
         MarkerManager marks;
 
-        protected void Awake()
+        protected void OnEnable()
         {
-
-            //Events.OnSceneUnload += DisableController;
             Events.OnEntityMove += EntityMove;
             Events.OnEntityKilled += EntityKilled;
             Events.OnEntityPreTrigger += EntityTrigger;
             Events.OnBattlePreTurnStart += PreTurn;
+        }
+
+        protected void OnDisable()
+        {
+            if (Blocking)
+            {
+                CloseBattleViewer();
+            }
+            Events.OnEntityMove -= EntityMove;
+            Events.OnEntityKilled -= EntityKilled;
+            Events.OnEntityPreTrigger -= EntityTrigger;
+            Events.OnBattlePreTurnStart -= PreTurn;
+        }
+
+        protected void Awake()
+        {
+
+            //Events.OnSceneUnload += DisableController;
             
             instance = this;
 
@@ -142,7 +158,7 @@ namespace MultiplayerBase.Handlers
             CreateEffect(entity, entity.preContainers, "death");
         }
 
-        private void CreateEffect(Entity entity, CardContainer[] containers, string type)
+        public void CreateEffect(Entity entity, CardContainer[] containers, string type)
         {
             if (containers == null || containers.Length == 0 || Battle.instance == null || !Battle.IsOnBoard(containers[0]))
             {
@@ -151,8 +167,6 @@ namespace MultiplayerBase.Handlers
 
             string side = (containers[0].owner == References.Player) ? "PLAYER" : "ENEMY";
             string message = HandlerSystem.ConcatMessage(true, "MARK", side, entity.data.id.ToString(), type);
-
-            Debug.Log("[Multiplayer] sending...");
 
             foreach (Friend friend in watchers)
             {
@@ -546,7 +560,7 @@ namespace MultiplayerBase.Handlers
                                     Entity entity = slots[k][0];
                                     if (entity != null && i + 1 < messages.Length && ulong.TryParse(messages[i + 1], out ulong result) && entity.data.id == result)
                                     {
-                                        s = HandlerSystem.ConcatMessage(false, "ENEMY", $"{j}", $"{k}", CardEncoder.Encode(entity, entity.data.id));
+                                        s = HandlerSystem.ConcatMessage(false, "UPDATE", "ENEMY", $"{j}", $"{k}", CardEncoder.Encode(entity, entity.data.id));
                                         HandlerSystem.SendMessage("BAT", friend, s);
                                         return;
                                     }
@@ -841,11 +855,11 @@ namespace MultiplayerBase.Handlers
             if (entity == null)
             {
                 yield return PlaceCard(friend, messages.Skip(1).ToArray(), ocvs);
+                //Events.InvokeEntityCreated(entity);
                 yield break;
             }
 
             CardEncoder.DecodeData(messages.Skip(5).ToArray(), entity.data);
-            Events.InvokeEntityCreated(entity);
             yield return CardEncoder.DecodeEntity2(entity, messages.Skip(5).ToArray());
             entity.PromptUpdate();
             //entity.flipper.FlipUp(force: true);

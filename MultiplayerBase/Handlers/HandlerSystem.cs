@@ -33,13 +33,17 @@ namespace MultiplayerBase.Handlers
         public static Dictionary<Friend, PlayerState> friendStates = new Dictionary<Friend, PlayerState>();
 
         public static bool initialized = false;
+        public static bool enabled;
 
         public static Dictionary<string, Action<Friend, string>> HandlerRoutines = new Dictionary<string, Action<Friend, string>>();
 
         public static Character playerDummy;
         public static Character enemyDummy;
-        public static void Initialize()
+        public static void Enable()
         {
+            if (enabled) return;
+
+
             if (!initialized)
             {
                 playerDummy = AddressableLoader.Get<ClassData>("ClassData", "Basic").characterPrefab.InstantiateKeepName();
@@ -60,10 +64,21 @@ namespace MultiplayerBase.Handlers
                 gameObject = new GameObject("Map Handler");
                 gameObject.AddComponent<HandlerMap>();
                 Events.OnSceneChanged += SceneChanged;
-                References.instance.StartCoroutine(ListenLoop());
+                
 
                 initialized = true;
             }
+            else
+            {
+                SteamNetworking.OnP2PSessionRequest += SessionRequest;
+                HandlerInspect.instance.enabled = true;
+                HandlerBattle.instance.enabled = true;
+                HandlerEvent.instance.enabled = true;
+                HandlerMap.instance.enabled = true;
+                Events.OnSceneChanged += SceneChanged;
+            }
+
+            References.instance.StartCoroutine(ListenLoop());
 
             friendStates = new Dictionary<Friend, PlayerState>();
             foreach(Friend friend in friends)
@@ -71,7 +86,23 @@ namespace MultiplayerBase.Handlers
                 friendStates[friend] = PlayerState.Other;
             }
             SceneChanged(SceneManager.GetActive());
-            
+
+            enabled = true;
+        }
+
+        public static void Disable()
+        {
+            if (!enabled) return;
+
+            SteamNetworking.OnP2PSessionRequest -= SessionRequest;
+            Events.OnSceneChanged -= SceneChanged;
+            References.instance.StopCoroutine(ListenLoop());
+            HandlerInspect.instance.enabled = false;
+            HandlerBattle.instance.enabled = false;
+            HandlerEvent.instance.enabled = false;
+            HandlerMap.instance.enabled = false;
+            Debug.Log("[Multiplayer] Handler System is disabled.");
+            enabled = false;
         }
 
         private static IEnumerator ListenLoop()

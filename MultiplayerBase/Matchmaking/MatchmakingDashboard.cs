@@ -17,10 +17,13 @@ using MultiplayerBase.UI;
 
 namespace MultiplayerBase.Matchmaking
 {
+    /*The MatchmakingDashboard is the bulk of the UI for setting up and joining lobbies.
+     */
     public class MatchmakingDashboard : MonoBehaviour
     {
         public static Lobby? lobby;
         public static Lobby[] lobbyList;
+        public static MatchmakingDashboard instance;
 
         internal GameObject background;
         internal GameObject buttonGroup;
@@ -29,15 +32,17 @@ namespace MultiplayerBase.Matchmaking
         internal Button joinLobbyButton;
         internal Button leaveLobbyButton;
         internal Button finalizeButton;
+        internal Button unfinalizeButton;
 
         internal MemberView memberView;
         internal ModView modView;
+        internal LobbyView lobbyView;
 
         internal Button[] lobbyButtons = new Button[0];
-        public int index = -1;
 
         public void CreateObjects()
         {
+            instance = this;
             transform.SetAsFirstSibling();
 
             background = HelperUI.Background(transform, new Color(0f, 0f, 0f, .8f));
@@ -56,6 +61,7 @@ namespace MultiplayerBase.Matchmaking
             };
             fader.gradient.SetKeys(colors, alphas);
 
+            //Main buttons
             buttonGroup = new GameObject("Button Group");
             buttonGroup.AddComponent<Image>().color = Color.black;
             buttonGroup.GetComponent<RectTransform>().sizeDelta = new Vector2(5.5f, 3.5f);
@@ -72,42 +78,45 @@ namespace MultiplayerBase.Matchmaking
             tween.from = new Vector3(0, -8f, 0);
 
             createLobbyButton = HelperUI.ButtonTemplate(buttonGroup.transform,new Vector2(2,0.8f), new Vector3(-1.5f, 1, 0), "Create", Color.white);
-            findLobbyButton = HelperUI.ButtonTemplate(buttonGroup.transform, new Vector2(2, 0.8f), new Vector3(-1.5f, 0, 0), "Find", Color.white);
+            findLobbyButton = HelperUI.ButtonTemplate(buttonGroup.transform, new Vector2(2, 0.8f), new Vector3(-1.5f, 0, 0), "Refresh", Color.white);
             joinLobbyButton = HelperUI.ButtonTemplate(buttonGroup.transform, new Vector2(2, 0.8f), new Vector3(1.5f, 0, 0), "Join", Color.white);
             joinLobbyButton.interactable = false;
             leaveLobbyButton = HelperUI.ButtonTemplate(buttonGroup.transform, new Vector2(2, 0.8f), new Vector3(1.5f, 1, 0), "Leave", Color.white);
             leaveLobbyButton.interactable = false;
             finalizeButton = HelperUI.ButtonTemplate(buttonGroup.transform, new Vector2(3, 0.8f), new Vector3(0f, -1, 0), "Finalize", Color.white);
-            //finalizeButton.interactable = false;
+            unfinalizeButton = HelperUI.ButtonTemplate(buttonGroup.transform, new Vector2(3, 0.8f), new Vector3(0f, -1, 0), "Disband", new Color(1f,0.33f,0.33f));
+            unfinalizeButton.gameObject.SetActive(false);
+            //finalizeButton.interactable = false; //!!!
 
             createLobbyButton.onClick.AddListener(CreateLobby);
             findLobbyButton.onClick.AddListener(FindLobby);
             joinLobbyButton.onClick.AddListener(JoinLobby);
             leaveLobbyButton.onClick.AddListener(LeaveLobby);
             finalizeButton.onClick.AddListener(FinalizeParty);
+            unfinalizeButton.onClick.AddListener(Disband);
 
+            lobbyView = LobbyView.Create(transform);
             memberView = MemberView.Create(transform);
             modView = ModView.Create(transform);
         }
 
-        public void CreateLobbyView(Lobby[] lobbies)
+        public void DisbandMenu()
         {
-            index = -1;
+            lobbyView.gameObject.SetActive(false);
+            createLobbyButton.interactable = false;
+            findLobbyButton.interactable = false;
             joinLobbyButton.interactable = false;
-            for (int i = lobbyButtons.Length - 1; i >= 0; i--)
-            {
-                lobbyButtons[i].gameObject.Destroy();
-            }
-            lobbyButtons = new Button[lobbies.Length];
-            for (int i = 0; i < lobbies.Length; i++)
-            {
-                lobbyButtons[i] = HelperUI.ButtonTemplate(transform, new Vector2(5, 1.3f), new Vector3(0, 3 - 1.5f*i, 0), $"{lobbies[i].GetData("name")}", Color.white);
-                lobbyButtons[i].GetComponentInChildren<TextMeshProUGUI>().fontSize = 0.6f;
-                int j = i;
-                lobbyButtons[i].onClick.AddListener(() => SelectLobby(j));
-            }
+            leaveLobbyButton.interactable = false;
+            finalizeButton.gameObject.SetActive(false);
+            unfinalizeButton.gameObject.SetActive(true);
         }
 
+        public void CreateLobbyView(Lobby[] lobbies)
+        {
+            lobbyView.CreateLobbyView(lobbies);
+        }
+
+        //Leaves the lobby and you can get on with the game.
         public void FinalizeParty()
         {
             SfxSystem.OneShot("event:/sfx/ui/menu_click");
@@ -122,35 +131,32 @@ namespace MultiplayerBase.Matchmaking
             }
         }
 
+        public void Disband()
+        {
+            Dashboard.instance.enabled = false;
+            Debug.Log("[Multiplayer] Successfully disbanded!");
+            MultiplayerMain.isHost = true;
+            createLobbyButton.interactable = true;
+            joinLobbyButton.interactable = true;
+            leaveLobbyButton.interactable = false;
+            finalizeButton.gameObject.SetActive(true);
+            finalizeButton.interactable = true; //!!!
+            unfinalizeButton.gameObject.SetActive(false);
+            RemoveSidePanels();
+            FindLobby();
+        }
+
+        //Closes your current lobby
         public IEnumerator EndLobby()
         {
             yield return new WaitForSeconds(3.0f);
             if (lobby is Lobby lob)
             {
                 lob.Leave();
+                createLobbyButton.interactable = true;
                 leaveLobbyButton.interactable = false;
                 finalizeButton.interactable = false;
             }
-        }
-
-        public void SelectLobby(int newIndex)
-        {
-            SfxSystem.OneShot("event:/sfx/ui/menu_click_sub");
-            if (index != -1)
-            {
-                lobbyButtons[index].GetComponent<Image>().color = Color.white;
-            }
-            if (newIndex == index)
-            {
-                index = -1;
-                joinLobbyButton.interactable = false;
-                return;
-            }
-            index = newIndex;
-            lobbyButtons[index].GetComponent<Image>().color = Color.green;
-            modView.OpenModView(lobbyList[index], false);
-            memberView.OpenMemberView(lobbyList[index], false, false);
-            joinLobbyButton.interactable = true;
         }
 
         private async void CreateLobby()
@@ -170,6 +176,7 @@ namespace MultiplayerBase.Matchmaking
                 modView.OpenModView(lob, true);
                 memberView.OpenMemberView(lob, true, true);
                 MultiplayerMain.instance.HookToChatRoom();
+                createLobbyButton.interactable = false;
                 leaveLobbyButton.interactable = true;
                 finalizeButton.interactable = true;
                 findLobbyButton.interactable = false;
@@ -181,16 +188,12 @@ namespace MultiplayerBase.Matchmaking
         {
             SfxSystem.OneShot("event:/sfx/ui/menu_click");
             Debug.Log("[Multiplayer] Find lobby request");
-            MultiplayerMain.textElement.text = "<color=#FC5>Searching for a lobby...</color>";
             Lobby[] lobbies = await SteamMatchmaking.LobbyList.RequestAsync();
             Debug.Log("[Multiplayer] Found lobbies");
             if (lobbies == null)
             {
-                MultiplayerMain.textElement.text = "No lobbies found :(";
                 lobbies = new Lobby[0];
-                return;
             }
-            MultiplayerMain.textElement.text = $"<size=0.55><color=#FC5>{lobbies.Length} lobbies found!</color></size>";
             foreach (Lobby lobby in lobbies)
             {
                 Debug.Log(lobby.Owner.Name);
@@ -203,21 +206,23 @@ namespace MultiplayerBase.Matchmaking
         {
             SfxSystem.OneShot("event:/sfx/ui/menu_click");
             Debug.Log("[Multiplayer] Joining lobby");
-            if (index == -1 || lobby!= null)
+            if (lobbyView.index == -1 || lobby!= null)
             {
                 throw new Exception("Pick something first! Or leave your current lobby.");
             }
-            RoomEnter enter = await lobbyList[index].Join();
+            RoomEnter enter = await lobbyList[lobbyView.index].Join();
             if (enter == RoomEnter.Success)
             {
                 Debug.Log("[Multiplayer] Successfully joined");
-                lobby= lobbyList[index];
+                lobby= lobbyList[lobbyView.index];
                 MultiplayerMain.isHost = false;
                 MultiplayerMain.instance.HookToChatRoom();
                 modView.OpenModView((Lobby)lobby, false);
                 memberView.OpenMemberView((Lobby)lobby, true, false);
+                createLobbyButton.interactable = false;
                 leaveLobbyButton.interactable = true;
                 findLobbyButton.interactable = false;
+                lobbyView.SelectLobby(-1);
             }
             else
             {
@@ -234,11 +239,19 @@ namespace MultiplayerBase.Matchmaking
                 lob.Leave();
                 MultiplayerMain.isHost = true;
                 MultiplayerMain.instance.UnhookToChatRoom();
+                createLobbyButton.interactable = true;
                 leaveLobbyButton.interactable = false;
                 finalizeButton.interactable = false;
                 findLobbyButton.interactable = true;
+                RemoveSidePanels();
                 lobby = null;
             }
+        }
+
+        public void RemoveSidePanels()
+        {
+            memberView.CloseMemberView();
+            modView.CloseModView();
         }
 
         public void UpdateMemberView()
@@ -247,7 +260,6 @@ namespace MultiplayerBase.Matchmaking
             {
                 memberView.OpenMemberView(lob, true, MultiplayerMain.isHost);
             }
-            
         }
 
         public void UpdateModView()

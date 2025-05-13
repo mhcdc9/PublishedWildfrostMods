@@ -19,6 +19,7 @@ namespace MultiplayerBase.UI
     //SetInsetAndSizeFromParentEdge
     public class Dashboard : MonoBehaviour
     {
+        public static Dashboard instance;
 
         GameObject background;
         Vector3 buttonPosition = new Vector3(7, 5, 0);
@@ -30,8 +31,10 @@ namespace MultiplayerBase.UI
         public static Button visibleButton;
         public static Dictionary<Friend, FriendIcon> friendIcons = new Dictionary<Friend, FriendIcon>();
 
-        public void Start()
+        public void Awake()
         {
+            instance = this;
+
             transform.SetParent(GameObject.Find("CameraContainer/CameraMover/MinibossZoomer/CameraPositioner/CameraPointer/Animator/Rumbler/Shaker/InspectSystem").transform);
             background = HelperUI.Background(transform, new Color(0f, 0f, 0f, .75f));
             gameObject.AddComponent<RectTransform>();
@@ -46,13 +49,8 @@ namespace MultiplayerBase.UI
             visibleButton = HelperUI.ButtonTemplate(friendIconGroup.transform, new Vector2(1f, 0.3f), Vector3.zero, "", Color.white);
             visibleButton.transform.SetParent(friendIconGroup.transform, false);
             visibleButton.onClick.AddListener(ToggleVisibility);
-            foreach (Friend friend in HandlerSystem.friends)
-            {
-                friendIcons.Add(friend, FriendIcon.Create(transform, Vector2.one, Vector3.zero, friend));
-                friendIcons[friend].transform.SetParent(friendIconGroup.transform, false);
-            }
 
-            buttonGroup = HelperUI.HorizontalGroup("Friend Icons", transform, new Vector2(0f, 0f));
+            buttonGroup = HelperUI.HorizontalGroup("Friend Actions Icons", transform, new Vector2(0f, 0f));
             buttonGroup.GetComponent<HorizontalLayoutGroup>().childAlignment = TextAnchor.MiddleRight;
             buttonGroup.transform.position = buttonPosition;
             buttonGroup.GetComponent<RectTransform>().SetInsetAndSizeFromParentEdge(RectTransform.Edge.Right, 4, 1);
@@ -65,10 +63,38 @@ namespace MultiplayerBase.UI
             buttons[2].transform.SetParent(buttonGroup.transform, false);
 
             buttonGroup.SetActive(false);
+        }
 
-            HandlerSystem.Initialize();
-            Debug.Log("[Multiplayer] Dashboard is set up!");
+        public void OnEnable()
+        {
+            friendIconGroup.gameObject.SetActive(true);
+            foreach (Friend f in friendIcons.Keys)
+            {
+                if (!HandlerSystem.friends.Contains(f))
+                {
+                    friendIcons[f].gameObject.Destroy();
+                    friendIcons.Remove(f);
+                }
+            }
+            foreach (Friend friend in HandlerSystem.friends)
+            {
+                if (!friendIcons.ContainsKey(friend))
+                {
+                    friendIcons.Add(friend, FriendIcon.Create(transform, Vector2.one, Vector3.zero, friend));
+                    friendIcons[friend].transform.SetParent(friendIconGroup.transform, false);
+                }
+            }
+
+            HandlerSystem.Enable();
+            Debug.Log("[Multiplayer] Dashboard is ready!");
             StartCoroutine(DelaySend());
+        }
+
+        public void OnDisable()
+        {
+            friendIconGroup.gameObject.SetActive(false);
+            HandlerSystem.Disable();
+            Debug.Log("[Multiplayer] Dashboard is diabled.");
         }
 
         private IEnumerator DelaySend()

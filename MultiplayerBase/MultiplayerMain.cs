@@ -180,26 +180,34 @@ namespace MultiplayerBase
             }
             if(message == "AndSoThePartyIsFinallyFinalized")
             {
-                HandlerSystem.friends = lobby.Members.ToArray();
-                References.instance.StartCoroutine(matchmaker.EndLobby());
-                GameObject gameObject = new GameObject("Multiplayer Dashboard");
-                dashboard = gameObject.AddComponent<Dashboard>();
-                Finalized?.Invoke();
-                ToggleMatchmaking();
-                Debug.Log("[Multiplayer] Finalized.");
+                FinalizeParty(lobby.Members.ToArray());
                 return;
             }
             textElement.text = $"{friend.Name}: {message}";
         }
 
-        public void DebugMode()
+        public void FinalizeParty(Friend[] friends)
         {
-            HandlerSystem.friends = new Friend[1] { HandlerSystem.self };
-            GameObject gameObject = new GameObject("Multiplayer Dashboard");
-            dashboard = gameObject.AddComponent<Dashboard>();
+            HandlerSystem.friends = friends;
+            References.instance.StartCoroutine(matchmaker.EndLobby());
+            if (Dashboard.instance != null)
+            {
+                Dashboard.instance.enabled = true;
+            }
+            else
+            {
+                GameObject gameObject = new GameObject("Multiplayer Dashboard");
+                dashboard = gameObject.AddComponent<Dashboard>();
+            }
             Finalized?.Invoke();
             ToggleMatchmaking();
+            UnhookToChatRoom();
             Debug.Log("[Multiplayer] Finalized.");
+        }
+
+        public void DebugMode()
+        {
+            FinalizeParty(new Friend[1] { HandlerSystem.self });
         }
 
         public static void SendMessage(string message)
@@ -219,9 +227,16 @@ namespace MultiplayerBase
         private void ToggleMatchmaking()
         {
             matchmaker.gameObject.SetActive(!matchmaker.gameObject.activeSelf);
-            if (matchmaker.gameObject.activeSelf && MatchmakingDashboard.lobby == null)
+            if (matchmaker.gameObject.activeSelf)
             {
-                matchmaker.FindLobby();
+                if (HandlerSystem.enabled)
+                {
+                    MatchmakingDashboard.instance.DisbandMenu();
+                }
+                else if (MatchmakingDashboard.lobby == null)
+                {
+                    matchmaker.FindLobby();
+                }
             }
         }
     }
@@ -316,6 +331,22 @@ namespace MultiplayerBase
                 __instance.Disable(cardControllerBattle.useOnHandAnchor);
             }
             return false;
+        }
+    }
+
+    [HarmonyPatch(typeof(Events), nameof(Events.InvokeEntityDisplayUpdated), new Type[]
+    {
+        typeof(Entity)
+    })]
+    class PatchEntityDispUpdated
+    {
+        static bool Prefix(Entity entity)
+        {
+            if (HandlerBattle.instance != null && HandlerBattle.instance.Blocking)
+            {
+                return false;
+            }
+            return true;
         }
     }
 }

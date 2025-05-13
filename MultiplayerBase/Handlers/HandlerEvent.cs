@@ -34,12 +34,25 @@ namespace MultiplayerBase.Handlers
             transform.position = Vector3.zero;
             indicatorGroup = new GameObject("Indicator Group");
             indicatorGroup.transform.SetParent(transform);
-            HandlerSystem.HandlerRoutines.Add("EVE", HandleMessage);
+            
+        }
+
+        protected void OnEnable()
+        {
             Events.OnSceneChanged += ErasePingablesAndWatchers;
             Events.OnShopItemPurchase += ItemPurchase;
             Events.OnEntityChosen += EntityChosen;
             OnSelectBlessing += SelectBlessing;
         }
+
+        protected void OnDisable()
+        {
+            Events.OnSceneChanged -= ErasePingablesAndWatchers;
+            Events.OnShopItemPurchase -= ItemPurchase;
+            Events.OnEntityChosen -= EntityChosen;
+            OnSelectBlessing -= SelectBlessing;
+        }
+
         public void AskForData(Friend friend)
         {
             HandlerSystem.SendMessage("EVE", friend, "ASK");

@@ -45,6 +45,16 @@ namespace MultiplayerBase.Handlers
             background.GetComponent<RectTransform>().sizeDelta = new Vector2(1f, 0.6f);
         }
 
+        protected void OnEnable()
+        {
+
+        }
+
+        protected void OnDisable()
+        {
+
+        }
+
         protected void AddLevel()
         {
             int index = levels.Count();

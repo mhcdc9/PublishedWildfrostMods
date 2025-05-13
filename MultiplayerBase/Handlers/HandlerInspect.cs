@@ -69,10 +69,18 @@ namespace MultiplayerBase.Handlers
             clearButton.GetComponent<RectTransform>().SetInsetAndSizeFromParentEdge(RectTransform.Edge.Left, 2.5f, 1);
             clearButton.onClick.AddListener(Clear);
 
-            
-
             HandlerSystem.HandlerRoutines.Add("INS", HandleMessage);
             Debug.Log("[Multiplayer] Inspection Handler Online!");
+        }
+
+        protected void OnEnable()
+        {
+
+        }
+
+        protected void OnDisable()
+        {
+
         }
 
         private void ToggleHide()

@@ -28,6 +28,8 @@ namespace MultiplayerBase.Matchmaking
         string clientTitle = $"<size={titleSize}><color=#FC8>Mods</color></size>";
         string[] hostMods;
 
+        TweenUI exitTween;
+
         public static ModView Create(Transform transform)
         {
             GameObject obj = new GameObject("Mod View");
@@ -35,6 +37,7 @@ namespace MultiplayerBase.Matchmaking
             obj.AddComponent<Image>().color = new Color(0, 0, 0, 0.8f);
             obj.GetComponent<RectTransform>().sizeDelta = dim;
             obj.transform.Translate(defaultPosition);
+            //Tween1: Enter
             TweenUI tween = obj.AddComponent<TweenUI>();
             tween.target = obj;
             tween.property = TweenUI.Property.Move;
@@ -43,12 +46,23 @@ namespace MultiplayerBase.Matchmaking
             tween.duration = 1f;
             tween.to = defaultPosition;
             tween.hasFrom = true;
-            tween.from = defaultPosition + new Vector3(7, 0, 0);
+            tween.from = defaultPosition + new Vector3(8, 0, 0);
+
+            //Tween2: Exit
+            tween = obj.AddComponent<TweenUI>();
+            tween.target = obj;
+            tween.property = TweenUI.Property.Move;
+            tween.ease = LeanTweenType.easeOutQuart;
+            tween.disableAfter = true;
+            tween.duration = 1f;
+            tween.to = defaultPosition + new Vector3(9,0,0);
+
             ModView mv = obj.AddComponent<ModView>();
             mv.transform.SetParent(transform);
             GameObject obj2 = new GameObject("Text");
             obj2.transform.SetParent(obj.transform, false);
             mv.textElement = obj2.AddComponent<TextMeshProUGUI>();
+            mv.exitTween = tween;
             obj2.GetComponent<RectTransform>().sizeDelta = innerDim;
             return mv;
         }
@@ -96,6 +110,11 @@ namespace MultiplayerBase.Matchmaking
                 }
             }
             textElement.text = s1 + $"\n<size={bodySize}>" + s2 + s3 + s4;
+        }
+
+        public void CloseModView()
+        {
+            exitTween.Fire();
         }
     }
 }

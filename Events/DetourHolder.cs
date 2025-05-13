@@ -12,7 +12,7 @@ using UnityEngine.UI;
 
 namespace Detours
 {
-    internal class DetourHolder : MonoBehaviour
+    public class DetourHolder : MonoBehaviour
     {
         public static bool stop = false;
         public static DetourHolder instance;
@@ -41,6 +41,8 @@ namespace Detours
 
         public void CreateCardGrid(GameObject panel)
         {
+            //Canvas/Padding/PlayerDisplay/CardPocketDisplay/Cancel Button/
+
             gridGroup = UI.WithBox(panel.GetComponent<RectTransform>(), Vector3.zero, Vector2.zero, new Color(0,0,0,0.7f));
             gridGroup.gameObject.SetActive(false);
             GameObject gridObject = new GameObject("Card Grid", new Type[] { typeof(RectTransform), typeof(LayoutElement), typeof(UINavigationLayer)});
@@ -64,6 +66,12 @@ namespace Detours
             scroller.bounds = grid.GetComponent<RectTransform>();
             grid.gameObject.AddComponent<ScrollToNavigation>().scroller = scroller;
             grid.gameObject.AddComponent<TouchScroller>().scroller = scroller;
+
+            GameObject baseCancel = GameObject.Find("Canvas/Padding/PlayerDisplay/CardPocketDisplay/Cancel Button");
+            GameObject cancel = GameObject.Instantiate(baseCancel, gridGroup);
+            Button button = cancel.GetComponentInChildren<Button>();
+            button.onClick.SetPersistentListenerState(0, UnityEventCallState.Off);
+            button.onClick.AddListener(HideCardGrid);
         }
 
         public static void StartShowCardGrid(CardData[] cards, UnityAction<Entity> callback)
@@ -111,13 +119,13 @@ namespace Detours
             waitForGridEnd = true;
         }
 
-        internal static IEnumerator StartDetour(CampaignNode node, Detour detour, string startFrame = "START")
+        public static IEnumerator StartDetour(CampaignNode node, Detour detour, string startFrame = "START")
         {
             instance.gameObject.SetActive(true);
             current = detour;
             Coroutine hide = Campaign.instance.StartCoroutine(instance.HideInDeckView());
             instance.Fade(0.7f, 0.5f);
-            yield return Sequences.Wait(0.25f);
+            yield return Sequences.Wait(0.15f);
             yield return detour.Run(node, startFrame);
             instance.Fade(0f, 0.5f);
             yield return Sequences.Wait(0.25f);

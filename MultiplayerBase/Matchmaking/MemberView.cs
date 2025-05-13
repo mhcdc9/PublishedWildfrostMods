@@ -17,6 +17,7 @@ namespace MultiplayerBase.Matchmaking
     internal class MemberView : MonoBehaviour
     {
         GameObject memberGroup;
+        TweenUI exitTween;
 
         public static MemberView Create(Transform transform)
         {
@@ -25,6 +26,8 @@ namespace MultiplayerBase.Matchmaking
             obj.AddComponent<Image>().color = new Color(0f,0f,0f,0.8f);
             obj.GetComponent<RectTransform>().sizeDelta = dim;
             obj.transform.Translate(pos);
+
+            //Tween1: Enter
             TweenUI tween = obj.AddComponent<TweenUI>();
             tween.target = obj;
             tween.property = TweenUI.Property.Move;
@@ -33,9 +36,20 @@ namespace MultiplayerBase.Matchmaking
             tween.duration = 1f;
             tween.to = pos;
             tween.hasFrom = true;
-            tween.from = pos + new Vector3(-7,0,0);
+            tween.from = pos + new Vector3(-8,0,0);
+
+            //Tween2: Exit
+            tween = obj.AddComponent<TweenUI>();
+            tween.target = obj;
+            tween.property = TweenUI.Property.Move;
+            tween.ease = LeanTweenType.easeOutQuart;
+            tween.disableAfter = true;
+            tween.duration = 1f;
+            tween.to = pos + new Vector3(-9, 0, 0);
+
             MemberView mv = obj.AddComponent<MemberView>();
             mv.transform.SetParent(transform);
+            mv.exitTween = tween;
             return mv;
         }
 
@@ -120,6 +134,11 @@ namespace MultiplayerBase.Matchmaking
                     otherImage.color = Color.white;
                 }
             }
+        }
+
+        public void CloseMemberView()
+        {
+            exitTween.Fire();
         }
     }
 }

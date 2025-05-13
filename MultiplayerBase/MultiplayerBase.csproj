@@ -15,7 +15,7 @@
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
+    <DebugType>embedded</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
@@ -475,6 +475,7 @@
     <Compile Include="Battles\NavigationStateMultiplayerCard.cs" />
     <Compile Include="ConsoleCommands\Commands.cs" />
     <Compile Include="Handlers\CardEncoder.cs" />
+    <Compile Include="Matchmaking\LobbyView.cs" />
     <Compile Include="Matchmaking\MemberView.cs" />
     <Compile Include="Matchmaking\ModView.cs" />
     <Compile Include="UI\Dashboard.cs" />
@@ -495,4 +496,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>copy "C:\Users\Michael\source\repos\Mods\MultiplayerBase\obj\Debug\MultiplayerBase.dll" "C:\Program Files (x86)\Steam\steamapps\common\Wildfrost\Modded\Wildfrost_Data\StreamingAssets\Mods\Multiplayer\MultiplayerBase.dll"</PostBuildEvent>
+  </PropertyGroup>
 </Project>

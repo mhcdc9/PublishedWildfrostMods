@@ -80,7 +80,7 @@ namespace Detours
         public static readonly string END = "END";
         public static readonly string SKIP = "SKIP";
 
-        public float Priority => Dead.Random.Range(0f, 1f);
+        public virtual float Priority => Dead.Random.Range(0f, 1f);
 
         public bool allowedBeforeBattle = false;
 
@@ -134,11 +134,11 @@ namespace Detours
             obj.GetComponent<RectTransform>()
                 .AddVGroup(spacing: 0.2f, color: UI.MapLine)
                     .AddPanel("Title", Vector2.one, new Vector2(16, 1), UI.Map)
-                .AddHGroup(spacing: 0.1f, color: UI.Map)
-                    .AddPanel("Image", Vector2.zero, new Vector2(6, 16), Color.white)
-                    .AddVGroup(spacing: 0.1f, color: UI.Map)
-                        .AddPanel("Flavor", Vector2.zero, new Vector2(10, 10), UI.Map)
-                        .AddVGroup(spacing: 0.1f, color: UI.Map)
+                .AddHGroup(spacing: 0.1f, color: UI.Clear)
+                    .AddPanel("Image", Vector2.zero, new Vector2(6, 16), UI.Map)
+                    .AddVGroup(spacing: 0.1f, color: UI.Clear)
+                        .AddPanel("Flavor", Vector2.zero, new Vector2(10, 10), UI.Clear)
+                        .AddVGroup(spacing: 0.1f, color: UI.Clear)
                         .name = "Choices";
 
             return obj;
@@ -160,6 +160,7 @@ namespace Detours
         protected TextPanelSetter descriptionSetter;
         protected ImagePanelSetter imageSetter;
         protected ChoicePanelSetter choiceSetter;
+        protected bool appeared;
 
         public DetourBasic(string name, WildfrostMod mod)
         {
@@ -168,8 +169,8 @@ namespace Detours
             titleSetter = new TextPanelSetter();
             descriptionSetter = new TextPanelSetter
             {
-                fontSize = 0.4f,
-                color = UI.MapMid,
+                fontSize = 0.45f,
+                color = Color.white,
                 padding = 0.5f,
                 alignment = TMPro.TextAlignmentOptions.TopLeft,
                 target = "Flavor"
@@ -248,7 +249,23 @@ namespace Detours
                     continue;
                 }
             }
-            yield break;
+            main.transform.SetParent(DetourHolder.instance.transform, false);
+            yield return Appear(0.3f);
+        }
+
+        public virtual IEnumerator Appear(float time)
+        {
+            main.transform.localScale = new Vector3(0.05f, 0.05f, 1);
+            Vector3 v = new Vector3(1, 1, 1);
+            LeanTween.scale(main, v, time).setEaseOutQuart();
+            yield return Sequences.Wait(time);
+        }
+
+        public virtual IEnumerator Disappear(float time)
+        {
+            Vector3 v = new Vector3(0.05f, 0.05f, 1);
+            LeanTween.scale(main, v, time).setEaseInQuart();
+            yield return Sequences.Wait(time);
         }
 
         public override IEnumerator Run(CampaignNode node, string startFrame)
@@ -257,7 +274,6 @@ namespace Detours
             current = this;
             nextFrame = startFrame;
             yield return GenerateUI();
-            main.transform.SetParent(DetourHolder.instance.transform, false);
             while (nextFrame != END && nextFrame != SKIP)
             {
                 if (RunPreFrame() && HasFrameRoutine)
@@ -275,6 +291,7 @@ namespace Detours
                 //yield return InvokeChoiceSelected(selectedChoice, this);
             }
             DetourHolder.skip = (nextFrame == SKIP);
+            yield return Disappear(0.3f);
             End();
         }
 
