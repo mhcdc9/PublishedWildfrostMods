@@ -137,7 +137,8 @@ namespace MultiplayerBase.Matchmaking
             Debug.Log("[Multiplayer] Successfully disbanded!");
             MultiplayerMain.isHost = true;
             createLobbyButton.interactable = true;
-            joinLobbyButton.interactable = true;
+            findLobbyButton.interactable = true;
+            joinLobbyButton.interactable = false;
             leaveLobbyButton.interactable = false;
             finalizeButton.gameObject.SetActive(true);
             finalizeButton.interactable = true; //!!!
@@ -156,6 +157,7 @@ namespace MultiplayerBase.Matchmaking
                 createLobbyButton.interactable = true;
                 leaveLobbyButton.interactable = false;
                 finalizeButton.interactable = false;
+                lobby = null;
             }
         }
 

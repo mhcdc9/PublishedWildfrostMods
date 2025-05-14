@@ -31,12 +31,12 @@ namespace MultiplayerBase.Battles
             this.friend = friend;
             this.id = id;
             this.type = type;
+            note = $"{entity.data.title} to {friend.Name}";
         }
 
         public override IEnumerator Run()
         {
             string s = CardEncoder.Encode(entity, id);
-            HandlerBattle.instance.ToggleViewer(friend);
             yield return new WaitForSeconds(0.2f);
             //HandlerSystem.SendMessage("CHT", HandlerSystem.self, $"Playing {entity.data.title} on {friend.Name}'s Board!");
             entity.curveAnimator.Ping();

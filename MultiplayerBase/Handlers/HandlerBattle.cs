@@ -359,7 +359,8 @@ namespace MultiplayerBase.Handlers
                 background.transform.localPosition = defaultPosition;
                 LeanTween.moveLocal(background, viewerPosition, 0.75f).setEase(LeanTweenType.easeInOutQuart);
             }
-            
+
+            ActionQueue.Stack(new ActionBattleViewer());
             //StartCoroutine(PopulateRows());
             HandlerBattle.friend = friend;
             InvokeOnBattleViewerOpen(friend);
@@ -393,7 +394,11 @@ namespace MultiplayerBase.Handlers
                 HandlerSystem.SendMessage("BAT", f, "UNSUB");
                 InvokeOnBattleViewerClose(f);
             }
-            
+            for (int i = 0; i < actions.Count; i++)
+            {
+                ActionQueue.Add(actions[i]);
+            }
+            actions.Clear();
         }
 
         public void ToggleViewer(Friend friend)
@@ -609,7 +614,7 @@ namespace MultiplayerBase.Handlers
                     SendData(friend, messages); 
                     return;
                 case "PLAY":
-                    StartCoroutine(PlayCard(friend, messages));
+                    PlayCard(friend, messages);
                     break;
                 case "UNSUB":
                     watchers.Remove(friend);
@@ -750,7 +755,7 @@ namespace MultiplayerBase.Handlers
             return dictionary;
         }
 
-        public IEnumerator PlayCard(Friend friend, string[] messages)
+        public void PlayCard(Friend friend, string[] messages)
         {
             string[] targets = messages[1].Split(' ');
             Debug.Log($"[Multiplayer] {targets[0]}");
@@ -782,10 +787,8 @@ namespace MultiplayerBase.Handlers
             }
             if (action != null)
             {
-                yield return new WaitUntil(() => !Blocking);
-                ActionQueue.Add(action);
+                Queue(action);
             }
-            yield break;
         }
 
         public CardContainer FindContainerID(ulong id)
@@ -865,44 +868,6 @@ namespace MultiplayerBase.Handlers
             //entity.flipper.FlipUp(force: true);
         }
 
-        /*
-        public IEnumerator PlacePlayerCard(Friend friend, string[] messages)
-        {
-            if (AlreadyCreated(friend, ulong.Parse(messages[3]), playerLanes))
-            {
-                yield break;
-            }
-            OtherCardViewer ocv = playerLanes[int.Parse(messages[1])];
-            Entity entity = CardEncoder.DecodeEntity1(cb, ocv.owner, messages.Skip(4).ToArray());
-            ocv.Insert(int.Parse(messages[2]), entity, friend, ulong.Parse(messages[3]));
-            if (entity.height > 1)
-            {
-                playerLanes[1].Insert(int.Parse(messages[2]), entity, friend, ulong.Parse(messages[3]));
-            }
-            ocv.SetChildPosition(entity);
-            yield return CardEncoder.DecodeEntity2(entity, messages.Skip(4).ToArray());
-            entity.flipper.FlipUp(force: true);
-        }
-
-        public IEnumerator PlaceEnemyCard(Friend friend, string[] messages)
-        {
-            if (AlreadyCreated(friend, ulong.Parse(messages[3]), enemyLanes))
-            {
-                yield break;
-            }
-            OtherCardViewer ocv = enemyLanes[int.Parse(messages[1])];
-            Entity entity = CardEncoder.DecodeEntity1(cb, ocv.owner, messages.Skip(4).ToArray());
-            ocv.Insert(int.Parse(messages[2]), entity, friend, ulong.Parse(messages[3]));
-            if (entity.height > 1)
-            {
-                enemyLanes[1].Insert(int.Parse(messages[2]), entity, friend, ulong.Parse(messages[3]));
-            }
-            ocv.SetChildPosition(entity);
-            yield return CardEncoder.DecodeEntity2(entity, messages.Skip(4).ToArray());
-            entity.flipper.FlipUp(force: true);
-        }
-        */
-
         public Entity AlreadyCreated(Friend friend, ulong id, OtherCardViewer[] rows)
         {
             Entity entity = rows[0].Find(friend, id) ?? rows[1].Find(friend, id);
@@ -938,17 +903,18 @@ namespace MultiplayerBase.Handlers
             }
         }
 
-        /*
-        public static void Queue(PlayAction p, bool ignoreIfNotBattle = true)
+        
+        public void Queue(PlayAction p)
         {
-            if (ignoreIfNotBattle && Battle.instance == null)
+            if (Battle.instance == null)
             {
                 return;
             }
-            if (Blocking || )
-            actions.Add(p);
+
+            ActionQueue.Add(p);
+            
         }
-        */
+        
 
         public static Vector3 FindPositionForBosses(OtherCardViewer viewer, Entity entity)
         {
@@ -988,34 +954,6 @@ namespace MultiplayerBase.Handlers
             }
             return true;
         }
-
-        /*
-        private static void QueueActions()
-        {
-            if (Battle.instance == null)
-            {
-                return;
-            }
-            foreach (PlayAction action in actions)
-            {
-                ActionQueue.Add(action);
-            }
-            actions.Clear();
-            refreshButton.GetComponentInChildren<TextMeshProUGUI>().text = actions.Count().ToString();
-        }
-
-        public void Fetch()
-        {
-            if (background != null && background.activeSelf)
-            {
-                HandlerSystem.SendMessageToAllOthers("BAT", HandlerSystem.ConcatMessage(false, "ASK","INFO","PLAYER","ENEMY"));
-            }
-            else
-            {
-                HandlerSystem.SendMessageToAllOthers("BAT", HandlerSystem.ConcatMessage(false, "ASK","INFO"));
-            }
-        }
-        */
 
         public static List<CardContainer> GetContainers()
         {

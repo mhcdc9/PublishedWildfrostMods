@@ -110,7 +110,7 @@ namespace MultiplayerBase.Handlers
             while (true)
             {
                 TryReadMessage();
-                yield return new WaitForSeconds(refreshRate);
+                yield return null;//new WaitForSeconds(refreshRate);
             }
         }
 
@@ -190,18 +190,25 @@ namespace MultiplayerBase.Handlers
                 }
                 if (HandlerRoutines.ContainsKey(strings[0]))
                 {
-                    Debug.Log($"[Multiplayer] Running handler \"{strings[0]}\"");
+                    Debug.Log($"[Multiplayer] Running handler [{strings[0]}]");
                     if (FindFriend(strings[1]) is Friend friend)
                     {
                         s = string.Concat(strings.RangeSubset(2, strings.Length - 2));
-                        Debug.Log($"[Multiplayer] Sending message to {friend.Id}: \"{s}\"");
+                        //Debug.Log($"[Multiplayer] Message [{s}]");
                         HandlerRoutines[strings[0]](friend,s);
                     }
                     else
                     {
                         Debug.Log($"[Multiplayer] Unknown friend: {strings[1]}");
+                        Debug.Log($"[Multiplayer] Message [{s}]");
                         return true;
                     }
+                }
+                else
+                {
+                    Debug.Log($"[Multiplayer] Unknown handler \"{strings[0]}\"");
+                    Debug.Log($"[Multiplayer] Message [{s}]");
+                    return true;
                 }
             }
             return false;

@@ -12,14 +12,11 @@ using TMPro;
 
 namespace MultiplayerBase.Battles
 {
-    internal class ActionPlayOtherCard : PlayAction
+    internal class ActionPlayOtherCard : ActionDisplayCardAndSequence
     {
-        public override bool IsRoutine => true;
-        private readonly string[] messages;
-        private readonly Friend friend;
-        private Entity entity;
+        protected Friend friend;
+        protected Entity entity;
         private CardContainer container;
-
         private Vector3 startTextPosition = new Vector3(0f, 2.6f, 0f);
 
         public ActionPlayOtherCard(string[] messages, Friend friend, Entity entity, CardContainer container)
@@ -28,26 +25,46 @@ namespace MultiplayerBase.Battles
             this.entity = entity;
             this.container = container;
             this.friend = friend;
+            note = friend.Name ?? "???";
         }
 
+        /*
+         * ButtonAnimator (disabled color = 1,0.78,0.35,1), type=normal
+         * hover: scale -> 1.15,1.15,1 - elastic
+         * unhover: scale -> 1,1,1 - back
+         * press: scale -> 0.95, 0.95, 1 - elastic
+         * release: scale -> 1,1,1 - back
+         */
+
+        public override IEnumerator RunSequence()
+        {
+            HandlerBattle.InvokeOnPlayOtherCard(friend, entity);
+            PlayAction action;
+            if (entity == null && container == null)
+            {
+                action = new ActionTrigger(displayedEntity, References.Player.entity);
+            }
+            else
+            {
+                action = new ActionTriggerAgainst(displayedEntity, References.Player.entity, entity, container);
+            }
+            //HandlerSystem.CHT_Handler(friend, otherCard.transform.position.ToString());
+
+            if (Events.CheckAction(action))
+            {
+                ActionQueue.Stack(action);
+            }
+            HandlerBattle.InvokeOnPostPlayOtherCard(friend, entity);
+            yield break;
+        }
+
+        /*
         public override IEnumerator Run()
         {
             Entity otherCard = CardEncoder.DecodeEntity1(null, References.Player, messages);
-            otherCard.transform.SetParent(HandlerInspect.instance.transform, false);
-            yield return CardEncoder.DecodeEntity2(otherCard, messages);
-            foreach (StatusEffectData effect in otherCard.statusEffects)
-            {
-                if (effect is StatusEffectFreeAction f)
-                {
-                    f.hasEffect = false;
-                }
-            }
-            yield return otherCard.UpdateTraits();
-            otherCard.display.promptUpdateDescription = true;
-            otherCard.PromptUpdate();
-            otherCard.flipper.FlipUp(true);
-            References.Player.handContainer.Add(otherCard);
-            HandlerBattle.InvokeOnPlayOtherCard(friend, entity);
+            yield return PrepareCard();
+            
+            
             PlayAction action;
             if (entity == null && container == null)
             {
@@ -58,16 +75,16 @@ namespace MultiplayerBase.Battles
                 action = new ActionTriggerAgainst(otherCard, References.Player.entity, entity, container);
             }
             //HandlerSystem.CHT_Handler(friend, otherCard.transform.position.ToString());
-            LeanTween.moveLocal(otherCard.gameObject, new Vector3(-6f,0,0), 0.5f).setEase(LeanTweenType.easeOutQuart);
-            yield return new WaitForSeconds(0.5f);
+            
             if (Events.CheckAction(action))
             {
                 ActionQueue.Add(action);
             }
-            HandlerBattle.InvokeOnPostPlayOtherCard(friend, entity);
+            
             ActionQueue.Add(new ActionKill(otherCard));
             //DisplayOwner(otherCard);
         }
+        */
 
         private void DisplayOwner(Entity otherCard)
         {

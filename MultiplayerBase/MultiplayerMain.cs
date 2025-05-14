@@ -11,6 +11,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using Image = UnityEngine.UI.Image;
+using Color = UnityEngine.Color;
 using HarmonyLib;
 using MultiplayerBase.Handlers;
 using MultiplayerBase.UI;
@@ -71,17 +72,11 @@ namespace MultiplayerBase
             HandlerSystem.self = new Friend(SteamClient.SteamId);
             Task<Steamworks.Data.Image?> imageTask = HandlerSystem.self.GetSmallAvatarAsync();
 
-            gameobject = new GameObject("Start Button");
-            UnityEngine.Object.DontDestroyOnLoad(gameobject);
-            Image image = gameobject.AddComponent<Image>();
-            //image.color = new UnityEngine.Color(Dead.PettyRandom.Range(0f, 1f), Dead.PettyRandom.Range(0f, 1f), Dead.PettyRandom.Range(0f, 1f));
-            //ChangeColor(image);
+            gameobject = HelperUI.BetterButtonTemplate(GameObject.Find("Canvas/SafeArea/Buttons").transform, 0.6f*Vector2.one, Vector3.zero, "", Color.white).gameObject;
+            Image image = gameobject.GetComponent<Image>();
             image.sprite = ImagePath("ui_lobby.png").ToSprite();
-            openMatchmaking = gameobject.AddComponent<Button>();
+            openMatchmaking = gameobject.GetComponent<Button>();
             openMatchmaking.onClick.AddListener(ToggleMatchmaking);
-            gameobject.GetComponent<RectTransform>().sizeDelta = new Vector2(0.6f, 0.6f);
-            gameobject.transform.SetParent(GameObject.Find("Canvas/SafeArea/Buttons").transform);
-            gameobject.transform.localPosition = new Vector3(-11, 5, 0);
 
             gameobject = new GameObject("Top Text");
             UnityEngine.Object.DontDestroyOnLoad(gameobject);
@@ -110,14 +105,23 @@ namespace MultiplayerBase
         public override void Unload()
         {
             base.Unload();
+            UnhookToChatRoom();
             Events.OnModLoaded -= CheckAnotherConsoleMod;
             matchmaker.gameObject.Destroy();
-            openMatchmaking.gameObject.Destroy();
+            openMatchmaking.transform.parent.gameObject.Destroy();
             textElement.Destroy();
+            if (HandlerSystem.enabled)
+            {
+                HandlerSystem.Disable();
+            }
         }
+
+        private bool hookedToChatRooms;
 
         internal void HookToChatRoom()
         {
+            if (hookedToChatRooms) { return; }
+            hookedToChatRooms = true;
             //Events.OnSceneChanged += AnnounceSceneToOthers;
             SteamMatchmaking.OnLobbyCreated += SendMessageCreate;
             SteamMatchmaking.OnLobbyEntered += SendMessageEnter;
@@ -128,6 +132,8 @@ namespace MultiplayerBase
 
         internal void UnhookToChatRoom()
         {
+            if (!hookedToChatRooms) { return; }
+            hookedToChatRooms = false;
             //Events.OnSceneChanged -= AnnounceSceneToOthers;
             SteamMatchmaking.OnLobbyCreated -= SendMessageCreate;
             SteamMatchmaking.OnLobbyEntered -= SendMessageEnter;

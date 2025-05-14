@@ -469,6 +469,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Battles\ActionBattleViewer.cs" />
+    <Compile Include="Battles\ActionDisplayCardAndSequence.cs" />
     <Compile Include="Battles\ActionSendCardToPlay.cs" />
     <Compile Include="Battles\CardControllerMultiplayerBattle.cs" />
     <Compile Include="Battles\ActionPlayOtherCard.cs" />

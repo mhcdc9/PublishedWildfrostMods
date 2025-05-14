@@ -45,15 +45,18 @@ namespace MultiplayerBase.Battles
             bool retainRotation = false;
             bool retainScale = false;
             bool retainDrawOrder = false;
+
+            bool flag = true;//If it stays true, the dragged card will return to its container. 
             if (base.enabled)
             {
+                
 
                 Debug.Log("[Multiplayer] Base is enabled.");
                 if (InputSwitcher.justSwitched)
                 {
                     dragging.TweenToContainer();
                 }
-                else if ((bool)hoverContainer && hoverContainer.canBePlacedOn && hoverContainer == owner.discardContainer && dragging.owner == owner)
+                else if ((bool)hoverContainer && hoverContainer.canBePlacedOn && hoverContainer == owner.discardContainer && dragging.owner == owner) //Unused
                 {
                     Debug.Log("[Multiplayer] Recalling?");
                     if (dragging.CanRecall())
@@ -87,10 +90,11 @@ namespace MultiplayerBase.Battles
                                 Debug.Log("[Multiplayer] Targetless?");
                                 if (!hoverContainer || !dragging.InContainer(hoverContainer))
                                 {
-                                    ActionQueue.Add(new ActionSendCardToPlay(dragging, (Friend)HandlerBattle.friend, 0, ActionSendCardToPlay.TargetType.None));
+                                    ActionQueue.Stack(new ActionSendCardToPlay(dragging, (Friend)HandlerBattle.friend, 0, ActionSendCardToPlay.TargetType.None));
+                                    flag = false;
                                 }
                             }
-                            else if (dragging.data.playOnSlot)
+                            else if (dragging.data.playOnSlot) //Unused case for now...
                             {
                                 Debug.Log("[Multiplayer] Slots?");
                                 CardContainer cardContainer = (dragging.targetMode.TargetRow ? hoverContainer : hoverSlot);
@@ -122,20 +126,22 @@ namespace MultiplayerBase.Battles
                                 Debug.Log("[Multiplayer] Barrage?");
                                 if (dragging.CanPlayOn(hoverContainer))
                                 {
-                                    ActionQueue.Add(new ActionSendCardToPlay(dragging, (Friend)HandlerBattle.friend, HandlerBattle.instance.ConvertToID(hoverContainer), ActionSendCardToPlay.TargetType.Container));
+                                    ActionQueue.Stack(new ActionSendCardToPlay(dragging, (Friend)HandlerBattle.friend, HandlerBattle.instance.ConvertToID(hoverContainer), ActionSendCardToPlay.TargetType.Container));
+                                    flag = false;
                                 }
                             }
                             else if ((bool)hoverEntity && hoverEntity != dragging)
                             {
                                 Debug.Log("[Multiplayer] Standard!");
-                                ActionQueue.Add(new ActionSendCardToPlay(dragging, (Friend)HandlerBattle.friend, HandlerInspect.FindTrueID(hoverEntity), ActionSendCardToPlay.TargetType.Entity));
+                                ActionQueue.Stack(new ActionSendCardToPlay(dragging, (Friend)HandlerBattle.friend, HandlerInspect.FindTrueID(hoverEntity), ActionSendCardToPlay.TargetType.Entity));
+                                flag = false;
                             }
 
                             break;
                     }
                 }
 
-                if (ActionQueue.Empty)
+                if (flag)
                 {
                     Debug.Log("[Multiplayer] Tweening!");
                     dragging.TweenToContainer();
@@ -146,6 +152,11 @@ namespace MultiplayerBase.Battles
             TweenUnHover(dragging, retainScale, retainPosition, retainRotation, retainDrawOrder);
             DragEnd();
             UnHover();
+
+            if (!flag)
+            {
+                HandlerBattle.instance.ToggleViewer((Friend)HandlerBattle.friend);
+            }
             //base.Release();
         }
     }
