@@ -75,12 +75,14 @@ namespace MultiplayerBase.Handlers
 
         protected void OnEnable()
         {
-
+            hideButton.gameObject.SetActive(true);
+            clearButton.gameObject.SetActive(true);
         }
 
         protected void OnDisable()
         {
-
+            hideButton.gameObject.SetActive(false);
+            clearButton.gameObject.SetActive(false);
         }
 
         private void ToggleHide()

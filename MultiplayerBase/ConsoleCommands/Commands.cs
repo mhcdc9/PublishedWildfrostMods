@@ -9,7 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
-using WildfrostHopeMod.CommandsConsole;
+
 using static Console;
 
 namespace MultiplayerBase.ConsoleCommands
@@ -18,12 +18,12 @@ namespace MultiplayerBase.ConsoleCommands
     {
         public static IEnumerator AddCustomCommands(WildfrostMod _)
         {
-            yield return new WaitUntil(() => ConsoleMod.instantiated);
+            yield return new WaitUntil(() => SceneManager.Loaded.ContainsKey("MainMenu"));
             commands.Add(new CommandMultASK());
             commands.Add(new CommandMultShuffle());
-            commands.Add(new CommandMultSac());
+            //commands.Add(new CommandMultSac());
             commands.Add(new CommandMultCHAT());
-            commands.Add(new CommandMultEMOTE());
+            //commands.Add(new CommandMultEMOTE());
         }
 
         public class CommandMultASK : Command
@@ -225,6 +225,7 @@ namespace MultiplayerBase.ConsoleCommands
             }
         }
 
+        /*
         public class CommandMultSac : Command
         {
             public override string id => "multSac";
@@ -277,10 +278,12 @@ namespace MultiplayerBase.ConsoleCommands
                 yield break;
             }
         }
+        */
 
 
     }
 
+    /*
     public class CommandMultEMOTE : Command
     {
         public override string id => "multEmote";
@@ -333,6 +336,7 @@ namespace MultiplayerBase.ConsoleCommands
                 }
             }
         }
+    
 
         private bool CreateEffect(string type, Entity entity)
         {
@@ -356,4 +360,5 @@ namespace MultiplayerBase.ConsoleCommands
             }
         }
     }
+    */
 }

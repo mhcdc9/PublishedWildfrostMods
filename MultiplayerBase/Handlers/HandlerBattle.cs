@@ -91,10 +91,10 @@ namespace MultiplayerBase.Handlers
             instance = this;
 
             refreshButton = Dashboard.buttons[1];
-            refreshButton.onClick.AddListener(QueueActions);
+            //refreshButton.onClick.AddListener(QueueActions);
 
             fetchButton = Dashboard.buttons[2];
-            fetchButton.onClick.AddListener(Fetch);
+            //fetchButton.onClick.AddListener(Fetch);
 
             marks = gameObject.AddComponent<MarkerManager>();
 
@@ -921,12 +921,12 @@ namespace MultiplayerBase.Handlers
                     watchers.Clear();
                     yield break;
                 }
-                Debug.Log("[Battle Handler] Phase Change: " + Battle.instance.phase);
+                //Debug.Log("[Battle Handler] Phase Change: " + Battle.instance.phase);
+                /*
                 phase = Battle.instance.phase;
                 switch (phase)
                 {
                     case Battle.Phase.Battle:
-                        QueueActions();
                         break;
                     case Battle.Phase.Play:
                         break;
@@ -934,8 +934,21 @@ namespace MultiplayerBase.Handlers
 
                         break;
                 }
+                */
             }
         }
+
+        /*
+        public static void Queue(PlayAction p, bool ignoreIfNotBattle = true)
+        {
+            if (ignoreIfNotBattle && Battle.instance == null)
+            {
+                return;
+            }
+            if (Blocking || )
+            actions.Add(p);
+        }
+        */
 
         public static Vector3 FindPositionForBosses(OtherCardViewer viewer, Entity entity)
         {
@@ -976,6 +989,7 @@ namespace MultiplayerBase.Handlers
             return true;
         }
 
+        /*
         private static void QueueActions()
         {
             if (Battle.instance == null)
@@ -1001,6 +1015,7 @@ namespace MultiplayerBase.Handlers
                 HandlerSystem.SendMessageToAllOthers("BAT", HandlerSystem.ConcatMessage(false, "ASK","INFO"));
             }
         }
+        */
 
         public static List<CardContainer> GetContainers()
         {

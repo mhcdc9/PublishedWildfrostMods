@@ -34,7 +34,9 @@ namespace MultiplayerBase.Handlers
             transform.position = Vector3.zero;
             indicatorGroup = new GameObject("Indicator Group");
             indicatorGroup.transform.SetParent(transform);
-            
+
+            HandlerSystem.HandlerRoutines.Add("EVE", HandleMessage);
+            Debug.Log("[Multiplayer] Event Handler Online!");
         }
 
         protected void OnEnable()
@@ -255,7 +257,7 @@ namespace MultiplayerBase.Handlers
                     yield break;
                 }
                 Debug.Log($"[Multpilayer] Pinging {pingables[id].Item1.name}");
-                SfxSystem.OneShot("event:/sfx/modifiers/mod_bell_ringing");
+                SfxSystem.OneShot("event:/sfx/inventory/charm_pickup");
                 LeanTween.cancel(pingables[id].Item1);
                 pingables[id].Item1.transform.localScale = 1.4f * pingables[id].Item2;
                 LeanTween.scale(pingables[id].Item1, pingables[id].Item2, pingDuration);

@@ -75,10 +75,11 @@ namespace MultiplayerBase
             UnityEngine.Object.DontDestroyOnLoad(gameobject);
             Image image = gameobject.AddComponent<Image>();
             //image.color = new UnityEngine.Color(Dead.PettyRandom.Range(0f, 1f), Dead.PettyRandom.Range(0f, 1f), Dead.PettyRandom.Range(0f, 1f));
-            ChangeColor(image);
+            //ChangeColor(image);
+            image.sprite = ImagePath("ui_lobby.png").ToSprite();
             openMatchmaking = gameobject.AddComponent<Button>();
             openMatchmaking.onClick.AddListener(ToggleMatchmaking);
-            gameobject.GetComponent<RectTransform>().sizeDelta = new Vector2(1, 1);
+            gameobject.GetComponent<RectTransform>().sizeDelta = new Vector2(0.6f, 0.6f);
             gameobject.transform.SetParent(GameObject.Find("Canvas/SafeArea/Buttons").transform);
             gameobject.transform.localPosition = new Vector3(-11, 5, 0);
 

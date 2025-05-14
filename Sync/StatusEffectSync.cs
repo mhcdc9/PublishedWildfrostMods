@@ -8,6 +8,8 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
+using Image = UnityEngine.UI.Image;
+using Color = UnityEngine.Color;
 using Net = MultiplayerBase.Handlers.HandlerSystem;
 
 namespace Sync
@@ -44,13 +46,33 @@ namespace Sync
             {
                 yield break;
             }
+            if (target.silenced)
+            {
+                yield break;
+            }
+            effectActive = true;
+            StatusIcon icon = target?.display?.FindStatusIcon(type);
+            Transform cycle = icon?.transform?.GetChild(0);
+            if (icon != null)
+            {
+                icon.GetComponent<Image>().color = Color.white;
+            }
+            if (cycle != null)
+            {
+                cycle.GetComponent<Image>().color = Color.white;
+                cycle.GetComponent<SyncArrows>().enabled = true;
+            }
+
             if (effectToApply != null)
             {
                 entities = GetTargets();
-                yield return Run(GetTargets(), amount);
                 amountApplied = GetAmount();
+                Routine.Clump clumpy = new Routine.Clump();
+                for (int i = 0; i < entities.Count; i++)
+                {
+                    yield return StatusEffectSystem.Apply(entities[i], target, effectToApply, amountApplied, temporary: true);
+                }                
             }
-            effectActive = true;
         }
 
         public IEnumerator EffectChanged()
@@ -105,8 +127,20 @@ namespace Sync
             if (effectActive && ongoing)
             {
                 yield return FindAndRemoveStacks(amountApplied);
+
             }
             effectActive = false;
+            StatusIcon icon = target?.display?.FindStatusIcon(type);
+            Transform cycle = icon?.transform?.GetChild(0);
+            if (icon != null)
+            {
+                icon.GetComponent<Image>().color = new Color(1f,1f,1f,0.1f);
+            }
+            if (cycle != null)
+            {
+                cycle.GetComponent<Image>().color =new Color(0.7f,0.7f,0.7f,1f);
+                cycle.GetComponent<SyncArrows>().enabled = false;
+            }
         }
     }
 
@@ -152,6 +186,24 @@ namespace Sync
             }
             yield return clump.WaitForEnd();
             StatusEffectSystem.activeEffects.Thaw();
+        }
+    }
+
+    public class SyncArrows : MonoBehaviour
+    {
+        public Vector3 rotation = new Vector3(0, 0, -180f);
+
+        public void Start()
+        {
+            float z = Dead.PettyRandom.Range(-10f, 10f);
+            rotation.z += z;
+        }
+
+        public void Update()
+        {
+            Vector3 localRotation = transform.localEulerAngles;
+            localRotation += rotation * Time.deltaTime;
+            transform.localEulerAngles = localRotation;
         }
     }
 }

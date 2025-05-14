@@ -15,7 +15,7 @@
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
+    <DebugType>embedded</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
@@ -35,14 +35,14 @@
     <Reference Include="0Harmony">
       <HintPath>..\..\..\..\Desktop\Managed\0Harmony.dll</HintPath>
     </Reference>
-    <Reference Include="Assembly-CSharp">
-      <HintPath>..\..\..\..\Desktop\Managed\Assembly-CSharp.dll</HintPath>
-    </Reference>
     <Reference Include="Assembly-CSharp-firstpass">
       <HintPath>..\..\..\..\Desktop\Managed\Assembly-CSharp-firstpass.dll</HintPath>
     </Reference>
     <Reference Include="Assembly-CSharp-Publicized">
       <HintPath>..\..\..\..\Desktop\Managed\Assembly-CSharp-Publicized.dll</HintPath>
+    </Reference>
+    <Reference Include="Config Manager">
+      <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\workshop\content\1811990\3175889529\Config Manager.dll</HintPath>
     </Reference>
     <Reference Include="DeadExtensions">
       <HintPath>..\..\..\..\Desktop\Managed\DeadExtensions.dll</HintPath>
@@ -391,6 +391,9 @@
     <Reference Include="UnityEngine.XRModule">
       <HintPath>..\..\..\..\Desktop\Managed\UnityEngine.XRModule.dll</HintPath>
     </Reference>
+    <Reference Include="VFX_Tests">
+      <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\workshop\content\1811990\3157544232\VFX_Tests.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Extensions.cs" />
@@ -401,4 +404,7 @@
     <Compile Include="TargetConstraintPlayableOnBoard.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>copy "C:\Users\Michael\source\repos\Mods\Sync\obj\Debug\Sync.dll" "C:\Program Files (x86)\Steam\steamapps\common\Wildfrost\Modded\Wildfrost_Data\StreamingAssets\Mods\Sync\Sync.dll"</PostBuildEvent>
+  </PropertyGroup>
 </Project>

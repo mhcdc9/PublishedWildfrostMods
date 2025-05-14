@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
+using WildfrostHopeMod.VFX;
 
 namespace Sync
 {
@@ -23,13 +24,14 @@ namespace Sync
                 });
         }
 
-        public static StatusEffectDataBuilder CreateSyncEffect<T>(this StatusEffectDataBuilder b, string name, string desc, string textInsert, string effectToApply, string type = "", bool boostable = false, bool ongoing = true) where T : StatusEffectSync
+        public static StatusEffectDataBuilder CreateSyncEffect<T>(this StatusEffectDataBuilder b, string name, string desc, string textInsert, string effectToApply, string type = "mhcdc9.sync", bool boostable = false, bool ongoing = true) where T : StatusEffectSync
         {
             return b.Create<T>(name)
                 .WithCanBeBoosted(boostable)
                 .WithText(desc)
                 .WithTextInsert(textInsert)
                 .WithType(type)
+                .Subscribe_WithStatusIcon("sync icon")
                 .SubscribeToAfterAllBuildEvent(
                 (data) =>
                 {
@@ -37,6 +39,7 @@ namespace Sync
                     syncData.effectToApply = AddressableLoader.Get<StatusEffectData>("StatusEffectData", effectToApply);
                     syncData.applyToFlags = StatusEffectApplyX.ApplyToFlags.Self;
                     syncData.ongoing = ongoing;
+                    syncData.keyword = "";
                 }
                 );
         }

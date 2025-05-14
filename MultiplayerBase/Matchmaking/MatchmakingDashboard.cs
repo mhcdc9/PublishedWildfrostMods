@@ -175,6 +175,7 @@ namespace MultiplayerBase.Matchmaking
                 lob.SetPublic();
                 modView.OpenModView(lob, true);
                 memberView.OpenMemberView(lob, true, true);
+                lobbyView.ExitLobbyView();
                 MultiplayerMain.instance.HookToChatRoom();
                 createLobbyButton.interactable = false;
                 leaveLobbyButton.interactable = true;
@@ -222,7 +223,8 @@ namespace MultiplayerBase.Matchmaking
                 createLobbyButton.interactable = false;
                 leaveLobbyButton.interactable = true;
                 findLobbyButton.interactable = false;
-                lobbyView.SelectLobby(-1);
+                //lobbyView.SelectLobby(-1);
+                lobbyView.ExitLobbyView();
             }
             else
             {
@@ -244,6 +246,7 @@ namespace MultiplayerBase.Matchmaking
                 finalizeButton.interactable = false;
                 findLobbyButton.interactable = true;
                 RemoveSidePanels();
+                FindLobby();
                 lobby = null;
             }
         }

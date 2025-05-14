@@ -123,7 +123,7 @@ namespace MultiplayerBase.UI
             CardUpgradeData cardUpgradeData = AddressableLoader.Get<CardUpgradeData>("CardUpgradeData", upgradeName);
             title = cardUpgradeData?.title ?? "???";
             body = cardUpgradeData?.text ?? "";
-            GetComponent<Image>().sprite = cardUpgradeData.image;
+            GetComponent<Image>().sprite = cardUpgradeData.image ?? null;
             GetComponent<Image>().color = Color.white;
         }
 

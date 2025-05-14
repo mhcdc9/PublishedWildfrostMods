@@ -32,6 +32,8 @@ namespace MultiplayerBase.Matchmaking
         public Button leftButton;
         public Button rightButton;
         public TextMeshProUGUI pageText;
+
+        TweenUI exitTween;
         public static LobbyView Create(Transform transform)
         {
             GameObject obj = new GameObject("Lobby View");
@@ -52,9 +54,18 @@ namespace MultiplayerBase.Matchmaking
             LobbyView lv = obj.AddComponent<LobbyView>();
             lv.transform.SetParent(transform);
 
+            tween = obj.AddComponent<TweenUI>();
+            tween.target = obj;
+            tween.property = TweenUI.Property.Move;
+            tween.ease = LeanTweenType.easeOutQuart;
+            tween.disableAfter = true;
+            tween.duration = 0.75f;
+            tween.to = defaultPosition + 11 * Vector3.up;
+
             lv.buttonGroup = HelperUI.VerticalGroup("Vertical Group", lv.transform, innerDim, 0.1f);
             lv.buttonGroup.GetComponent<VerticalLayoutGroup>().childAlignment = TextAnchor.UpperCenter;
             lv.buttonGroup.transform.localPosition = new Vector3(0, -0.2f, 0);
+            lv.exitTween = tween;
 
             lv.CreateNavButtons();
 
@@ -148,6 +159,7 @@ namespace MultiplayerBase.Matchmaking
 
         public void SelectLobby(int newIndex)
         {
+            Debug.Log($"[Multiplayer] {newIndex}");
             SfxSystem.OneShot("event:/sfx/ui/menu_click_sub");
             if (index != -1)
             {
@@ -164,6 +176,11 @@ namespace MultiplayerBase.Matchmaking
             Dashboard.modView.OpenModView(MatchmakingDashboard.lobbyList[index], false);
             Dashboard.memberView.OpenMemberView(MatchmakingDashboard.lobbyList[index], false, false);
             Dashboard.joinLobbyButton.interactable = true;
+        }
+
+        public void ExitLobbyView()
+        {
+            exitTween.Fire();
         }
     }
 }

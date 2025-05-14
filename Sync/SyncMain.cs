@@ -16,6 +16,9 @@ using Wave = BattleWaveManager.Wave;
 using System.Collections;
 using static Console;
 using UnityEngine.SceneManagement;
+using WildfrostHopeMod.VFX;
+using UnityEngine.UI;
+using WildfrostHopeMod;
 
 namespace Sync
 {
@@ -28,12 +31,31 @@ namespace Sync
         public static bool sentSyncMessage = false;
         public static int syncCombo = 0;
 
-        public static int enemyPerWave = 1;
-        public static float itemSyncChance = 0.33f;
+        [ConfigManagerTitle("Synched Enemy Per Wave")]
+        [ConfigManagerDesc("Determines the number of enemy units with sync effects <i>per wave</i>")]
+        [ConfigOptions(0,1,2,3)]
+        [ConfigItem(1, "", "SyncEnemies")]
+        public int enemyPerWave = 1;
 
-        public static float itemMystChance = 0.2f;
+        [ConfigManagerTitle("Harder Enemy Syncs?")]
+        [ConfigManagerDesc("Do you want more challenging enemies?")]
+        [ConfigOptions("No", "Of course!")]
+        [ConfigItem("No","", "HarderSyncs")]
+        public string harderSync = "No";
+
+        [ConfigManagerTitle("Item Sync Frequency")]
+        [ConfigManagerDesc("Determines the %-chance that an item has a sync effect")]
+        [ConfigItem(0.33f, "", "SyncItems")]
+        public float itemSyncChance = 0.33f;
+
+        [ConfigManagerTitle("Item Mystic Frequency")]
+        [ConfigManagerDesc("Determines the %-chance that an item has mystic")]
+        [ConfigItem(0.2f, "", "MystItems")]
+        public float itemMystChance = 0.2f;
 
         private static bool commandsLoaded = false;
+
+        public static List<object> assets = new List<object>();
 
         private List<StatusEffectDataBuilder> effects = new List<StatusEffectDataBuilder>();
         private List<KeywordDataBuilder> keywords = new List<KeywordDataBuilder>();
@@ -105,10 +127,10 @@ namespace Sync
 
         public void CreateStatuses()
         {
-            keywords.Add(Extensions.CreateBasicKeyword(this, "sync", "Sync", "Gain an effect when a <sync> card is played or attacks elsewhere"));
-            keywords.Add(Extensions.CreateBasicKeyword(this, "mystic", "Mystic", "Playable on another board|Reward: replace this effect with Zoomlin"));
+            assets.Add(Extensions.CreateBasicKeyword(this, "sync", "Sync", "Gain an effect when a <sync> card is played or attacks elsewhere"));
+            assets.Add(Extensions.CreateBasicKeyword(this, "mystic", "Mystic", "Playable on another board|Reward: replace this effect with Zoomlin"));
 
-            effects.Add(new StatusEffectDataBuilder(this)
+            assets.Add(new StatusEffectDataBuilder(this)
                 .Create<StatusEffectMystical>("Mystic")
                 .WithCanBeBoosted(false)
                 .WithText("<keyword=mhcdc9.wildfrost.sync.mystic>")
@@ -122,60 +144,83 @@ namespace Sync
                 })
                 );
 
-            effects.Add(new StatusEffectDataBuilder(this)
+            assets.Add(new StatusEffectDataBuilder(this)
                 .CreateTempTrait("Temporary Smackback", Get<TraitData>("Smackback"))
                 .WithConstraints(Extensions.DoesAttack())
                 );
 
-            effects.Add(new StatusEffectDataBuilder(this)
+            assets.Add(new StatusEffectDataBuilder(this)
                 .CreateSyncEffect<StatusEffectSync>("Sync Attack", "<keyword=mhcdc9.wildfrost.sync.sync>: <+{a}><keyword=attack>", "", "Ongoing Increase Attack", boostable: true)
                 .WithConstraints(Extensions.DoesDamage())
                 );
 
-            effects.Add(new StatusEffectDataBuilder(this)
+            assets.Add(new StatusEffectDataBuilder(this)
                 .CreateSyncEffect<StatusEffectSync>("Sync Effect", "<keyword=mhcdc9.wildfrost.sync.sync>: +{a} to effects", "", "Ongoing Increase Effects")
                 .WithConstraints(Extensions.CanBeBoosted())
                 );
 
-            effects.Add(new StatusEffectDataBuilder(this)
+            assets.Add(new StatusEffectDataBuilder(this)
                 .CreateSyncEffect<StatusEffectSync>("Sync Frenzy", "<keyword=mhcdc9.wildfrost.sync.sync>: <x{a}><keyword=frenzy>", "", "MultiHit", boostable: true)
                 .WithConstraints()
                 );
 
-            effects.Add(new StatusEffectDataBuilder(this)
+            assets.Add(new StatusEffectDataBuilder(this)
                 .CreateSyncEffect<StatusEffectSync>("Sync Barrage", "<keyword=mhcdc9.wildfrost.sync.sync>: <keyword=barrage>", "", "Temporary Barrage")
                 .WithConstraints(Extensions.DoesAttack(), Extensions.NotTrait("Barrage"), Extensions.TargetsBoard())
                 );
 
-            effects.Add(new StatusEffectDataBuilder(this)
+            assets.Add(new StatusEffectDataBuilder(this)
                 .CreateSyncEffect<StatusEffectSync>("Sync Zoomlin", "<keyword=mhcdc9.wildfrost.sync.sync>: <keyword=zoomlin>", "", "Temporary Zoomlin")
                 .WithConstraints(Extensions.NotTrait("Zoomlin"))
                 );
 
-            effects.Add(new StatusEffectDataBuilder(this)
+            assets.Add(new StatusEffectDataBuilder(this)
                 .CreateSyncEffect<StatusEffectSync>("Sync Smackback", "<keyword=mhcdc9.wildfrost.sync.sync>: <keyword=smackback>", "", "mhcdc9.wildfrost.sync.Temporary Smackback")
                 .WithConstraints(Extensions.DoesAttack(), Extensions.NotTrait("Smackback"))
                 );
 
-            effects.Add(new StatusEffectDataBuilder(this)
+            assets.Add(new StatusEffectDataBuilder(this)
                 .CreateSyncEffect<StatusEffectSync>("Sync Heal", "<keyword=mhcdc9.wildfrost.sync.sync>: Restore <{a}><keyword=health>", "", "Heal", boostable: true, ongoing: false)
                 .WithConstraints(Extensions.HasHealth())
                 );
 
-            effects.Add(new StatusEffectDataBuilder(this)
+            assets.Add(new StatusEffectDataBuilder(this)
                 .CreateSyncEffect<StatusEffectSync>("Sync Counter", "<keyword=mhcdc9.wildfrost.sync.sync>: Count down <keyword=counter> by <{a}>", "", "Reduce Counter", boostable: true, ongoing: false)
-                .WithConstraints(Extensions.HasCounter())
+                .WithConstraints(Extensions.HasCounter(), ScriptableObject.CreateInstance<TargetConstraintOnBoard>())
                 );
 
-            effects.Add(new StatusEffectDataBuilder(this)
+            assets.Add(new StatusEffectDataBuilder(this)
                 .CreateSyncEffect<StatusEffectSync>("Sync Mystic", "<keyword=mhcdc9.wildfrost.sync.sync>: <keyword=mhcdc9.wildfrost.sync.mystic>", "", "mhcdc9.wildfrost.sync.Mystic")
                 .WithConstraints(Extensions.IsPlay(), Extensions.NotOnSlot(), Extensions.TargetsBoard())
                 );
 
-            effects.Add(new StatusEffectDataBuilder(this)
+            assets.Add(new StatusEffectDataBuilder(this)
                 .CreateSyncEffect<StatusEffectSync>("Sync Nothing", "<keyword=mhcdc9.wildfrost.sync.sync>: Do nothing?", "", "", ongoing: false)
                 .WithConstraints(Extensions.IsPlay())
                 );
+
+            assets.Add(new StatusIconBuilder(this)
+                .Create("sync icon", "mhcdc9.sync", GetSprite("status_sync.png"))
+                .WithIconGroupName(StatusIconBuilder.IconGroups.crown)
+                .WithKeywords("sync")
+                .WithTextboxSprite(ImagePath("status_sync_arrow.png").ToSprite())
+                .SubscribeToAfterAllBuildEvent(data =>
+                {
+                    Transform parent = data.icon.transform;
+                    parent.GetComponent<Image>().color = new Color(1, 1, 1, 0.1f);
+                    GameObject cycle = new GameObject("Cycle");
+                    cycle.transform.SetParent(parent, false);
+                    cycle.transform.SetAsFirstSibling();
+                    cycle.AddComponent<Image>().sprite = GetSprite("status_sync_arrow.png");
+                    cycle.GetComponent<Image>().color = new Color(0.7f, 0.7f, 0.7f, 1f);
+                    cycle.AddComponent<SyncArrows>().enabled = false;
+                    cycle.GetComponent<RectTransform>().sizeDelta = new Vector2(1f, 1f);
+                }));
+        }
+
+        internal static Sprite GetSprite(string s)
+        {
+            return Instance.ImagePath(s).ToSprite();
         }
 
         static (string, int)[] ItemSyncEffects = new (string, int)[]
@@ -192,19 +237,12 @@ namespace Sync
 
         public override List<T> AddAssets<T, Y>()
         {
-            var typeName = typeof(Y).Name;
-            switch (typeName)
-            {
-                case nameof(StatusEffectData):
-                    return effects.Cast<T>().ToList();
-                case nameof(KeywordData):
-                    return keywords.Cast<T>().ToList();
-                default:
-                    return null;
-            }
+            if (assets.OfType<T>().Any())
+                Debug.LogWarning($"[{Title}] adding {typeof(Y).Name}s: {assets.OfType<T>().Select(a => a._data.name).Join()}");
+            return assets.OfType<T>().ToList();
         }
 
-        public async Task SyncStartingInventory()
+        public Task SyncStartingInventory()
         {
             if (References.PlayerData?.inventory?.deck != null)
             {
@@ -216,13 +254,14 @@ namespace Sync
                     }
                 }
             }
+            return Task.CompletedTask;
         }
 
         internal void ApplySyncItem(Entity entity)
         {
             if (entity.data.cardType.name == "Item")
             {
-                Debug.Log($"[Sync] Entity Offered: {entity.data.title}");
+                //Debug.Log($"[Sync] Entity Offered: {entity.data.title}");
                 if (Dead.Random.Range(0f, 1f) < itemSyncChance)
                 {
                     Extensions.TryAddSync(entity, ItemSyncEffects);
@@ -238,7 +277,7 @@ namespace Sync
             PerformSync();
         }
 
-        public async Task MystStartingInventory()
+        public Task MystStartingInventory()
         {
             if (References.PlayerData?.inventory?.deck != null)
             {
@@ -250,13 +289,14 @@ namespace Sync
                     }
                 }
             }
+            return Task.CompletedTask;
         }
 
         internal void ApplyMystItem(Entity entity)
         {
             if (entity.data.cardType.name == "Item")
             {
-                Debug.Log($"[Myst] Entity Offered: {entity.data.title}");
+                //Debug.Log($"[Myst] Entity Offered: {entity.data.title}");
                 if (Dead.Random.Range(0f, 1f) < itemMystChance)
                 {
                     Extensions.TryAddMyst(entity);
@@ -308,7 +348,7 @@ namespace Sync
     }
 
     [HarmonyPatch(typeof(ScriptBattleSetUp), "SetUpEnemyWaves")]
-    internal static class AddSyncToEnemies
+    static class AddSyncToEnemies
     {
         static (string, int)[] EnemySyncEffects = new (string, int)[]
         {
@@ -321,16 +361,28 @@ namespace Sync
             ("Sync Smackback",1)
         };
 
+        static (string, int)[] EasierEnemySyncEffects = new (string, int)[]
+        {
+            ("Sync Attack", 2),
+            ("Sync Effect", 1),
+            ("Sync Frenzy", 1),
+            ("Sync Nothing", 1),
+            ("Sync Heal", 3),
+            ("Sync Counter", 1),
+            ("Sync Smackback",1)
+        };
+
 
         static void Postfix(Character enemy)
         {
             BattleWaveManager component = enemy.GetComponent<BattleWaveManager>();
             foreach (Wave wave in component.list)
             {
-                int points = SyncMain.enemyPerWave;
+                int points = SyncMain.Instance.enemyPerWave;
                 foreach (CardData data in wave.units.InRandomOrder())
                 {
-                    if (points > 0 && Extensions.TryAddSync(data, EnemySyncEffects))
+                    (string, int)[] effects = SyncMain.Instance.harderSync == "No" ? EasierEnemySyncEffects : EnemySyncEffects;
+                    if (points > 0 && Extensions.TryAddSync(data, effects))
                     {
                         points--;
                     }
