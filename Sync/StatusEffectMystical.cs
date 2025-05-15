@@ -1,4 +1,5 @@
-﻿using MultiplayerBase.Handlers;
+﻿using MultiplayerBase;
+using MultiplayerBase.Handlers;
 using Steamworks;
 using System;
 using System.Collections;
@@ -14,18 +15,18 @@ namespace Sync
         public bool holdPlayOnHand = false;
         public override void Init()
         {
-            HandlerBattle.OnBattleViewerOpen += ViewerOpen;
-            HandlerBattle.OnBattleViewerClose += ViewerClose;
+            MultEvents.OnBattleViewerOpen += ViewerOpen;
+            MultEvents.OnBattleViewerClose += ViewerClose;
             //HandlerBattle.OnSendCardToPlay += Play;
-            HandlerBattle.OnPostSendCardToPlay += GainZoomlin;
+            MultEvents.OnSentCardToPlay += GainZoomlin;
         }
 
         public void OnDestroy()
         {
-            HandlerBattle.OnBattleViewerOpen -= ViewerOpen;
-            HandlerBattle.OnBattleViewerClose -= ViewerClose;
+            MultEvents.OnBattleViewerOpen -= ViewerOpen;
+            MultEvents.OnBattleViewerClose -= ViewerClose;
             //HandlerBattle.OnSendCardToPlay -= Play;
-            HandlerBattle.OnPostSendCardToPlay -= GainZoomlin;
+            MultEvents.OnSentCardToPlay -= GainZoomlin;
         }
 
         public void ViewerOpen(Friend friend)

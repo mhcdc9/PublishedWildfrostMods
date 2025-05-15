@@ -17,21 +17,14 @@ using MultiplayerBase.UI;
 using MultiplayerBase.Battles;
 using Steamworks.Data;
 using Color = UnityEngine.Color;
-using System.Xml;
 using HarmonyLib;
 
 namespace MultiplayerBase.Handlers
 {
     public class HandlerBattle : MonoBehaviour
     {
-        public static event UnityAction<Friend> OnBattleViewerOpen;
-        public static event UnityAction<Friend> OnBattleViewerClose;
-        public static event UnityAction<Friend, Entity> OnPlayOtherCard;
-        public static event UnityAction<Friend, Entity> OnPostPlayOtherCard;
-        public static event UnityAction<Friend, Entity> OnSendCardToPlay;
-        public static event UnityAction<Friend, Entity> OnPostSendCardToPlay;
 
-        public static UnityAction<Friend> OnFetch;
+        public static UnityAction<Friend> OnFetch; //Probably unused?
 
         public static HandlerBattle instance;
         public static readonly List<PlayAction> actions = new List<PlayAction>();
@@ -363,7 +356,7 @@ namespace MultiplayerBase.Handlers
             ActionQueue.Stack(new ActionBattleViewer());
             //StartCoroutine(PopulateRows());
             HandlerBattle.friend = friend;
-            InvokeOnBattleViewerOpen(friend);
+            MultEvents.InvokeBattleViewerOpen(friend);
     }
 
         public void CloseBattleViewer()
@@ -392,7 +385,7 @@ namespace MultiplayerBase.Handlers
             if (friend is Friend f)
             {
                 HandlerSystem.SendMessage("BAT", f, "UNSUB");
-                InvokeOnBattleViewerClose(f);
+                MultEvents.InvokeBattleViewerClose(f);
             }
             for (int i = 0; i < actions.Count; i++)
             {
@@ -489,22 +482,6 @@ namespace MultiplayerBase.Handlers
                 switch (messages[i])
                 {
                     case "PLAYER":
-                        /*for(int j = 0; j < 2; j++)
-                        {
-                            if (Battle.instance.rows[References.Player][j] is CardSlotLane lane)
-                            {
-                                List<CardSlot> slots = lane.slots;
-                                for (int k = 0; k < slots.Count; k++)
-                                {
-                                    if (slots[k].Count != 0)
-                                    {
-                                        Entity entity = slots[k][0];
-                                        s = HandlerSystem.ConcatMessage(false, "PLAYER", $"{j}", $"{k}", CardEncoder.Encode(entity, entity.data.id));
-                                        HandlerSystem.SendMessage("BAT", friend, s);
-                                    }
-                                }
-                            }
-                        }*/
                         List<string> list = SendCards("PLAYER", References.Player);
                         for(int j=0; j<list.Count; j++)
                         {
@@ -512,22 +489,6 @@ namespace MultiplayerBase.Handlers
                         }
                         break;
                     case "ENEMY":
-                        /*for (int j = 0; j < 2; j++)
-                        {
-                            if (Battle.instance.rows[Battle.GetOpponent(References.Player)][j] is CardSlotLane lane)
-                            {
-                                List<CardSlot> slots = lane.slots;
-                                for (int k = 0; k < slots.Count; k++)
-                                {
-                                    if (slots[k].Count != 0)
-                                    {
-                                        Entity entity = slots[k][0];
-                                        s = HandlerSystem.ConcatMessage(false, "ENEMY", $"{j}", $"{k}", CardEncoder.Encode(entity, entity.data.id));
-                                        HandlerSystem.SendMessage("BAT", friend, s);
-                                    }
-                                }
-                            }
-                        }*/
                         list = SendCards("ENEMY", Battle.GetOpponent(References.Player));
                         for (int j = 0; j < list.Count; j++)
                         {
@@ -958,36 +919,6 @@ namespace MultiplayerBase.Handlers
         public static List<CardContainer> GetContainers()
         {
             return instance.playerLanes.Concat(instance.enemyLanes).Select((a) => (CardContainer)a).ToList();
-        }
-
-        public static void InvokeOnBattleViewerOpen(Friend friend)
-        {
-            OnBattleViewerOpen?.Invoke(friend);
-        }
-
-        public static void InvokeOnBattleViewerClose(Friend friend)
-        {
-            OnBattleViewerClose?.Invoke(friend);
-        }
-
-        public static void InvokeOnPlayOtherCard(Friend friend, Entity entity)
-        {
-            OnPlayOtherCard?.Invoke(friend, entity);
-        }
-
-        public static void InvokeOnPostPlayOtherCard(Friend friend, Entity entity)
-        {
-            OnPostPlayOtherCard?.Invoke(friend, entity);
-        }
-
-        public static void InvokeOnSendCardToPlay(Friend friend, Entity entity)
-        {
-            OnSendCardToPlay?.Invoke(friend, entity);
-        }
-
-        public static void InvokeOnPostSendCardToPlay(Friend friend, Entity entity)
-        {
-            OnPostSendCardToPlay?.Invoke(friend, entity);
         }
 
         [HarmonyPatch(typeof(Card), "GetDescription", new Type[]

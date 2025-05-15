@@ -19,8 +19,6 @@ namespace MultiplayerBase.Handlers
     {
         public static HandlerEvent instance;
 
-        public static event UnityAction<BossRewardData.Data> OnSelectBlessing;
-
         public Dictionary<int, (GameObject,Vector3)> pingables = new Dictionary<int, (GameObject, Vector3)>();
         private List<Friend> watchers = new List<Friend>();
         private GameObject indicatorGroup;
@@ -44,7 +42,7 @@ namespace MultiplayerBase.Handlers
             Events.OnSceneChanged += ErasePingablesAndWatchers;
             Events.OnShopItemPurchase += ItemPurchase;
             Events.OnEntityChosen += EntityChosen;
-            OnSelectBlessing += SelectBlessing;
+            MultEvents.OnBlessingSelected += SelectBlessing;
         }
 
         protected void OnDisable()
@@ -52,7 +50,7 @@ namespace MultiplayerBase.Handlers
             Events.OnSceneChanged -= ErasePingablesAndWatchers;
             Events.OnShopItemPurchase -= ItemPurchase;
             Events.OnEntityChosen -= EntityChosen;
-            OnSelectBlessing -= SelectBlessing;
+            MultEvents.OnBlessingSelected -= SelectBlessing;
         }
 
         public void AskForData(Friend friend)
@@ -312,11 +310,6 @@ namespace MultiplayerBase.Handlers
             pingables.Clear();
         }
 
-        public static void InvokeSelectBlessing(BossRewardData.Data data)
-        {
-            OnSelectBlessing?.Invoke(data);
-        }
-
         private void SelectBlessing(BossRewardData.Data data)
         {
             string dataName = GetNameOfReward(data);
@@ -387,7 +380,7 @@ namespace MultiplayerBase.Handlers
     {
         static void Prefix(BossRewardData.Data reward)
         {
-            HandlerEvent.InvokeSelectBlessing(reward);
+            MultEvents.InvokeBlessingSelected(reward);
         }
     }
 }

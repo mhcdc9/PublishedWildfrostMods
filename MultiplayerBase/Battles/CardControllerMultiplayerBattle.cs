@@ -126,14 +126,14 @@ namespace MultiplayerBase.Battles
                                 Debug.Log("[Multiplayer] Barrage?");
                                 if (dragging.CanPlayOn(hoverContainer))
                                 {
-                                    ActionQueue.Stack(new ActionSendCardToPlay(dragging, (Friend)HandlerBattle.friend, HandlerBattle.instance.ConvertToID(hoverContainer), ActionSendCardToPlay.TargetType.Container));
+                                    ActionQueue.Stack(new ActionSendCardToPlay(dragging, (Friend)HandlerBattle.friend, hoverContainer, ActionSendCardToPlay.TargetType.Container));
                                     flag = false;
                                 }
                             }
                             else if ((bool)hoverEntity && hoverEntity != dragging)
                             {
                                 Debug.Log("[Multiplayer] Standard!");
-                                ActionQueue.Stack(new ActionSendCardToPlay(dragging, (Friend)HandlerBattle.friend, HandlerInspect.FindTrueID(hoverEntity), ActionSendCardToPlay.TargetType.Entity));
+                                ActionQueue.Stack(new ActionSendCardToPlay(dragging, (Friend)HandlerBattle.friend, hoverEntity, ActionSendCardToPlay.TargetType.Entity));
                                 flag = false;
                             }
 

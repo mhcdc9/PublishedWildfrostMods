@@ -216,6 +216,7 @@ namespace Sync
                     cycle.AddComponent<SyncArrows>().enabled = false;
                     cycle.GetComponent<RectTransform>().sizeDelta = new Vector2(1f, 1f);
                 }));
+
         }
 
         internal static Sprite GetSprite(string s)

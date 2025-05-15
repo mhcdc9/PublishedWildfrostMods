@@ -38,7 +38,6 @@ namespace MultiplayerBase.Battles
 
         public override IEnumerator RunSequence()
         {
-            HandlerBattle.InvokeOnPlayOtherCard(friend, entity);
             PlayAction action;
             if (entity == null && container == null)
             {
@@ -54,7 +53,7 @@ namespace MultiplayerBase.Battles
             {
                 ActionQueue.Stack(action);
             }
-            HandlerBattle.InvokeOnPostPlayOtherCard(friend, entity);
+            MultEvents.InvokeOtherCardPlayed(friend, entity);
             yield break;
         }
 

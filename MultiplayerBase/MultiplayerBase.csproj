@@ -55,9 +55,6 @@
     <Reference Include="0Harmony">
       <HintPath>..\..\..\..\Desktop\Managed\0Harmony.dll</HintPath>
     </Reference>
-    <Reference Include="Assembly-CSharp">
-      <HintPath>..\..\..\..\Desktop\Managed\Assembly-CSharp.dll</HintPath>
-    </Reference>
     <Reference Include="Assembly-CSharp-firstpass">
       <HintPath>..\..\..\..\Desktop\Managed\Assembly-CSharp-firstpass.dll</HintPath>
     </Reference>
@@ -440,9 +437,6 @@
     <Reference Include="UnityEngine.UnityWebRequestTextureModule">
       <HintPath>..\..\..\..\Desktop\Managed\UnityEngine.UnityWebRequestTextureModule.dll</HintPath>
     </Reference>
-    <Reference Include="UnityEngine.UnityWebRequestWWWModule">
-      <HintPath>..\..\..\..\Desktop\Managed\UnityEngine.UnityWebRequestWWWModule.dll</HintPath>
-    </Reference>
     <Reference Include="UnityEngine.UnityWebRequestWWWModule-Publicized">
       <HintPath>..\..\..\..\Desktop\Managed\UnityEngine.UnityWebRequestWWWModule-Publicized.dll</HintPath>
     </Reference>
@@ -480,6 +474,8 @@
     <Compile Include="Matchmaking\LobbyView.cs" />
     <Compile Include="Matchmaking\MemberView.cs" />
     <Compile Include="Matchmaking\ModView.cs" />
+    <Compile Include="MultEvents.cs" />
+    <Compile Include="StatusEffects\IAlternatePlay.cs" />
     <Compile Include="UI\Dashboard.cs" />
     <Compile Include="Handlers\HandlerBattle.cs" />
     <Compile Include="Handlers\HandlerDeck.cs" />
@@ -497,6 +493,7 @@
     <Compile Include="UI\OtherCardViewer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>copy "C:\Users\Michael\source\repos\Mods\MultiplayerBase\obj\Debug\MultiplayerBase.dll" "C:\Program Files (x86)\Steam\steamapps\common\Wildfrost\Modded\Wildfrost_Data\StreamingAssets\Mods\Multiplayer\MultiplayerBase.dll"</PostBuildEvent>
