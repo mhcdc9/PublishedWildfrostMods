@@ -13,7 +13,7 @@ using MultiplayerBase.UI;
 
 namespace MultiplayerBase.Handlers
 {
-    internal class HandlerInspect : MonoBehaviour
+    public class HandlerInspect : MonoBehaviour
     {
         Vector3 defaultPosition = new Vector3(-8.6f, 2.35f, 0);
         internal CardControllerSelectCard cc;
@@ -77,7 +77,7 @@ namespace MultiplayerBase.Handlers
         {
             hideButton.gameObject.SetActive(true);
             clearButton.gameObject.SetActive(true);
-            verticalGroup.gameObject.SetActive(false);
+            verticalGroup.gameObject.SetActive(true);
         }
 
         protected void OnDisable()
@@ -201,6 +201,7 @@ namespace MultiplayerBase.Handlers
             HandlerSystem.SendMessageToAll("INS", s);    
         }
 
+        /*
         public static string EncodeEntity(Entity entity, ulong id)
         {
             string s = $"{id}!{ entity.data.name}!";
@@ -212,7 +213,7 @@ namespace MultiplayerBase.Handlers
             upgradeString = upgradeString.IsNullOrEmpty() ? upgradeString : upgradeString.Remove(upgradeString.Length - 1);
             s += upgradeString + "!";
             return s;
-        }
+        }*/
 
         public void HandleMessage(Friend friend, string message)
         {

@@ -70,7 +70,7 @@ namespace MultiplayerBase.UI
             }
             Task<Steamworks.Data.Image?> imageTask = friend.GetLargeAvatarAsync();
             Button button = HelperUI.BetterButtonTemplate(transform, dim, pos, "", Color.white);
-            button.transform.parent.GetComponent<ButtonAnimator>().highlightColour = Color.white;
+            button.EditButtonAnimator(Color.white, Color.white, Color.white, Color.white);
             FriendIcon icon = button.gameObject.AddComponent<FriendIcon>();
             icon.friend = friend;
             button.onClick.AddListener(icon.FriendIconPressed);

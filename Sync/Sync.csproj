@@ -397,6 +397,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Extensions.cs" />
+    <Compile Include="GaidenSystem.cs" />
+    <Compile Include="StatusEffectGaiden.cs" />
     <Compile Include="StatusEffectMystical.cs" />
     <Compile Include="StatusEffectPromo.cs" />
     <Compile Include="StatusEffectSync.cs" />

@@ -11,7 +11,7 @@ using UnityEngine.UI;
 
 namespace MultiplayerBase.UI
 {
-    internal class NoncardViewer : MonoBehaviourRect, IList<NoncardReward>, ICollection<NoncardReward>, IEnumerable<NoncardReward>, IEnumerable
+    public class NoncardViewer : MonoBehaviourRect, IList<NoncardReward>, ICollection<NoncardReward>, IEnumerable<NoncardReward>, IEnumerable
     {
         private List<NoncardReward> list = new List<NoncardReward>();
         private static Dictionary<NoncardReward, (Friend, int)> decorations = new Dictionary<NoncardReward, (Friend, int)>();

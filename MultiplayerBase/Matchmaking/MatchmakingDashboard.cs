@@ -78,17 +78,17 @@ namespace MultiplayerBase.Matchmaking
             tween.from = new Vector3(0, -8f, 0);
 
             createLobbyButton = HelperUI.BetterButtonTemplate(buttonGroup.transform,new Vector2(2,0.8f), new Vector3(-1.5f, 1, 0), "Create", Color.white);
-            createLobbyButton.EditButtonAnimator(Color.white);
+            createLobbyButton.EditButtonAnimator(Color.white, Color.black, Color.white, Color.black);
             findLobbyButton = HelperUI.BetterButtonTemplate(buttonGroup.transform, new Vector2(2, 0.8f), new Vector3(-1.5f, 0, 0), "Refresh", Color.white);
-            findLobbyButton.EditButtonAnimator(highlightColor: Color.white);
+            findLobbyButton.EditButtonAnimator(Color.white, Color.black, Color.white, Color.black);
             joinLobbyButton = HelperUI.BetterButtonTemplate(buttonGroup.transform, new Vector2(2, 0.8f), new Vector3(1.5f, 0, 0), "Join", Color.white);
-            joinLobbyButton.EditButtonAnimator(Color.white);
+            joinLobbyButton.EditButtonAnimator(Color.white, Color.black, Color.white, Color.black);
             joinLobbyButton.interactable = false;
             leaveLobbyButton = HelperUI.BetterButtonTemplate(buttonGroup.transform, new Vector2(2, 0.8f), new Vector3(1.5f, 1, 0), "Leave", Color.white);
-            leaveLobbyButton.EditButtonAnimator(Color.white);
+            leaveLobbyButton.EditButtonAnimator(Color.white, Color.black, Color.white, Color.black);
             leaveLobbyButton.interactable = false;
             finalizeButton = HelperUI.BetterButtonTemplate(buttonGroup.transform, new Vector2(3, 0.8f), new Vector3(0f, -1, 0), "Finalize", Color.white);
-            finalizeButton.EditButtonAnimator(Color.white);
+            finalizeButton.EditButtonAnimator(Color.white, Color.black, Color.white, Color.black);
             //finalizeButton.interactable = false; //!!!
             unfinalizeButton = HelperUI.BetterButtonTemplate(buttonGroup.transform, new Vector2(3, 0.8f), new Vector3(0f, -1, 0), "Disband", new Color(1f,0.33f,0.33f));
             unfinalizeButton.EditButtonAnimator(Color.white, Color.red, new Color(1f, 0.33f, 0.33f), Color.black);

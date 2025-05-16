@@ -45,9 +45,18 @@ namespace MultiplayerBase.Handlers
                 s += $"{stack.count} {stack.data.name.Replace("!","!:").Replace(",", ",:")}, ";
             }
             s += "! ";
+            int trueCount;
             foreach (StatusEffectData effect in entity.statusEffects) //3. startWithEffects
             {
-                s += $"{effect.count} {effect.name.Replace("!", "!:").Replace(",", ",:")}, ";
+                trueCount = effect.count;
+                foreach(TraitStack tstack in cardData.traits)
+                {
+                    if (tstack.data.effects.Select(e => e.name).Contains(effect.name))
+                    {
+                        trueCount -= tstack.count;
+                    }
+                }
+                s += $"{trueCount} {effect.name.Replace("!", "!:").Replace(",", ",:")}, ";
             }
             s += "! ";
             foreach (TraitStack stack in cardData.traits) //4. traits
@@ -137,7 +146,7 @@ namespace MultiplayerBase.Handlers
             return entity;
         }
 
-        public static IEnumerator DecodeEntity2(Entity entity, string[] messages)
+        public static IEnumerator DecodeEntity2(Entity entity, string[] messages) //Does this have to be an IEnumerator?
         {
             entity.enabled = false;
             yield return entity.Reset();
@@ -146,6 +155,7 @@ namespace MultiplayerBase.Handlers
             {
                 yield break;
             }
+            /*
             foreach(Entity.TraitStacks trait in entity.traits)
             {
                 foreach(StatusEffectData effect in trait.data.effects)
@@ -158,7 +168,7 @@ namespace MultiplayerBase.Handlers
                         }
                     }
                 }
-            }
+            }*/
             Debug.Log($"[Multiplayer] Update trait effect counts");
             int i;
             float f;
@@ -176,8 +186,6 @@ namespace MultiplayerBase.Handlers
             {
                 entity.silenceCount += 100;
             }
-            entity.enabled = true;
-
         }
 
         //CardData! customData! attackEffects! startWithEffects! traits! injuries! hp! damage! counter! upgrades! forceTitle! 

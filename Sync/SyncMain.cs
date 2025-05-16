@@ -57,7 +57,12 @@ namespace Sync
         [ConfigManagerTitle("Item Promo Frquency")]
         [ConfigManagerDesc("Determines the %-chance that an item has promo")]
         [ConfigItem(0.1f, "", "PromoItems")]
-        public float itemPromoChance = 0.05f;
+        public float itemPromoChance = 0.1f;
+
+        [ConfigManagerTitle("Gaiden Frquency")]
+        [ConfigManagerDesc("Determines the %-chance that a companion has gaiden")]
+        [ConfigItem(0.05f, "", "GaidenComp")]
+        public float compGaidenChance = 0.05f;
 
         private static bool commandsLoaded = false;
 
@@ -92,6 +97,7 @@ namespace Sync
             Events.OnEntityOffered += ApplyTraitsToItem;
             Events.OnEntityChosen += CheckPromo;
             Events.OnCampaignGenerated += ModifyStartingInventory;
+            GaidenSystem.Enable();
             Net.HandlerRoutines.Add("SYNC", SYNC_Handler);
             base.Load();
             if (!commandsLoaded)
@@ -108,6 +114,7 @@ namespace Sync
             Events.OnEntityOffered -= ApplyTraitsToItem;
             Events.OnEntityChosen -= CheckPromo;
             Events.OnCampaignGenerated -= ModifyStartingInventory;
+            GaidenSystem.Disable();
             Net.HandlerRoutines.Remove("SYNC");
             base.Unload();
             if (!commandsLoaded)
@@ -133,7 +140,26 @@ namespace Sync
 
         public void CreateStatuses()
         {
-            #region
+            #region GAIDEN
+            assets.Add(Extensions.CreateBasicKeyword(this, "gaiden", "Gaiden", "Fights for other players whilst waiting in the reserve"));
+
+            assets.Add(new StatusEffectDataBuilder(this)
+                .Create<StatusEffectGaiden>("Find New Battles")
+                .WithType("mhcdc9.gaiden"));
+
+            assets.Add(this.CreateTrait("Gaiden", "gaiden", false, "Find New Battles"));
+
+            assets.Add(Extensions.CreateBasicKeyword(this, "sidequesting", "Side-Questing", "This fight is not their highest priority"));
+
+            assets.Add(new StatusEffectDataBuilder(this)
+                .Create<StatusEffectSideQuest>("Prepare To Leave")
+                .WithType("mhcdc9.gaiden"));
+
+            assets.Add(this.CreateTrait("SideQuest", "sidequesting", false, "Prepare To Leave"));
+
+            #endregion
+
+            #region PROMO
             assets.Add(Extensions.CreateBasicKeyword(this, "promo", "Promo", "Upon pickup, gives a copy to all players|To their hand if possible"));
 
             assets.Add(new StatusEffectDataBuilder(this)
@@ -308,6 +334,21 @@ namespace Sync
                 {
                     Extensions.TryAddTrait(entity, TStack("Promo", 1));
                 }
+                
+            }
+            if (entity.data.cardType.name == "Clunker")
+            {
+                if (Dead.Random.Range(0f, 1f) < itemPromoChance)
+                {
+                    Extensions.TryAddTrait(entity, TStack("Promo", 1));
+                }
+            }
+            if (entity.data.cardType.name == "Friendly")
+            {
+                if (Dead.Random.Range(0f, 1f) < compGaidenChance)
+                {
+                    Extensions.TryAddTrait(entity, TStack("Gaiden", 1));
+                }
             }
         }
 
@@ -358,8 +399,15 @@ namespace Sync
                         PerformSync();
                     }
                     break;
+                case "GAIDEN":
+                    Debug.Log("[Sync] " + message);
+                    GaidenSystem.GAIDEN_Handler(friend, messages);
+                    break;
+                default:
+                    Debug.Log("[Sync] Unknown message");
+                    break;
             }
-            Debug.Log("[SYNC] Unknown message");
+            
         }
 
         internal static void PerformSync()

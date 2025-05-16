@@ -30,6 +30,7 @@ namespace MultiplayerBase.UI
             if (!decorations.ContainsKey(entity))
             {
                 decorations[entity] = (friend, id);
+                entity.owner = owner;
                 base.Add(entity);
             }
         }
@@ -69,6 +70,7 @@ namespace MultiplayerBase.UI
             if (!decorations.ContainsKey(entity))
             {
                 decorations[entity] = (HandlerSystem.self, entity.data.id);
+                entity.owner = owner;
                 base.Add(entity);
             }
         }
@@ -85,7 +87,7 @@ namespace MultiplayerBase.UI
             {
                 decorations.Remove(entity);
             }
-            //entity.owner = null; //Why was this here?
+            entity.owner = null; //Why was this here? To stop the splatter surface from throwing a null error on destroy
             base.Remove(entity);
         }
 

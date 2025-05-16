@@ -14,7 +14,7 @@ using static Building;
 
 namespace MultiplayerBase.UI
 {
-    internal class NoncardReward : MonoBehaviour
+    public class NoncardReward : MonoBehaviour
     {
         protected internal string title = "";
         protected string body = "";

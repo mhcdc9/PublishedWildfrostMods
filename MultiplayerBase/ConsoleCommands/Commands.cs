@@ -65,7 +65,14 @@ namespace MultiplayerBase.ConsoleCommands
 
                 if (HandlerSystem.HandlerRoutines.Keys.Contains(parameters[1].ToUpper()))
                 {
-                    HandlerSystem.SendMessage(parameters[1], (Friend)selectedFriend, string.Join(" ",parameters.Skip(2)));
+                    string s = string.Join(" ", parameters.Skip(2));
+                    if (hover != null)
+                    {
+                        s = s.Replace("{{this}}", HandlerSystem.ConcatMessage(true, CardEncoder.Encode(hover)));
+                        s = s.Replace("{this}", HandlerSystem.ConcatMessage(false, CardEncoder.Encode(hover)));
+                        s = s.Replace("{id}", hover.data.id.ToString());
+                    }
+                    HandlerSystem.SendMessage(parameters[1], (Friend)selectedFriend, s);
                 }
                 else
                 {

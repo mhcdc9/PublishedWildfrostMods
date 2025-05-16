@@ -81,22 +81,26 @@ namespace MultiplayerBase.Battles
                         f.hasEffect = false;
                     }
                 }
+                Debug.Log($"[Multiplayer] Before UpdateTraits - {displayedEntity.enabled}");
                 yield return displayedEntity.UpdateTraits();
             }
             else
             {
                 Card card = CardManager.Get(displayedCardData, null, References.Player, inPlay: false, isPlayerCard: true);
                 displayedEntity = card.entity;
+                yield return card.UpdateData();
             }
             displayedEntity.display.promptUpdateDescription = true;
             displayedEntity.PromptUpdate();
             displayedEntity.flipper.FlipUp(true);
+            Debug.Log($"[Multiplayer] After flip up - {displayedEntity.enabled}");
         }
 
         public virtual IEnumerator MoveToPosition()
         {
             References.Player.handContainer.Add(displayedEntity);
             LeanTween.moveLocal(displayedEntity.gameObject, new Vector3(-6f, 0, 0), 0.5f).setEase(LeanTweenType.easeOutQuart);
+            Debug.Log($"[Multiplayer] Before Waiting time - {displayedEntity.enabled}");
             yield return new WaitForSeconds(0.5f);
         }
 
