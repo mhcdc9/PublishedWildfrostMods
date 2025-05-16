@@ -116,7 +116,7 @@ namespace MultiplayerBase.Handlers
 
         public static void SendMessage(string handler, Friend to, string message)
         {
-            if (!initialized) return;
+            if (!enabled) return;
 
             string s = $"{handler}|{self.Id.Value}|{message}";
             SteamNetworking.SendP2PPacket(to.Id, Encoding.UTF8.GetBytes(s));
@@ -124,7 +124,7 @@ namespace MultiplayerBase.Handlers
 
         public static void SendMessageToAll(string handler, string message)
         {
-            if (!initialized) return;
+            if (!enabled) return;
 
             string s = $"{handler}|{self.Id.Value}|{message}";
             foreach (Friend friend in friends)
@@ -135,7 +135,7 @@ namespace MultiplayerBase.Handlers
 
         public static void SendMessageToAllOthers(string handler, string message)
         {
-            if (!initialized) return;
+            if (!enabled) return;
 
             string s = $"{handler}|{self.Id.Value}|{message}";
             foreach (Friend friend in friends)
@@ -145,6 +145,16 @@ namespace MultiplayerBase.Handlers
                     SteamNetworking.SendP2PPacket(friend.Id, Encoding.UTF8.GetBytes(s));
                 }
             }
+        }
+
+        public static void SendMessageToRandom(string handler, string message, bool includeSelf)
+        {
+            if (!enabled) return;
+
+            Friend[] choices = friends.Where(f => (includeSelf || f.Id == self.Id)).ToArray();
+            if (choices.Length == 0) return;
+
+            SendMessage(handler, choices.RandomItem(), message);
         }
 
         public static string ConcatMessage(bool performReplacement, params string[] messages)

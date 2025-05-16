@@ -13,6 +13,18 @@ namespace Sync
 {
     public static class Extensions
     {
+
+        public static TraitDataBuilder CreateTrait(this WildfrostMod m, string name, string keyword, bool isReaction, params string[] effects)
+        {
+            return new TraitDataBuilder(m)
+                .Create(name)
+                .WithIsReaction(isReaction)
+                .SubscribeToAfterAllBuildEvent(data =>
+                {
+                    data.keyword = m.Get<KeywordData>(keyword);
+                    data.effects = effects.Select(s => m.Get<StatusEffectData>(s)).ToArray();
+                });
+        }
         public static StatusEffectDataBuilder CreateTempTrait(this StatusEffectDataBuilder b, string name, TraitData trait)
         {
             return b.Create<StatusEffectTemporaryTrait>(name)
@@ -104,9 +116,9 @@ namespace Sync
             return false;
         }
 
-        public static bool TryAddMyst(Entity e)
+        public static bool TryAddTrait(Entity e, CardData.TraitStacks stack)
         {
-            if (TryAddMyst(e.data, e))
+            if (TryAddTrait(e.data, stack, e))
             {
                 References.instance.StartCoroutine(e.display.UpdateData(true));
                 e.display.promptUpdateDescription = true;
@@ -116,27 +128,38 @@ namespace Sync
             return false;
         }
 
-        public static bool TryAddMyst(CardData data, Entity entity = null)
+        public static bool TryAddTrait(CardData data, CardData.TraitStacks stack, Entity entity = null)
         {
             if (data == null) { return false; }
-            StatusEffectData effect = SyncMain.Instance.Get<StatusEffectData>("Mystic");
-            if (CheckConstraints(effect, data))
+            TraitData trait = stack.data;
+            if (CheckConstraints(trait, data))
             {
-                data.startWithEffects = CardData.StatusEffectStacks.Stack(data.startWithEffects, new CardData.StatusEffectStacks[]
-                {
-                    new CardData.StatusEffectStacks(effect, 1)
-                });
+                data.traits.Add(stack);
                 if (entity != null)
                 {
-                    effect.InstantiateKeepName().Apply(1, entity, null);
+                    entity.GainTrait(trait, stack.count, true);
                 }
                 return true;
                 }
             return false;
         }
 
+        public static bool CheckConstraints(TraitData trait, CardData data)
+        {
+            foreach(var effect in trait.effects)
+            {
+                if (!CheckConstraints(effect, data))
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
         public static bool CheckConstraints(StatusEffectData effect, CardData data)
         {
+            if (effect.targetConstraints == null) { return true; }
+
             foreach (TargetConstraint constraint in effect.targetConstraints)
             {
                 if (!constraint.Check(data))

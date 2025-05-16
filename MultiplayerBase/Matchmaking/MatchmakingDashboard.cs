@@ -77,16 +77,23 @@ namespace MultiplayerBase.Matchmaking
             tween.hasFrom = true;
             tween.from = new Vector3(0, -8f, 0);
 
-            createLobbyButton = HelperUI.ButtonTemplate(buttonGroup.transform,new Vector2(2,0.8f), new Vector3(-1.5f, 1, 0), "Create", Color.white);
-            findLobbyButton = HelperUI.ButtonTemplate(buttonGroup.transform, new Vector2(2, 0.8f), new Vector3(-1.5f, 0, 0), "Refresh", Color.white);
-            joinLobbyButton = HelperUI.ButtonTemplate(buttonGroup.transform, new Vector2(2, 0.8f), new Vector3(1.5f, 0, 0), "Join", Color.white);
+            createLobbyButton = HelperUI.BetterButtonTemplate(buttonGroup.transform,new Vector2(2,0.8f), new Vector3(-1.5f, 1, 0), "Create", Color.white);
+            createLobbyButton.EditButtonAnimator(Color.white);
+            findLobbyButton = HelperUI.BetterButtonTemplate(buttonGroup.transform, new Vector2(2, 0.8f), new Vector3(-1.5f, 0, 0), "Refresh", Color.white);
+            findLobbyButton.EditButtonAnimator(highlightColor: Color.white);
+            joinLobbyButton = HelperUI.BetterButtonTemplate(buttonGroup.transform, new Vector2(2, 0.8f), new Vector3(1.5f, 0, 0), "Join", Color.white);
+            joinLobbyButton.EditButtonAnimator(Color.white);
             joinLobbyButton.interactable = false;
-            leaveLobbyButton = HelperUI.ButtonTemplate(buttonGroup.transform, new Vector2(2, 0.8f), new Vector3(1.5f, 1, 0), "Leave", Color.white);
+            leaveLobbyButton = HelperUI.BetterButtonTemplate(buttonGroup.transform, new Vector2(2, 0.8f), new Vector3(1.5f, 1, 0), "Leave", Color.white);
+            leaveLobbyButton.EditButtonAnimator(Color.white);
             leaveLobbyButton.interactable = false;
-            finalizeButton = HelperUI.ButtonTemplate(buttonGroup.transform, new Vector2(3, 0.8f), new Vector3(0f, -1, 0), "Finalize", Color.white);
-            unfinalizeButton = HelperUI.ButtonTemplate(buttonGroup.transform, new Vector2(3, 0.8f), new Vector3(0f, -1, 0), "Disband", new Color(1f,0.33f,0.33f));
-            unfinalizeButton.gameObject.SetActive(false);
+            finalizeButton = HelperUI.BetterButtonTemplate(buttonGroup.transform, new Vector2(3, 0.8f), new Vector3(0f, -1, 0), "Finalize", Color.white);
+            finalizeButton.EditButtonAnimator(Color.white);
             //finalizeButton.interactable = false; //!!!
+            unfinalizeButton = HelperUI.BetterButtonTemplate(buttonGroup.transform, new Vector2(3, 0.8f), new Vector3(0f, -1, 0), "Disband", new Color(1f,0.33f,0.33f));
+            unfinalizeButton.EditButtonAnimator(Color.white, Color.red, new Color(1f, 0.33f, 0.33f), Color.black);
+            unfinalizeButton.gameObject.SetActive(false);
+            
 
             createLobbyButton.onClick.AddListener(CreateLobby);
             findLobbyButton.onClick.AddListener(FindLobby);

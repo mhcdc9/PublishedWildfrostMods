@@ -55,7 +55,7 @@ namespace MultiplayerBase.Handlers
             verticalGroup = HelperUI.VerticalGroup("Viewers", transform, Vector2.zero, verticalSpacing);
             verticalGroup.GetComponent<VerticalLayoutGroup>().childAlignment = TextAnchor.MiddleLeft;
             verticalGroup.transform.localPosition = new Vector3(2.7f, 3.4f, 0f);
-            verticalGroup.GetComponent<RectTransform>().SetInsetAndSizeFromParentEdge(RectTransform.Edge.Left, 1.75f, 0f);
+            
 
             charmLane = NoncardViewer.Create(verticalGroup.transform);
             charmLane.gameObject.SetActive(false);
@@ -63,11 +63,11 @@ namespace MultiplayerBase.Handlers
             SetLane(0);
 
             hideButton = HelperUI.ButtonTemplate(transform, new Vector2(1f, 0.3f), new Vector3(-0.5f, 4.35f, 0), "", Color.white);
-            hideButton.GetComponent<RectTransform>().SetInsetAndSizeFromParentEdge(RectTransform.Edge.Left, 1.5f, 1);
             hideButton.onClick.AddListener(ToggleHide);
             clearButton = HelperUI.ButtonTemplate(transform, new Vector2(1f, 0.3f), new Vector3(0.5f, 4.35f, 0), "", Color.red);
-            clearButton.GetComponent<RectTransform>().SetInsetAndSizeFromParentEdge(RectTransform.Edge.Left, 2.5f, 1);
             clearButton.onClick.AddListener(Clear);
+
+            Align();
 
             HandlerSystem.HandlerRoutines.Add("INS", HandleMessage);
             Debug.Log("[Multiplayer] Inspection Handler Online!");
@@ -77,12 +77,21 @@ namespace MultiplayerBase.Handlers
         {
             hideButton.gameObject.SetActive(true);
             clearButton.gameObject.SetActive(true);
+            verticalGroup.gameObject.SetActive(false);
         }
 
         protected void OnDisable()
         {
             hideButton.gameObject.SetActive(false);
             clearButton.gameObject.SetActive(false);
+            verticalGroup.gameObject.SetActive(false);
+        }
+
+        internal void Align()
+        {
+            verticalGroup.GetComponent<RectTransform>().SetInsetAndSizeFromParentEdge(RectTransform.Edge.Left, 0.2f + MultiplayerMain.instance._iconSize + 0.55f, 0f);
+            hideButton.GetComponent<RectTransform>().SetInsetAndSizeFromParentEdge(RectTransform.Edge.Left, 0.2f + MultiplayerMain.instance._iconSize + 0.3f, 1);
+            clearButton.GetComponent<RectTransform>().SetInsetAndSizeFromParentEdge(RectTransform.Edge.Left, 0.2f + MultiplayerMain.instance._iconSize + 1.3f, 1);
         }
 
         private void ToggleHide()
@@ -188,7 +197,7 @@ namespace MultiplayerBase.Handlers
             ulong id = entity.data.id;
             string s = HandlerSystem.ConcatMessage(false,"DISP",$"{friend.Id.Value}");
             //s += EncodeEntity(entity, id);
-            s += "! " + CardEncoder.Encode(entity, id);
+            s += "! " + id + "! " + CardEncoder.Encode(entity);
             HandlerSystem.SendMessageToAll("INS", s);    
         }
 

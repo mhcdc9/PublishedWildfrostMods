@@ -70,7 +70,7 @@ namespace MultiplayerBase.Battles
 
             }
 
-            string s = CardEncoder.Encode(entity, id);
+            string s = CardEncoder.Encode(entity);
             yield return new WaitForSeconds(0.2f);
             //HandlerSystem.SendMessage("CHT", HandlerSystem.self, $"Playing {entity.data.title} on {friend.Name}'s Board!");
             entity.curveAnimator.Ping();
@@ -86,13 +86,13 @@ namespace MultiplayerBase.Battles
             switch (type)
             {
                 case TargetType.None:
-                    s = HandlerSystem.ConcatMessage(false, "PLAY", "NON ", s);
+                    s = HandlerSystem.ConcatMessage(false, "PLAY", "NON ", id.ToString(), s);
                     break;
                 case TargetType.Entity:
-                    s = HandlerSystem.ConcatMessage(false, "PLAY", $"ENT {id}", s);
+                    s = HandlerSystem.ConcatMessage(false, "PLAY", $"ENT {id}", id.ToString(), s);
                     break;
                 case TargetType.Container:
-                    s = HandlerSystem.ConcatMessage(false, "PLAY", $"ROW {id}", s);
+                    s = HandlerSystem.ConcatMessage(false, "PLAY", $"ROW {id}", id.ToString(), s);
                     break;
             }
 

@@ -22,27 +22,27 @@ namespace MultiplayerBase
 
         public static void InvokeBattleViewerOpen(Friend f)
         {
-            OnBattleViewerOpen(f);
+            OnBattleViewerOpen?.Invoke(f);
         }
 
         public static void InvokeBattleViewerClose(Friend f)
         {
-            OnBattleViewerClose(f);
+            OnBattleViewerClose?.Invoke(f);
         }
 
         public static void InvokeOtherCardPlayed(Friend f, Entity entity)
         {
-            OnOtherCardPlayed(f, entity);
+            OnOtherCardPlayed?.Invoke(f, entity);
         }
 
         public static void InvokeSentCardToPlay(Friend f, Entity entity)
         {
-            OnSentCardToPlay(f, entity);
+            OnSentCardToPlay?.Invoke(f, entity);
         }
 
         public static void InvokeBlessingSelected(BossRewardData.Data data)
         {
-            OnBlessingSelected(data);
+            OnBlessingSelected?.Invoke(data);
         }
     }
 }

@@ -69,7 +69,8 @@ namespace MultiplayerBase.UI
                 keyword = AddressableLoader.Get<KeywordData>("KeywordData", "mhcdc9.wildfrost.multiplayer.friend");
             }
             Task<Steamworks.Data.Image?> imageTask = friend.GetLargeAvatarAsync();
-            Button button = HelperUI.ButtonTemplate(transform, dim, pos, "", Color.white);
+            Button button = HelperUI.BetterButtonTemplate(transform, dim, pos, "", Color.white);
+            button.transform.parent.GetComponent<ButtonAnimator>().highlightColour = Color.white;
             FriendIcon icon = button.gameObject.AddComponent<FriendIcon>();
             icon.friend = friend;
             button.onClick.AddListener(icon.FriendIconPressed);
@@ -78,15 +79,15 @@ namespace MultiplayerBase.UI
             icon.textElement.outlineColor = Color.black;
             icon.textElement.color = Color.white;
             icon.textElement.outlineWidth = 0.1f;
-            icon.textElement.transform.localScale *= 0.5f;
+            icon.textElement.transform.localScale *= 0.5f*dim.x;
             icon.textElement.alignment = TextAlignmentOptions.BottomRight;
-            icon.textElement.transform.Translate(new Vector3(0.25f, -0.25f), icon.transform);
+            icon.textElement.transform.Translate(new Vector3(0.25f*dim.x, -0.25f*dim.y), icon.transform);
             if (friend.Id == HandlerSystem.self.Id)
             {
                 icon.nickname = CreateNickname();
             }
             SetSprite(image, imageTask);
-            EventTrigger trigger = button.gameObject.AddComponent<EventTrigger>();
+            EventTrigger trigger = button.gameObject.GetComponent<EventTrigger>();
             EventTrigger.Entry pointerEnter = new EventTrigger.Entry();
             pointerEnter.eventID = EventTriggerType.PointerEnter;
             pointerEnter.callback.AddListener(b => { icon.Pop(); });

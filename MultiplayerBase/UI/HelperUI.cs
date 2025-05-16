@@ -15,6 +15,9 @@ namespace MultiplayerBase.UI
         public static Button template;
         public static ButtonAnimator betterTemplate;
 
+
+        public static readonly Color highlightYellow = new Color(1, 0.78f, 0.35f);
+
         public static void CreateTemplates()
         {
             GameObject buttonAnimObject = new GameObject("Button Animator");
@@ -22,7 +25,11 @@ namespace MultiplayerBase.UI
             UnityEngine.Object.DontDestroyOnLoad(buttonAnimObject);
             buttonAnimObject.AddComponent<RectTransform>().sizeDelta = new Vector2(1, 1);
             betterTemplate = buttonAnimObject.AddComponent<ButtonAnimator>();
-            betterTemplate.highlightColour = new Color(1, 0.78f, 0.35f);
+            betterTemplate.baseColourSet = true;
+            betterTemplate.textCopyBase = false;
+            betterTemplate.highlightColour = highlightYellow;
+            betterTemplate.textNormalColour = Color.black;
+            betterTemplate.textHighlightColour = Color.black;
             betterTemplate.type = ButtonType.Normal;
 
             //4 tween ui's
@@ -143,6 +150,28 @@ namespace MultiplayerBase.UI
 
             return newButtonObject.GetComponent<Button>();
 
+        }
+
+        public static ButtonAnimator EditButtonAnimator(this Button b, Color? highlightColor = null, Color? textHighlightColor = null, Color? normalColor = null, Color? textNormalColor = null)
+        {
+            ButtonAnimator anim = b.transform.parent.GetComponent<ButtonAnimator>();
+            if (highlightColor is Color c1)
+            {
+                anim.highlightColour = c1;
+            }
+            if (textHighlightColor is Color c2)
+            {
+                anim.textHighlightColour = c2;
+            }
+            if (normalColor is Color c3)
+            {
+                anim.baseColour = c3;
+            }
+            if (textNormalColor is Color c4)
+            {
+                anim.textNormalColour = c4;
+            }
+            return anim;
         }
 
         public static Transform AddLayoutElement(this Transform t, Vector2 minDim)

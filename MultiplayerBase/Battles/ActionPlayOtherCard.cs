@@ -12,7 +12,7 @@ using TMPro;
 
 namespace MultiplayerBase.Battles
 {
-    internal class ActionPlayOtherCard : ActionDisplayCardAndSequence
+    public class ActionPlayOtherCard : ActionDisplayCardAndSequence
     {
         protected Friend friend;
         protected Entity entity;
@@ -85,7 +85,7 @@ namespace MultiplayerBase.Battles
         }
         */
 
-        private void DisplayOwner(Entity otherCard)
+        public void DisplayOwner(Entity otherCard)
         {
             Debug.Log($"[Multiplayer] {otherCard != null}, {otherCard?.canvas != null}, {friend}");
             GameObject obj = new GameObject("Owner Text");

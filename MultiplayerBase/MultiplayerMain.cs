@@ -19,6 +19,8 @@ using MultiplayerBase.Matchmaking;
 using UnityEngine.Events;
 using System.Collections;
 using MultiplayerBase.ConsoleCommands;
+using WildfrostHopeMod;
+using WildfrostHopeMod.Configs;
 
 namespace MultiplayerBase
 {
@@ -47,6 +49,14 @@ namespace MultiplayerBase
 
         public override string Description => "A foundation for multiplayer mods to build on top of.";
 
+        [ConfigManagerTitle("Friend Icon Sizes")]
+        [ConfigManagerDesc("Determines the size of the friend icons")]
+        [ConfigOptions("Baby Snowbo", "Snowbo", "Snow Knight", "Winter Wyrm", "Bamboozle")]
+        [ConfigItem("Snow Knight", "", "friendIconSize")]
+        public string iconSize = "Snow Knight";
+
+        public float _iconSize = 1f;
+
         public void CreateModAssets()
         {
             AddressableLoader.AddToGroup("KeywordData",
@@ -61,8 +71,11 @@ namespace MultiplayerBase
         {
             CreateModAssets();
             FindAnotherConsoleMod();
-            Events.OnModLoaded += CheckAnotherConsoleMod;
+            
             base.Load();
+            Events.OnModLoaded += CheckAnotherConsoleMod;
+            ConfigManager.GetConfigSection(this).OnConfigChanged += ConfigChanged;
+
             GameObject gameobject = new GameObject("Matchmaker");
             gameobject.transform.SetParent(GameObject.Find("Canvas/SafeArea").transform);
             gameobject.SetActive(false);
@@ -89,6 +102,8 @@ namespace MultiplayerBase
             gameobject.GetComponent<RectTransform>().sizeDelta = new Vector2(100, 1);
             gameobject.transform.SetParent(GameObject.Find("Canvas/SafeArea").transform);
             gameobject.transform.localPosition = new Vector3(0, 5, 0);
+
+            SetIconSize();
         }
 
         public async void ChangeColor(Image image)
@@ -107,6 +122,7 @@ namespace MultiplayerBase
             base.Unload();
             UnhookToChatRoom();
             Events.OnModLoaded -= CheckAnotherConsoleMod;
+            ConfigManager.GetConfigSection(this).OnConfigChanged -= ConfigChanged;
             matchmaker.gameObject.Destroy();
             openMatchmaking.transform.parent.gameObject.Destroy();
             textElement.Destroy();
@@ -114,6 +130,41 @@ namespace MultiplayerBase
             {
                 HandlerSystem.Disable();
             }
+        }
+
+        private void ConfigChanged(ConfigItem item, object value)
+        {
+            if (item.fieldName == "iconSize")
+            {
+                SetIconSize();
+                
+            }
+        }
+
+        private void SetIconSize()
+        {
+            switch(iconSize)
+            {
+                case "Baby Snowbo":
+                    _iconSize = 0.64f;
+                    break;
+                case "Snowbo":
+                    _iconSize = 0.8f;
+                    break;
+                case "Snow Knight":
+                default:
+                    _iconSize = 1f;
+                    break;
+                case "Winter Wyrm":
+                    _iconSize = 1.2f;
+                    break;
+                case "Bamboozle":
+                    _iconSize = 1.44f;
+                    break;
+
+            }
+
+            Dashboard.instance?.ResizeIcons();
         }
 
         private bool hookedToChatRooms;

@@ -109,7 +109,7 @@ namespace MultiplayerBase.Handlers
                     for(int j=entities.Length-1; j>=0; j--)
                     {
                         Entity entity = entities[j];
-                        s = HandlerSystem.ConcatMessage(false, "DISP",$"{i}",$"{flag}",CardEncoder.Encode(entity.data, entity.data.id));
+                        s = HandlerSystem.ConcatMessage(false, "DISP",$"{i}",$"{flag}",entity.data.id.ToString(), CardEncoder.Encode(entity.data));
                         HandlerSystem.SendMessage("EVE", friend, s);
                         flag = "F";
                     }

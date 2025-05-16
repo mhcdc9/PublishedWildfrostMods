@@ -12,6 +12,7 @@ using UnityEngine.UI;
 using Color = UnityEngine.Color;
 using MultiplayerBase.Handlers;
 using UnityEngine.SceneManagement;
+using TMPro;
 
 namespace MultiplayerBase.UI
 {
@@ -31,6 +32,8 @@ namespace MultiplayerBase.UI
         public static Button visibleButton;
         public static Dictionary<Friend, FriendIcon> friendIcons = new Dictionary<Friend, FriendIcon>();
 
+        public float iconSize => MultiplayerMain.instance._iconSize;
+
         public void Awake()
         {
             instance = this;
@@ -42,11 +45,11 @@ namespace MultiplayerBase.UI
             gameObject.AddComponent<WorldSpaceCanvasSafeArea>().parent = transform.parent.GetComponent<RectTransform>();
 
             //float totalSize = HandlerSystem.friends.Length*(1.2f) - 0.2f;
-            friendIconGroup = HelperUI.VerticalGroup("Friend Icons", transform, new Vector2(0f, 0f));
+            friendIconGroup = HelperUI.VerticalGroup("Friend Icons", transform, new Vector2(0f, 0f), 0.2f*iconSize);
             friendIconGroup.transform.position = friendIconPosition;
             friendIconGroup.GetComponent<VerticalLayoutGroup>().childAlignment = TextAnchor.UpperCenter;
-            friendIconGroup.GetComponent<RectTransform>().SetInsetAndSizeFromParentEdge(RectTransform.Edge.Left, 0.2f, 1);
-            visibleButton = HelperUI.ButtonTemplate(friendIconGroup.transform, new Vector2(1f, 0.3f), Vector3.zero, "", Color.white);
+            friendIconGroup.GetComponent<RectTransform>().SetInsetAndSizeFromParentEdge(RectTransform.Edge.Left, 0.2f, iconSize);
+            visibleButton = HelperUI.ButtonTemplate(friendIconGroup.transform, new Vector2(iconSize, 0.3f), Vector3.zero, "", Color.white);
             visibleButton.transform.SetParent(friendIconGroup.transform, false);
             visibleButton.onClick.AddListener(ToggleVisibility);
 
@@ -72,7 +75,7 @@ namespace MultiplayerBase.UI
             {
                 if (!HandlerSystem.friends.Contains(f))
                 {
-                    friendIcons[f].gameObject.Destroy();
+                    friendIcons[f].transform.parent.gameObject.Destroy();
                     friendIcons.Remove(f);
                 }
             }
@@ -80,14 +83,38 @@ namespace MultiplayerBase.UI
             {
                 if (!friendIcons.ContainsKey(friend))
                 {
-                    friendIcons.Add(friend, FriendIcon.Create(transform, Vector2.one, Vector3.zero, friend));
-                    friendIcons[friend].transform.SetParent(friendIconGroup.transform, false);
+                    friendIcons.Add(friend, FriendIcon.Create(transform, iconSize*Vector2.one, Vector3.zero, friend));
+                    friendIcons[friend].transform.parent.SetParent(friendIconGroup.transform, false);
                 }
             }
 
+            friendIconGroup.GetComponent<RectTransform>().SetInsetAndSizeFromParentEdge(RectTransform.Edge.Left, 0.2f, iconSize);
             HandlerSystem.Enable();
             Debug.Log("[Multiplayer] Dashboard is ready!");
             StartCoroutine(DelaySend());
+        }
+
+        public void ResizeIcons()
+        {
+            visibleButton.GetComponent<RectTransform>().sizeDelta = new Vector2(iconSize, 0.3f);
+            foreach(Friend friend in HandlerSystem.friends)
+            {
+                if (friendIcons.ContainsKey(friend))
+                {
+                    RectTransform t = friendIcons[friend].GetComponent<RectTransform>();
+                    t.sizeDelta = iconSize * Vector2.one;
+                    (t.parent as RectTransform).sizeDelta = iconSize * Vector2.one;
+
+                    Transform text = t.GetChild(0);
+                    text.localPosition = new Vector2(iconSize * 0.25f, iconSize * -0.25f);
+                    text.localScale = new Vector3(0.5f * iconSize, 0.5f * iconSize, 1);
+                }
+            }
+            friendIconGroup.GetComponent<RectTransform>().SetInsetAndSizeFromParentEdge(RectTransform.Edge.Left, 0.2f, iconSize);
+            if (HandlerInspect.instance != null)
+            {
+                HandlerInspect.instance.Align();
+            }
         }
 
         public void OnDisable()

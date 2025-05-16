@@ -508,7 +508,7 @@ namespace MultiplayerBase.Handlers
                                         Entity entity = slots[k][0];
                                         if (entity != null && i + 1 < messages.Length && ulong.TryParse(messages[i+1],out ulong result) && entity.data.id == result)
                                         {
-                                            s = HandlerSystem.ConcatMessage(false, "UPDATE", "PLAYER", $"{j}", $"{k}", CardEncoder.Encode(entity, entity.data.id));
+                                            s = HandlerSystem.ConcatMessage(false, "UPDATE", "PLAYER", $"{j}", $"{k}", entity.data.id.ToString(), CardEncoder.Encode(entity));
                                             HandlerSystem.SendMessage("BAT", friend, s);
                                             return;
                                         }
@@ -526,7 +526,7 @@ namespace MultiplayerBase.Handlers
                                     Entity entity = slots[k][0];
                                     if (entity != null && i + 1 < messages.Length && ulong.TryParse(messages[i + 1], out ulong result) && entity.data.id == result)
                                     {
-                                        s = HandlerSystem.ConcatMessage(false, "UPDATE", "ENEMY", $"{j}", $"{k}", CardEncoder.Encode(entity, entity.data.id));
+                                        s = HandlerSystem.ConcatMessage(false, "UPDATE", "ENEMY", $"{j}", $"{k}", entity.data.id.ToString(), CardEncoder.Encode(entity));
                                         HandlerSystem.SendMessage("BAT", friend, s);
                                         return;
                                     }
@@ -556,7 +556,7 @@ namespace MultiplayerBase.Handlers
                         if (slots[k].Count != 0)
                         {
                             Entity entity = slots[k][0];
-                            strings.Add(HandlerSystem.ConcatMessage(false, prefix, $"{j}", $"{k}", CardEncoder.Encode(entity, entity.data.id)));
+                            strings.Add(HandlerSystem.ConcatMessage(false, prefix, $"{j}", $"{k}", entity.data.id.ToString(), CardEncoder.Encode(entity)));
                         }
                     }
                 }
@@ -825,6 +825,8 @@ namespace MultiplayerBase.Handlers
 
             CardEncoder.DecodeData(messages.Skip(5).ToArray(), entity.data);
             yield return CardEncoder.DecodeEntity2(entity, messages.Skip(5).ToArray());
+            entity.owner = ocvs[0].owner;
+            Debug.Log($"[Multiplayer] {entity.data.title} -> {ocvs[0].owner}");
             entity.PromptUpdate();
             //entity.flipper.FlipUp(force: true);
         }

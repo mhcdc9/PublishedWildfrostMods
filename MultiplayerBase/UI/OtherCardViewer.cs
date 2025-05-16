@@ -85,7 +85,7 @@ namespace MultiplayerBase.UI
             {
                 decorations.Remove(entity);
             }
-            entity.owner = null;
+            //entity.owner = null; //Why was this here?
             base.Remove(entity);
         }
 

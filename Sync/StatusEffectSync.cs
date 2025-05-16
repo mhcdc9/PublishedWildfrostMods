@@ -130,16 +130,19 @@ namespace Sync
 
             }
             effectActive = false;
-            StatusIcon icon = target?.display?.FindStatusIcon(type);
-            Transform cycle = icon?.transform?.GetChild(0);
-            if (icon != null)
+            if (target.IsAliveAndExists())
             {
-                icon.GetComponent<Image>().color = new Color(1f,1f,1f,0.1f);
-            }
-            if (cycle != null)
-            {
-                cycle.GetComponent<Image>().color =new Color(0.7f,0.7f,0.7f,1f);
-                cycle.GetComponent<SyncArrows>().enabled = false;
+                StatusIcon icon = target?.display?.FindStatusIcon(type);
+                Transform cycle = icon?.transform?.GetChild(0);
+                if (icon != null)
+                {
+                    icon.GetComponent<Image>().color = new Color(1f, 1f, 1f, 0.1f);
+                }
+                if (cycle != null)
+                {
+                    cycle.GetComponent<Image>().color = new Color(0.7f, 0.7f, 0.7f, 1f);
+                    cycle.GetComponent<SyncArrows>().enabled = false;
+                }
             }
         }
     }

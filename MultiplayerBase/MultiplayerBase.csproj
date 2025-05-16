@@ -64,6 +64,9 @@
     <Reference Include="Commands Console">
       <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\workshop\content\1811990\3154932293\Commands Console.dll</HintPath>
     </Reference>
+    <Reference Include="Config Manager">
+      <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\workshop\content\1811990\3175889529\Config Manager.dll</HintPath>
+    </Reference>
     <Reference Include="DeadExtensions">
       <HintPath>..\..\..\..\Desktop\Managed\DeadExtensions.dll</HintPath>
     </Reference>
@@ -465,6 +468,7 @@
   <ItemGroup>
     <Compile Include="Battles\ActionBattleViewer.cs" />
     <Compile Include="Battles\ActionDisplayCardAndSequence.cs" />
+    <Compile Include="Battles\ActionGainCardToHand.cs" />
     <Compile Include="Battles\ActionSendCardToPlay.cs" />
     <Compile Include="Battles\CardControllerMultiplayerBattle.cs" />
     <Compile Include="Battles\ActionPlayOtherCard.cs" />

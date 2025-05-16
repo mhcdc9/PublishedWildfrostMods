@@ -19,6 +19,7 @@ using UnityEngine.SceneManagement;
 using WildfrostHopeMod.VFX;
 using UnityEngine.UI;
 using WildfrostHopeMod;
+using MultiplayerBase.Battles;
 
 namespace Sync
 {
@@ -40,7 +41,7 @@ namespace Sync
         [ConfigManagerTitle("Harder Enemy Syncs?")]
         [ConfigManagerDesc("Do you want more challenging enemies?")]
         [ConfigOptions("No", "Of course!")]
-        [ConfigItem("No","", "HarderSyncs")]
+        [ConfigItem("Of course!","", "HarderSyncs")]
         public string harderSync = "No";
 
         [ConfigManagerTitle("Item Sync Frequency")]
@@ -52,6 +53,11 @@ namespace Sync
         [ConfigManagerDesc("Determines the %-chance that an item has mystic")]
         [ConfigItem(0.2f, "", "MystItems")]
         public float itemMystChance = 0.2f;
+
+        [ConfigManagerTitle("Item Promo Frquency")]
+        [ConfigManagerDesc("Determines the %-chance that an item has promo")]
+        [ConfigItem(0.1f, "", "PromoItems")]
+        public float itemPromoChance = 0.05f;
 
         private static bool commandsLoaded = false;
 
@@ -73,6 +79,8 @@ namespace Sync
 
         public CardData.StatusEffectStacks SStack(string name, int count) => new CardData.StatusEffectStacks(Get<StatusEffectData>(name), count);
 
+        public CardData.TraitStacks TStack(string name, int count) => new CardData.TraitStacks(Get<TraitData>(name), count);
+
 
 
         public override void Load()
@@ -81,10 +89,9 @@ namespace Sync
             CreateStatuses();
             Events.OnBattleStart += ClearSync;
             Events.OnBattlePreTurnStart += CheckSync;
-            Events.OnEntityOffered += ApplySyncItem;
-            Events.OnCampaignGenerated += SyncStartingInventory;
-            Events.OnEntityOffered += ApplyMystItem;
-            Events.OnCampaignGenerated += MystStartingInventory;
+            Events.OnEntityOffered += ApplyTraitsToItem;
+            Events.OnEntityChosen += CheckPromo;
+            Events.OnCampaignGenerated += ModifyStartingInventory;
             Net.HandlerRoutines.Add("SYNC", SYNC_Handler);
             base.Load();
             if (!commandsLoaded)
@@ -98,10 +105,9 @@ namespace Sync
         {
             Events.OnBattleStart -= ClearSync;
             Events.OnBattlePreTurnStart -= CheckSync;
-            Events.OnEntityOffered -= ApplySyncItem;
-            Events.OnCampaignGenerated -= SyncStartingInventory;
-            Events.OnEntityOffered -= ApplyMystItem;
-            Events.OnCampaignGenerated -= MystStartingInventory;
+            Events.OnEntityOffered -= ApplyTraitsToItem;
+            Events.OnEntityChosen -= CheckPromo;
+            Events.OnCampaignGenerated -= ModifyStartingInventory;
             Net.HandlerRoutines.Remove("SYNC");
             base.Unload();
             if (!commandsLoaded)
@@ -127,15 +133,27 @@ namespace Sync
 
         public void CreateStatuses()
         {
-            assets.Add(Extensions.CreateBasicKeyword(this, "sync", "Sync", "Gain an effect when a <sync> card is played or attacks elsewhere"));
+            #region
+            assets.Add(Extensions.CreateBasicKeyword(this, "promo", "Promo", "Upon pickup, gives a copy to all players|To their hand if possible"));
+
+            assets.Add(new StatusEffectDataBuilder(this)
+                .Create<StatusEffectPromo>("Send Copies Elsewhere")
+                .WithCanBeBoosted(false)
+                .WithType("")
+                .WithConstraints(Extensions.IsItem())
+                );
+
+            assets.Add(this.CreateTrait("Promo", "promo", false, "Send Copies Elsewhere"));
+            #endregion
+
+            #region MYSTIC
             assets.Add(Extensions.CreateBasicKeyword(this, "mystic", "Mystic", "Playable on another board|Reward: replace this effect with Zoomlin"));
 
             assets.Add(new StatusEffectDataBuilder(this)
-                .Create<StatusEffectMystical>("Mystic")
+                .Create<StatusEffectMystical>("Play Elsewhere")
                 .WithCanBeBoosted(false)
-                .WithText("<keyword=mhcdc9.wildfrost.sync.mystic>")
                 .WithType("")
-                .WithConstraints(Extensions.IsItem(), Extensions.IsPlay(),Extensions.NotOnSlot(), Extensions.TargetsBoard())
+                .WithConstraints(Extensions.IsItem(), Extensions.IsPlay(), Extensions.NotOnSlot(), Extensions.TargetsBoard())
                 .FreeModify<StatusEffectApplyX>(
                 (data) =>
                 {
@@ -143,6 +161,22 @@ namespace Sync
                     data.applyToFlags = StatusEffectApplyX.ApplyToFlags.Self;
                 })
                 );
+
+            assets.Add(this.CreateTrait("Mystic", "mystic", false, "Play Elsewhere"));
+
+            assets.Add(new StatusEffectDataBuilder(this)
+                .CreateTempTrait("Temporary Mystic", Get<TraitData>("Mystic"))
+                .WithConstraints()
+                );
+            #endregion
+
+            assets.Add(new StatusEffectDataBuilder(this)
+                .CreateSyncEffect<StatusEffectSync>("Sync Mystic", "<keyword=mhcdc9.wildfrost.sync.sync>: <keyword=mhcdc9.wildfrost.sync.mystic>", "", "Temporary Mystic")
+                .WithConstraints(Extensions.IsItem(), Extensions.IsPlay(), Extensions.NotOnSlot(), Extensions.TargetsBoard())
+                );
+
+            assets.Add(Extensions.CreateBasicKeyword(this, "sync", "Sync", "Gain an effect when a <sync> card is played or attacks elsewhere"));
+            
 
             assets.Add(new StatusEffectDataBuilder(this)
                 .CreateTempTrait("Temporary Smackback", Get<TraitData>("Smackback"))
@@ -189,10 +223,7 @@ namespace Sync
                 .WithConstraints(Extensions.HasCounter(), ScriptableObject.CreateInstance<TargetConstraintOnBoard>())
                 );
 
-            assets.Add(new StatusEffectDataBuilder(this)
-                .CreateSyncEffect<StatusEffectSync>("Sync Mystic", "<keyword=mhcdc9.wildfrost.sync.sync>: <keyword=mhcdc9.wildfrost.sync.mystic>", "", "mhcdc9.wildfrost.sync.Mystic")
-                .WithConstraints(Extensions.IsPlay(), Extensions.NotOnSlot(), Extensions.TargetsBoard())
-                );
+            
 
             assets.Add(new StatusEffectDataBuilder(this)
                 .CreateSyncEffect<StatusEffectSync>("Sync Nothing", "<keyword=mhcdc9.wildfrost.sync.sync>: Do nothing?", "", "", ongoing: false)
@@ -243,7 +274,7 @@ namespace Sync
             return assets.OfType<T>().ToList();
         }
 
-        public Task SyncStartingInventory()
+        public Task ModifyStartingInventory()
         {
             if (References.PlayerData?.inventory?.deck != null)
             {
@@ -252,13 +283,14 @@ namespace Sync
                     if (Dead.Random.Range(0f, 1f) < itemSyncChance && data.cardType.name == "Item")
                     {
                         Extensions.TryAddSync(data, ItemSyncEffects);
+                        Extensions.TryAddTrait(data, TStack("Mystic", 1));
                     }
                 }
             }
             return Task.CompletedTask;
         }
 
-        internal void ApplySyncItem(Entity entity)
+        internal void ApplyTraitsToItem(Entity entity)
         {
             if (entity.data.cardType.name == "Item")
             {
@@ -266,6 +298,15 @@ namespace Sync
                 if (Dead.Random.Range(0f, 1f) < itemSyncChance)
                 {
                     Extensions.TryAddSync(entity, ItemSyncEffects);
+                }
+                //Debug.Log($"[Myst] Entity Offered: {entity.data.title}");
+                if (Dead.Random.Range(0f, 1f) < itemMystChance)
+                {
+                    Extensions.TryAddTrait(entity, TStack("Mystic", 1));
+                }
+                if (Dead.Random.Range(0f,1f) < itemPromoChance)
+                {
+                    Extensions.TryAddTrait(entity, TStack("Promo", 1));
                 }
             }
         }
@@ -277,49 +318,48 @@ namespace Sync
             UnityEngine.Debug.Log($"[Sync] You can sync again.");
             PerformSync();
         }
-
-        public Task MystStartingInventory()
+        
+        internal static void CheckPromo(Entity entity)
         {
-            if (References.PlayerData?.inventory?.deck != null)
+            CardData.TraitStacks stack = entity.data.traits.FirstOrDefault(t => t.data.name == Instance.GUID + "." + "Promo");
+            if (stack != null)
             {
-                foreach (CardData data in References.PlayerData.inventory.deck)
-                {
-                    if (Dead.Random.Range(0f, 1f) < itemMystChance && data.cardType.name == "Item")
-                    {
-                        Extensions.TryAddMyst(data);
-                    }
-                }
-            }
-            return Task.CompletedTask;
-        }
-
-        internal void ApplyMystItem(Entity entity)
-        {
-            if (entity.data.cardType.name == "Item")
-            {
-                //Debug.Log($"[Myst] Entity Offered: {entity.data.title}");
-                if (Dead.Random.Range(0f, 1f) < itemMystChance)
-                {
-                    Extensions.TryAddMyst(entity);
-                }
+                //entity.data.traits.Remove(stack);
+                string message = Net.ConcatMessage(false, "PROM", CardEncoder.Encode(entity.data));
+                Net.SendMessageToAllOthers("SYNC", message);
             }
         }
 
         internal static void SYNC_Handler(Friend friend, string message)
         {
-            int combo = int.Parse(message);
-            if (combo != 0)
+            string[] messages = Net.DecodeMessages(message);
+            switch(messages[0])
             {
-                syncNextTurn = Math.Max(syncNextTurn + 1, combo);
+                case "PROM":
+                    CardData data = CardEncoder.DecodeData(messages.Skip(1).ToArray());
+                    if (References.PlayerData?.inventory?.deck != null)
+                    {
+                        References.PlayerData.inventory.deck.Add(data);
+                    }
+                    HandlerBattle.instance.Queue(new ActionGainCardToHand(messages.Skip(1).ToArray()));
+                    break;
+                case "SYNC":
+                    int combo = int.Parse(messages[1]);
+                    if (combo != 0)
+                    {
+                        syncNextTurn = Math.Max(syncNextTurn + 1, combo);
+                    }
+                    else
+                    {
+                        syncNextTurn = 0;
+                    }
+                    if (Battle.instance != null && Battle.instance.phase == Battle.Phase.Play && !sync)
+                    {
+                        PerformSync();
+                    }
+                    break;
             }
-            else
-            {
-                syncNextTurn = 0;
-            }
-            if (Battle.instance != null && Battle.instance.phase == Battle.Phase.Play && !sync)
-            {
-                PerformSync();
-            }
+            Debug.Log("[SYNC] Unknown message");
         }
 
         internal static void PerformSync()
@@ -343,7 +383,7 @@ namespace Sync
 
         public static void SyncOthers()
         {
-            Net.SendMessageToAllOthers("SYNC", $"{syncCombo + 1}");
+            Net.SendMessageToAllOthers("SYNC", Net.ConcatMessage(true, "SYNC", $"{syncCombo + 1}"));
             //sentSyncMessage = true; 
         }
     }
@@ -409,7 +449,7 @@ namespace Sync
             }
             else if (TryGetPlayer(out player))
             {
-                Net.SendMessage("SYNC", Net.self, "1");
+                Net.SendMessage("SYNC", Net.self, Net.ConcatMessage(true, "SYNC", "1"));
             }
 
         }

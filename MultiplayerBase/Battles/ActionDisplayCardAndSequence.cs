@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace MultiplayerBase.Battles
 {
-    internal class ActionDisplayCardAndSequence : PlayAction
+    public class ActionDisplayCardAndSequence : PlayAction
     {
         public override bool IsRoutine => true;
 
@@ -23,14 +23,14 @@ namespace MultiplayerBase.Battles
         protected Func<Entity, IEnumerator> sequence;
         protected PlayAction playAction;
 
-        
+        public bool includeFrenzy = true;
 
         public float beforeDelay = 0f;
         public float afterDelay = 0f;
 
         protected ActionDisplayCardAndSequence() { }
 
-        private ActionDisplayCardAndSequence(CardData displayedCardData, string[] messages, Func<Entity, IEnumerator> sequence, PlayAction playAction, float beforeDelay = 0f, float afterDelay = 0f)
+        protected ActionDisplayCardAndSequence(CardData displayedCardData, string[] messages, Func<Entity, IEnumerator> sequence, PlayAction playAction, float beforeDelay = 0f, float afterDelay = 0f)
         {
             this.displayedCardData = displayedCardData;
             this.messages = messages;
@@ -102,19 +102,33 @@ namespace MultiplayerBase.Battles
 
         public virtual IEnumerator RunSequence()
         {
+            int count = (includeFrenzy ? FindNumberOfTriggers() : 1);
             if (sequence != null)
             {
-                yield return sequence(displayedEntity);
+               for(int i=0; i<count; i++)
+               {
+                    yield return sequence(displayedEntity);
+               }
             }
             else
             {
-                yield return playAction.Run();
+                for (int i = 0; i < FindNumberOfTriggers(); i++)
+                {
+                    yield return playAction.Run();
+                }
             }
+        }
+
+        public int FindNumberOfTriggers()
+        {
+            StatusEffectData multiHit = displayedEntity.statusEffects.FirstOrDefault(s => s.name == "MultiHit");
+            return (1 + (multiHit == null ? 0 : multiHit.GetAmount()));
         }
 
         public virtual IEnumerator Disappear()
         {
             displayedEntity.RemoveFromContainers();
+            displayedEntity.transform.SetParent(HandlerBattle.instance.transform, true);
             displayedEntity.gameObject.AddComponent<CardDestroyedConsume>();
             yield return Sequences.Wait(0.3f);
             /*

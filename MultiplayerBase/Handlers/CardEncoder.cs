@@ -15,9 +15,9 @@ namespace MultiplayerBase.Handlers
     {
 
         //[X]! height! damageCurrent! damageMax! hpcurrent! hpMax! counterMax! counterCurrent [! usesCurrent! usesMax! ]
-        public static string Encode(Entity entity, ulong id)
+        public static string Encode(Entity entity)
         {
-            string s = SubEncode(entity, id) + "! ";
+            string s = SubEncode(entity) + "! ";
             s += $"{entity.height}! ";
             s += $"{entity.damage.max}! " + $"{entity.damage.current}! ";
             s += $"{entity.hp.max}! " + $"{entity.hp.current}! ";
@@ -27,10 +27,10 @@ namespace MultiplayerBase.Handlers
         }
 
         //CardData! customData! attackEffects! startWithEffects! traits! injuries! hp! damage! counter! upgrades! forceTitle
-        public static string SubEncode(Entity entity, ulong id)
+        public static string SubEncode(Entity entity)
         {
             CardData cardData = entity.data;
-            string s = $"{id}! {cardData.name.Replace("!", "!:")}! "; //0.CardData (id doesn't count)
+            string s = $"{cardData.name.Replace("!", "!:")}! "; //0.CardData (id doesn't count)
             if (cardData.customData != null) //1. CustomData
             {
                 Dictionary<string, object> customData = cardData.customData;
@@ -71,9 +71,9 @@ namespace MultiplayerBase.Handlers
         }
 
         //CardData! customData! attackEffects! startWithEffects! traits! injuries! hp! damage! counter! upgrades! forceTitle
-        public static string Encode(CardData cardData, ulong id)
+        public static string Encode(CardData cardData)
         {
-            string s = $"{id}! {cardData.name.Replace("!", "!:")}! "; //0.CardData (id doesn't count)
+            string s = $"{cardData.name.Replace("!", "!:")}! "; //0.CardData (id doesn't count)
             if (cardData.customData != null) //1. CustomData
             {
                 Dictionary<string, object> customData = cardData.customData;
@@ -139,7 +139,9 @@ namespace MultiplayerBase.Handlers
 
         public static IEnumerator DecodeEntity2(Entity entity, string[] messages)
         {
+            entity.enabled = false;
             yield return entity.Reset();
+            entity.enabled = true;
             if (messages.Length <= 11)
             {
                 yield break;
