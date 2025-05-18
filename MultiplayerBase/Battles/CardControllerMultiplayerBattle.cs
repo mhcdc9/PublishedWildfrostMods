@@ -96,29 +96,17 @@ namespace MultiplayerBase.Battles
                             }
                             else if (dragging.data.playOnSlot) //Unused case for now...
                             {
-                                Debug.Log("[Multiplayer] Slots?");
-                                CardContainer cardContainer = (dragging.targetMode.TargetRow ? hoverContainer : hoverSlot);
-                                if (!dragging.CanPlayOn(cardContainer))
+                                Debug.Log("[Multiplayer] Slots?!?");
+                                if (dragging.CanPlayOn(hoverEntity))
                                 {
-                                    break;
+                                    ActionQueue.Stack(new ActionSendCardToPlay(dragging, (Friend)HandlerBattle.friend, hoverEntity, ActionSendCardToPlay.TargetType.Slot));
+                                    flag = false;
                                 }
 
-                                ActionTriggerAgainst action3 = new ActionTriggerAgainst(dragging, owner.entity, null, cardContainer);
-                                if (Events.CheckAction(action3))
+                                else if (!dragging.CanPlayOn(hoverContainer))
                                 {
-                                    if (ShoveSystem.Active)
-                                    {
-                                        ShoveSystem.Fix = true;
-                                    }
-
-                                    ActionQueue.Add(action3);
-                                    ActionQueue.Add(new ActionReduceUses(dragging));
-                                    ActionQueue.Add(new ActionResetOffset(dragging));
-                                    ActionQueue.Add(new ActionEndTurn(owner));
-                                    base.enabled = false;
-                                    retainPosition = true;
-                                    retainRotation = true;
-                                    retainDrawOrder = true;
+                                    ActionQueue.Stack(new ActionSendCardToPlay(dragging, (Friend)HandlerBattle.friend, hoverContainer, ActionSendCardToPlay.TargetType.Slot));
+                                    flag = false;
                                 }
                             }
                             else if (dragging.targetMode.TargetRow)

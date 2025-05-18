@@ -97,7 +97,9 @@ namespace Sync
             Events.OnBattlePreTurnStart += CheckSync;
             Events.OnEntityOffered += ApplyTraitsToItem;
             Events.OnEntityChosen += CheckPromo;
+            Events.OnShopItemPurchase += CheckPromoShop;
             Events.OnCampaignGenerated += ModifyStartingInventory;
+
             GaidenSystem.Enable();
             Net.HandlerRoutines.Add("SYNC", SYNC_Handler);
             base.Load();
@@ -114,6 +116,7 @@ namespace Sync
             Events.OnBattlePreTurnStart -= CheckSync;
             Events.OnEntityOffered -= ApplyTraitsToItem;
             Events.OnEntityChosen -= CheckPromo;
+            Events.OnShopItemPurchase -= CheckPromoShop;
             Events.OnCampaignGenerated -= ModifyStartingInventory;
             GaidenSystem.Disable();
             Net.HandlerRoutines.Remove("SYNC");
@@ -123,6 +126,8 @@ namespace Sync
                 Events.OnSceneChanged -= Commands;
             }
         }
+
+        
 
         public void Commands(Scene scene)
         {
@@ -179,7 +184,7 @@ namespace Sync
                 .Create<StatusEffectMystical>("Play Elsewhere")
                 .WithCanBeBoosted(false)
                 .WithType("")
-                .WithConstraints(Extensions.IsItem(), Extensions.IsPlay(), Extensions.NotOnSlot(), Extensions.TargetsBoard())
+                .WithConstraints(Extensions.IsItem(), Extensions.IsPlay(), Extensions.TargetsBoard())
                 .FreeModify<StatusEffectApplyX>(
                 (data) =>
                 {
@@ -198,7 +203,7 @@ namespace Sync
 
             assets.Add(new StatusEffectDataBuilder(this)
                 .CreateSyncEffect<StatusEffectSync>("Sync Mystic", "<keyword=mhcdc9.wildfrost.sync.sync>: <keyword=mhcdc9.wildfrost.sync.mystic>", "", "Temporary Mystic")
-                .WithConstraints(Extensions.IsItem(), Extensions.IsPlay(), Extensions.NotOnSlot(), Extensions.TargetsBoard())
+                .WithConstraints(Extensions.IsItem(), Extensions.IsPlay(), Extensions.TargetsBoard())
                 );
 
             assets.Add(Extensions.CreateBasicKeyword(this, "sync", "Sync", "Gain an effect when a <sync> card is played or attacks elsewhere"));
@@ -371,20 +376,33 @@ namespace Sync
             }
         }
 
-        internal static void SYNC_Handler(Friend friend, string message)
+        public void CheckPromoShop(ShopItem item)
+        {
+            Entity entity = item.GetComponent<Entity>();
+            if (entity != null)
+            {
+                CheckPromo(entity);
+            }
+        }
+
+        internal void SYNC_Handler(Friend friend, string message)
         {
             string[] messages = Net.DecodeMessages(message);
             switch(messages[0])
             {
                 case "PROM":
                     CardData data = CardEncoder.DecodeData(messages.Skip(1).ToArray());
+                    if (MissingCardSystem.IsMissing(data))
+                    {
+                        break;
+                    }
                     if (References.PlayerData?.inventory?.deck != null)
                     {
                         References.PlayerData.inventory.deck.Add(data);
                     }
                     if (!HandlerBattle.instance.Queue(new ActionGainCardToHand(messages.Skip(1).ToArray())))
                     {
-                        MultTextManager.AddEntry($"Received a card from {friend.Name}", 0.55f, new Color(1f,0.75f,0.38f), 1f);
+                        MultTextManager.AddEntry($"Received {data.title} from {friend.Name}", 0.55f, new Color(1f,0.75f,0.38f), 1f);
                     }
                     break;
                 case "SYNC":

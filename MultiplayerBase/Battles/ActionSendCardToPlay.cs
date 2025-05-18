@@ -17,6 +17,7 @@ namespace MultiplayerBase.Battles
         public override bool IsRoutine => true;
         private Entity entity;
         private ulong id;
+        private int slotId;
         private Friend friend;
         private TargetType type;
         private List<IAlternatePlay> alternatePlays;
@@ -36,13 +37,28 @@ namespace MultiplayerBase.Battles
         {
             this.entity = entity;
             this.friend = friend;
-            if (type == TargetType.Entity)
+            if (context is Entity e)
             {
-                this.id = HandlerInspect.FindTrueID((Entity)context);
+                if (type == TargetType.Entity)
+                {
+                    this.id = HandlerInspect.FindTrueID(e);
+                }
+                if (type == TargetType.Slot)
+                {
+                    this.slotId = e.containers[0].IndexOf(e);
+                }
             }
-            else if (type == TargetType.Container)
+            if (context is CardContainer c)
             {
-                this.id = HandlerBattle.instance.ConvertToID((CardContainer)context);
+                if (type == TargetType.Container)
+                {
+                    this.id = HandlerBattle.instance.ConvertToID(c);
+                }
+                if (type == TargetType.Slot)
+                {
+                    this.id = (ulong)c.IndexOf(null);
+                }
+                
             }
             this.type = type;
 
@@ -94,6 +110,9 @@ namespace MultiplayerBase.Battles
                     break;
                 case TargetType.Container:
                     s = HandlerSystem.ConcatMessage(false, "PLAY", $"ROW {id}", entity.data.id.ToString(), s);
+                    break;
+                case TargetType.Slot:
+                    s = HandlerSystem.ConcatMessage(false, "PLAY", $"SLT {id} {slotId}", entity.data.id.ToString(), s);
                     break;
             }
 

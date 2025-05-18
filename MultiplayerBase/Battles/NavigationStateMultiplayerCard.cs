@@ -97,15 +97,26 @@ namespace MultiplayerBase.Battles
     })]
     internal static class PatchCanPlayOnTarget
     {
-        static bool Prefix(ref bool __result, Entity target)
+        static bool Prefix(ref bool __result, Entity __instance, Entity target)
         {
             if (target == null)
             {
                 __result = false;
                 return false;
             }
+            if (NavigationStateMultiplayerCard.warpCanPlayOnMethods && __instance.data.playOnSlot)
+            {
+                //UnityEngine.Debug.Log("Slot??");
+                if (target.owner == __instance.owner)
+                {
+                    //UnityEngine.Debug.Log("Success?");
+                    __result = __instance.data.canPlayOnFriendly;
+                    return false;
+                }
+            }
             return true;
         }
+
     }
 
     [HarmonyPatch(typeof(Entity), "CanPlayOn", new Type[]
@@ -129,7 +140,7 @@ namespace MultiplayerBase.Battles
             bool flag = container is OtherCardViewer;
             if (!flag)
             {
-                UnityEngine.Debug.Log("Not OCV.");
+                UnityEngine.Debug.Log("Flagged?");
                 return false;
             }
             if (__instance.data.playType == Card.PlayType.Play)
@@ -144,18 +155,30 @@ namespace MultiplayerBase.Battles
                         Entity[] targets = __instance.targetMode.GetTargets(__instance, null, container);
                         if (targets == null || targets.Length <= 0)
                         {
-                            UnityEngine.Debug.Log("Empty?");
+                            //UnityEngine.Debug.Log("Empty?");
                             return false;
                         }
 
                         if (!(container.owner == __instance.owner))
                         {
-                            UnityEngine.Debug.Log("Success?");
+                            //UnityEngine.Debug.Log("Success?");
                             return __instance.data.canPlayOnEnemy;
                         }
-                        UnityEngine.Debug.Log("Success!");
+                        //UnityEngine.Debug.Log("Success!");
                         return __instance.data.canPlayOnFriendly;
                     }
+                }
+
+                if (__instance.data.playOnSlot)
+                {
+                    UnityEngine.Debug.Log("Slot?");
+                    if (!(container.owner == __instance.owner))
+                    {
+                        //UnityEngine.Debug.Log("Success?");
+                        return __instance.data.canPlayOnEnemy;
+                    }
+                    //UnityEngine.Debug.Log("Success!");
+                    return __instance.data.canPlayOnFriendly;
                 }
             }
             return __result;

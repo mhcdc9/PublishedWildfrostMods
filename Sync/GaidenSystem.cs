@@ -128,7 +128,11 @@ namespace Sync
             {
                 canAcceptHelp = false;
                 CardData card = CardEncoder.DecodeData(Net.DecodeMessages(entityString));
-                for(int i=0; i<card.traits.Count; i++)
+                if (MissingCardSystem.IsMissing(card))
+                {
+                    return;
+                }
+                for (int i=0; i<card.traits.Count; i++)
                 {
                     if (card.traits[i].data.name == "mhcdc9.wildfrost.sync.Gaiden")
                     {

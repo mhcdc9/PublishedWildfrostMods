@@ -185,6 +185,7 @@ namespace MultiplayerBase.UI
 
         public void FriendIconPressed()
         {
+            SfxSystem.OneShot("event:/sfx/ui/menu_click");
             if (preventClicking) { return; }
 
             if (HandlerMap.instance.Blocking && (friend.Id != HandlerMap.friend?.Id || HandlerSystem.friendStates[(Friend)HandlerMap.friend] != PlayerState.Map) )
@@ -236,7 +237,7 @@ namespace MultiplayerBase.UI
                 //HandlerSystem.SendMessage("CHT", friend, Dead.PettyRandom.Range(0f, 1f).ToString());
                 //HandlerInspect.instance.Clear();
             }
-            StartCoroutine(Cooldown(0.5f));
+            StartCoroutine(Cooldown(0.2f));
         }
 
         public static IEnumerator Cooldown(float seconds)

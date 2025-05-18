@@ -33,9 +33,12 @@ namespace MultiplayerBase.Handlers
         public static List<Friend> watchers = new List<Friend>();
 
         GameObject background;
+        Fader fader; //Some component attached to background that I can attach coroutines to :)
 
         //Use Blcoking for your PlayActions
         public bool Blocking => background != null && background.activeSelf;
+
+        internal bool ignoreFurtherMessages;
 
         private CardControllerSelectCard cc => HandlerInspect.instance.cc;
         private CardControllerBattle cb;
@@ -48,7 +51,7 @@ namespace MultiplayerBase.Handlers
 
         internal OtherCardViewer invisContainer;
 
-        Vector3 defaultPosition = new Vector3(0, 0, -8);
+        Vector3 defaultPosition = new Vector3(0, 0, -8f);
         Vector3 viewerPosition = new Vector3(0, 0, 2);
 
         static Button refreshButton;
@@ -153,7 +156,7 @@ namespace MultiplayerBase.Handlers
 
         public void CreateEffect(Entity entity, CardContainer[] containers, string type)
         {
-            if (containers == null || containers.Length == 0 || Battle.instance == null || !Battle.IsOnBoard(containers[0]))
+            if (containers == null || containers.Length == 0 || Battle.instance == null || !Battle.IsOnBoard(containers[0]) || watchers.Count == 0)
             {
                 return;
             }
@@ -169,7 +172,7 @@ namespace MultiplayerBase.Handlers
 
         private void EntityMove(Entity entity)
         {
-            if (Blocking || Battle.instance == null) { return; }
+            if (Blocking || Battle.instance == null || watchers.Count == 0) { return; }
 
             bool flag = false;
 
@@ -251,7 +254,7 @@ namespace MultiplayerBase.Handlers
         {
             background = HelperUI.Background(transform, new Color(1f, 1f, 1f, 0.75f));
             background.SetActive(false);
-            Fader fader = background.AddComponent<Fader>();
+            fader = background.AddComponent<Fader>();
             fader.onEnable = true;
             fader.gradient = new Gradient();
             fader.ease = LeanTweenType.easeOutQuad;
@@ -315,6 +318,8 @@ namespace MultiplayerBase.Handlers
             {
                 return;
             }
+            ignoreFurtherMessages = false;
+            updateTasks = 0;
             if (Battle.instance != null)
             {
                 if (Battle.instance.phase == Battle.Phase.Battle || References.Player.endTurn)
@@ -351,16 +356,27 @@ namespace MultiplayerBase.Handlers
             {
                 background.transform.localPosition = defaultPosition;
                 LeanTween.moveLocal(background, viewerPosition, 0.75f).setEase(LeanTweenType.easeInOutQuart);
+
+                for(int i=0; i < 2; i++)
+                {
+                    LeanTween.moveLocalY(playerLanes[i].gameObject, 0.26f - 0.43f * i, 0.4f).setEaseOutQuart();
+                    LeanTween.moveLocalY(enemyLanes[i].gameObject, 0.26f - 0.43f * i, 0.4f).setEaseOutQuart();
+                }
             }
 
             ActionQueue.Stack(new ActionBattleViewer());
             //StartCoroutine(PopulateRows());
             HandlerBattle.friend = friend;
             MultEvents.InvokeBattleViewerOpen(friend);
-    }
+        }
 
         public void CloseBattleViewer()
         {
+            if (ignoreFurtherMessages)
+            {
+                return;
+            }
+
             if (Battle.instance != null)
             {
                 if (!(NavigationState.PeekCurrentState() is NavigationStateBattle))
@@ -377,21 +393,34 @@ namespace MultiplayerBase.Handlers
                 }
                 RemoveRowsFromBattle();
             }
-            marks.ClearMarkers("PLAYER");
-            marks.ClearMarkers("ENEMY");
-            background.SetActive(false);
-            background.transform.SetParent(transform);
-            Clear();
+            ignoreFurtherMessages = true;
             if (friend is Friend f)
             {
                 HandlerSystem.SendMessage("BAT", f, "UNSUB");
                 MultEvents.InvokeBattleViewerClose(f);
             }
-            for (int i = 0; i < actions.Count; i++)
+
+            fader.StartCoroutine(FadeOut());
+        }
+
+
+
+        internal IEnumerator FadeOut()
+        {
+            marks.ClearMarkers("PLAYER");
+            marks.ClearMarkers("ENEMY");
+            fader.Out(0.45f);
+            for (int i=0; i<2; i++)
             {
-                ActionQueue.Add(actions[i]);
+                LeanTween.moveLocalY(playerLanes[i].gameObject, 1f, 0.45f).setEaseOutCubic();
+                LeanTween.moveLocalY(enemyLanes[i].gameObject, 1f, 0.45f).setEaseOutCubic();
             }
-            actions.Clear();
+
+            yield return Sequences.Wait(0.5f);
+
+            background.GetComponent<Fader>().StopAllCoroutines();
+            background.SetActive(false);
+            background.transform.SetParent(transform);
         }
 
         public void ToggleViewer(Friend friend)
@@ -584,7 +613,7 @@ namespace MultiplayerBase.Handlers
                     break;
             }
 
-            if (!Blocking || friend.Id != HandlerBattle.friend?.Id) { return; }
+            if (!Blocking || ignoreFurtherMessages || friend.Id != HandlerBattle.friend?.Id) { return; }
 
             updateTasks++;
 
@@ -594,19 +623,19 @@ namespace MultiplayerBase.Handlers
                 //   "ASK"
                 //  See Above.
                 case "ENEMY":
-                    StartCoroutine(PlaceCard(friend, messages, enemyLanes));
+                    fader.StartCoroutine(PlaceCard(friend, messages, enemyLanes));
                     break;
                 case "PLAYER":
-                    StartCoroutine(PlaceCard(friend, messages, playerLanes));
+                    fader.StartCoroutine(PlaceCard(friend, messages, playerLanes));
                     break;
                 case "BOARD":
-                    StartCoroutine(UpdateBoard(friend, messages));
+                    fader.StartCoroutine(UpdateBoard(friend, messages));
                     break;
                 case "MARK":
-                    StartCoroutine(MarkCard(friend, messages)); //Not really an IEnumerator
+                    fader.StartCoroutine(MarkCard(friend, messages)); //Not really an IEnumerator
                     break;
                 case "UPDATE":
-                    StartCoroutine(UpdateCard(friend, messages));
+                    fader.StartCoroutine(UpdateCard(friend, messages));
                     break;
                 default:
                     updateTasks--;
@@ -618,6 +647,7 @@ namespace MultiplayerBase.Handlers
         //MARK! PLAYER/ENEMY! ID! TYPE
         public IEnumerator MarkCard(Friend friend, string[] messages)
         {
+            updateTasks--;
             if (!DetermineSide(messages[1], out OtherCardViewer[] ocvs) || !ulong.TryParse(messages[2], out ulong id))
             {
                 yield break;
@@ -654,6 +684,7 @@ namespace MultiplayerBase.Handlers
         {
             if (!DetermineSide(messages[1], out OtherCardViewer[] ocvs))
             {
+                updateTasks--;
                 yield break;
             }
 
@@ -704,6 +735,7 @@ namespace MultiplayerBase.Handlers
                     CardManager.ReturnToPool(entities[i]);
                 }
             }
+            updateTasks--;
         }
 
         public Dictionary<ulong, Entity> CollectCardsFromOCVs(OtherCardViewer[] ocvs)
@@ -765,6 +797,11 @@ namespace MultiplayerBase.Handlers
                             container = lane.slots[position];
                             action = new ActionPlayOtherCard(messages.Skip(3).ToArray(), friend, null, container);
                         }
+                        else
+                        {
+                            container = lane.slots[lane.slots.Count - 1];
+                            action = new ActionPlayOtherCard(messages.Skip(3).ToArray(), friend, null, container);
+                        }
                              
                     }
                     break;
@@ -816,6 +853,7 @@ namespace MultiplayerBase.Handlers
         {
             if (AlreadyCreated(friend, ulong.Parse(messages[3]), ocvs))
             {
+                updateTasks--;
                 yield break;
             }
             OtherCardViewer ocv = ocvs[int.Parse(messages[1])];
@@ -828,6 +866,7 @@ namespace MultiplayerBase.Handlers
             ocv.SetChildPosition(entity);
             yield return CardEncoder.DecodeEntity2(entity, messages.Skip(4).ToArray());
             entity.flipper.FlipUp(force: true);
+            updateTasks--;
         }
 
         //UPDATE! PLAYER/ENEMY! rowIndex! index! id! otherCardStuff
@@ -835,6 +874,7 @@ namespace MultiplayerBase.Handlers
         {
             if (!DetermineSide(messages[1], out OtherCardViewer[] ocvs))
             {
+                updateTasks--;
                 yield break;
             }
 
@@ -843,6 +883,7 @@ namespace MultiplayerBase.Handlers
             {
                 yield return PlaceCard(friend, messages.Skip(1).ToArray(), ocvs);
                 //Events.InvokeEntityCreated(entity);
+                updateTasks--;
                 yield break;
             }
 
@@ -852,6 +893,7 @@ namespace MultiplayerBase.Handlers
             Debug.Log($"[Multiplayer] {entity.data.title} -> {ocvs[0].owner}");
             entity.PromptUpdate();
             //entity.flipper.FlipUp(force: true);
+            updateTasks--;
         }
 
         public Entity AlreadyCreated(Friend friend, ulong id, OtherCardViewer[] rows)
@@ -892,7 +934,7 @@ namespace MultiplayerBase.Handlers
         
         public bool Queue(PlayAction p)
         {
-            if (Battle.instance == null)
+            if (Battle.instance == null && Battle.instance.phase != Battle.Phase.End)
             {
                 return false;
             }

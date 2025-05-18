@@ -1,4 +1,5 @@
 ﻿using Deadpan.Enums.Engine.Components.Modding;
+using HarmonyLib;
 using MultiplayerBase.Handlers;
 using MultiplayerBase.UI;
 using Steamworks;
@@ -8,6 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TMPro;
 using UnityEngine;
 
 using static Console;
@@ -21,6 +23,7 @@ namespace MultiplayerBase.ConsoleCommands
             yield return new WaitUntil(() => SceneManager.Loaded.ContainsKey("MainMenu"));
             commands.Add(new CommandMultASK());
             commands.Add(new CommandMultShuffle());
+            commands.Add(new CommandSeeIDs());
             //commands.Add(new CommandMultSac());
             commands.Add(new CommandMultCHAT());
             //commands.Add(new CommandMultEMOTE());
@@ -28,9 +31,9 @@ namespace MultiplayerBase.ConsoleCommands
 
         public class CommandMultASK : Command
         {
-            public override string id => "multiplayer";
+            public override string id => "msend";
 
-            public override string format => "multiplayer <friend> <handler> <message>";
+            public override string format => "msend <friend> <handler> <message>";
 
             public override string desc => "Sends an ASK message to a friend";
 
@@ -167,6 +170,126 @@ namespace MultiplayerBase.ConsoleCommands
                     predictedArgs = new string[0];
                     yield break;
                 }
+            }
+        }
+
+        public class CommandSeeIDs : Command
+        {
+            public override string id => "id";
+
+            public override string format => "id <on/off>";
+
+            public override string desc => "See the ids of all cards on board/hand";
+
+            public List<GameObject> activeTexts = new List<GameObject>();
+            public List<GameObject> inactiveTexts = new List<GameObject>();
+
+            public override bool IsRoutine => false;
+            public override void Run(string args)
+            {
+                if (args.Trim() == "on")
+                {
+                    On();
+                }
+                else
+                {
+                    Off();
+                }
+            }
+
+            public void On()
+            {
+                if (activeTexts.Count > 0)
+                {
+                    Off();
+                }
+
+                if (Battle.instance != null)
+                {
+                    Battle.instance.cards.Where(e => e?.display?.GetCanvas() != null)
+                        .Do(e =>
+                        {
+                            if (!PullText(e))
+                            {
+                                CreateTextAndAssign(e);
+                            }
+                        });
+                }
+            }
+
+            public void Off()
+            {
+                foreach (GameObject obj in activeTexts)
+                {
+                    if (obj != null)
+                    {
+                        obj.transform.SetParent(null, false);
+                        inactiveTexts.Add(obj);
+                    }
+                }
+
+                activeTexts.Clear();
+            }
+
+            public bool PullText(Entity entity)
+            {
+                while(inactiveTexts.Count > 0)
+                {
+                    if (inactiveTexts[0] == null)
+                    {
+                        inactiveTexts.RemoveAt(0);
+                    }
+                    else
+                    {
+                        GameObject obj = inactiveTexts[0];
+                        obj.transform.SetParent(entity.display.GetCanvas().transform, false);
+                        TextMeshProUGUI textElement = obj.GetComponent<TextMeshProUGUI>();
+                        textElement.text = entity.data?.id.ToString() ?? "???";
+                        activeTexts.Add(obj);
+                        inactiveTexts.Remove(obj);
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+            public static Vector3 defaultTextPosition = new Vector3(0f, 4f, 0f);
+            public void CreateTextAndAssign(Entity entity)
+            {
+                GameObject obj = new GameObject("ID Tooltip");
+                obj.transform.SetParent(entity.display.GetCanvas().transform, false);
+                TextMeshProUGUI textElement = obj.AddComponent<TextMeshProUGUI>();
+                textElement.fontSize = 0.5f;
+                textElement.horizontalAlignment = HorizontalAlignmentOptions.Center;
+                textElement.text = entity.data?.id.ToString() ?? "???";
+                textElement.outlineColor = Color.black;
+                textElement.outlineWidth = 0.1f;
+                obj.GetComponent<RectTransform>().sizeDelta = new Vector2(4f, 1f);
+                activeTexts.Add(obj);
+            }
+
+            public string EncodePositions(OtherCardViewer[] ocvs)
+            {
+                List<ulong> positions = new List<ulong>();
+                for (int i = 0; i < 3; i++)
+                {
+                    for (int j = 0; j < 2; j++)
+                    {
+                        if (ocvs[j].Count > i && ocvs[j][i] != null)
+                        {
+                            positions.Add(ocvs[j].Find(ocvs[j][i]).Item2);
+                        }
+                    }
+                }
+
+                return HandlerSystem.ConcatMessage(true, positions.InRandomOrder().Select(x => x.ToString()).ToArray());
+            }
+
+            public override IEnumerator GetArgOptions(string currentArgs)
+            {
+                string[] options = new string[] { "on", "off" };
+                predictedArgs = options;
+                yield break;
             }
         }
 
