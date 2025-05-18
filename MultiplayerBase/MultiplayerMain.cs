@@ -94,14 +94,7 @@ namespace MultiplayerBase
             gameobject = new GameObject("Top Text");
             UnityEngine.Object.DontDestroyOnLoad(gameobject);
             textElement = gameobject.AddComponent<TextMeshProUGUI>();
-            textElement.horizontalAlignment = HorizontalAlignmentOptions.Center;
-            textElement.verticalAlignment = VerticalAlignmentOptions.Middle;
-            textElement.fontSize = 0.4f;
-            textElement.outlineWidth = 0.1f;
-            textElement.color = UnityEngine.Color.white;
-            gameobject.GetComponent<RectTransform>().sizeDelta = new Vector2(100, 1);
-            gameobject.transform.SetParent(GameObject.Find("Canvas/SafeArea").transform);
-            gameobject.transform.localPosition = new Vector3(0, 5, 0);
+            gameobject.AddComponent<MultTextManager>();
 
             SetIconSize();
         }
@@ -241,7 +234,7 @@ namespace MultiplayerBase
                 FinalizeParty(lobby.Members.ToArray());
                 return;
             }
-            textElement.text = $"{friend.Name}: {message}";
+            MultTextManager.AddEntry($"{friend.Name}: {message}", 0.4f, Color.white, 5f);
         }
 
         public void FinalizeParty(Friend[] friends)
@@ -284,8 +277,7 @@ namespace MultiplayerBase
 
         private void ToggleMatchmaking()
         {
-            matchmaker.gameObject.SetActive(!matchmaker.gameObject.activeSelf);
-            if (matchmaker.gameObject.activeSelf)
+            if (!matchmaker.gameObject.activeSelf)
             {
                 if (HandlerSystem.enabled)
                 {
@@ -295,8 +287,34 @@ namespace MultiplayerBase
                 {
                     matchmaker.FindLobby();
                 }
+                matchmaker.gameObject.SetActive(true);
+            }
+            else
+            {
+                
+                matchmaker.exitTween.Fire();
+                matchmaker.lobbyView.ExitLobbyView(false);
+                matchmaker.memberView.CloseMemberView(false);
+                matchmaker.modView.CloseModView(false);
+                matchmaker.background.GetComponent<Fader>().Out(0.4f);
+                References.instance.StartCoroutine(Close(0.45f));
             }
         }
+
+        private bool closing = false;
+        private IEnumerator Close(float dur)
+        {
+            if (closing)
+            {
+                yield break;
+            }
+            closing = true;
+            yield return new WaitForSeconds(dur);
+            matchmaker.gameObject.SetActive(false);
+            closing = false;
+        }
+
+
     }
 
     [HarmonyPatch(typeof(ScriptBattleSetUp), "CreatePlayerCards", new Type[3]

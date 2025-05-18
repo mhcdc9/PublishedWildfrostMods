@@ -468,7 +468,7 @@
   <ItemGroup>
     <Compile Include="Battles\ActionBattleViewer.cs" />
     <Compile Include="Battles\ActionDisplayCardAndSequence.cs" />
-    <Compile Include="Battles\ActionGainCardToHand.cs" />
+    <Compile Include="Battles\ActionAddCardToBattle.cs" />
     <Compile Include="Battles\ActionSendCardToPlay.cs" />
     <Compile Include="Battles\CardControllerMultiplayerBattle.cs" />
     <Compile Include="Battles\ActionPlayOtherCard.cs" />
@@ -479,6 +479,7 @@
     <Compile Include="Matchmaking\MemberView.cs" />
     <Compile Include="Matchmaking\ModView.cs" />
     <Compile Include="MultEvents.cs" />
+    <Compile Include="MultTextManager.cs" />
     <Compile Include="StatusEffects\IAlternatePlay.cs" />
     <Compile Include="UI\Dashboard.cs" />
     <Compile Include="Handlers\HandlerBattle.cs" />

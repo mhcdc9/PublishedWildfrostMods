@@ -107,7 +107,10 @@ namespace MultiplayerBase.UI
                 "Nyoooom", "Overburnt", "Ribbiting", "Scrappy", "Shady",
                 "Shelled", "Soulbound", "Sparked", "Spiced-up", "Sunny",
                 "Toothy", "Wild", "Wise", "Zoomin'"};
-            string[] noun = { "Snowdweller", "Shademancer", "Clunkmaster", "Petmaster", "Bellringer", "Pengoon", "Makoko", "Gobling", "Gnomebot", "Woodhead", "Shopkeeper", "Sunbringer", "High Roller", "Frog", "Combo Seeker", "Card Sharp", "Jimbo" };
+            string[] noun = { "Snowdweller", "Shademancer", "Clunkmaster", "Petmaster", "Bellringer", 
+                "Pengoon", "Makoko", "Gobling", "Gnomebot", "Woodhead", 
+                "Shopkeeper", "Sunbringer", "High Roller", "Frog", "Combo Seeker", 
+                "Card Sharp", "Jimbo", "Ironclad", "Silent" };
             return string.Format("The {0} {1}", adj.RandomItem(), noun.RandomItem());
         }
 

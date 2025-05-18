@@ -11,6 +11,7 @@ using UnityEngine;
 using Image = UnityEngine.UI.Image;
 using Color = UnityEngine.Color;
 using Net = MultiplayerBase.Handlers.HandlerSystem;
+using MultiplayerBase;
 
 namespace Sync
 {
@@ -169,13 +170,15 @@ namespace Sync
             SyncMain.syncCombo = combo;
             if (combo == 0)
             {
-                Net.CHT_Handler(Net.self, "Not Synched...");
+                //Net.CHT_Handler(Net.self, "Not Synched...");
+                //MultTextManager.AddEntry("Not Synched...", 0.4f, Color.white, 2f);
             }
             else
             {
-                string s = (combo > 1) ? "Synched!" : $"Synched (x{combo})!";
-                s = string.Concat("<size=0.55><color=#FC5>", s, "</color></size>");
-                Net.CHT_Handler(Net.self, s);
+                //string s = (combo > 1) ? "Synched!" : $"Synched (x{combo})!";
+                //s = string.Concat("<size=0.55><color=#FC5>", s, "</color></size>");
+                //Net.CHT_Handler(Net.self, s);
+                MultTextManager.AddEntry("Synched!", 0.55f, new Color(1f, 0.75f, 0.38f), 2f);
             }
             SyncMain.sync = !endSync;
             StatusEffectSystem.activeEffects.Freeze();

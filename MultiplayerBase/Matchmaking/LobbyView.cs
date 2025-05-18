@@ -59,7 +59,7 @@ namespace MultiplayerBase.Matchmaking
             tween.property = TweenUI.Property.Move;
             tween.ease = LeanTweenType.easeOutQuart;
             tween.disableAfter = true;
-            tween.duration = 0.75f;
+            tween.duration = 0.5f;
             tween.to = defaultPosition + 11 * Vector3.up;
 
             lv.buttonGroup = HelperUI.VerticalGroup("Vertical Group", lv.transform, innerDim, 0.1f);
@@ -168,18 +168,19 @@ namespace MultiplayerBase.Matchmaking
             if (newIndex == index)
             {
                 index = -1;
-                Dashboard.joinLobbyButton.interactable = false;
+                Dashboard.ButtonOff(Dashboard.joinLobbyButton);
                 return;
             }
             index = newIndex;
             lobbyButtons[index].GetComponent<Image>().color = Color.green;
             Dashboard.modView.OpenModView(MatchmakingDashboard.lobbyList[index], false);
             Dashboard.memberView.OpenMemberView(MatchmakingDashboard.lobbyList[index], false, false);
-            Dashboard.joinLobbyButton.interactable = true;
+            Dashboard.ButtonOn(Dashboard.joinLobbyButton);
         }
 
-        public void ExitLobbyView()
+        public void ExitLobbyView(bool disable = true)
         {
+            exitTween.disableAfter = disable;
             exitTween.Fire();
         }
     }

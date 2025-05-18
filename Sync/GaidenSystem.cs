@@ -36,7 +36,27 @@ namespace Sync
             {
                 canAcceptHelp = true;
                 string s = Net.ConcatMessage(false, "GAIDEN", "ASK", Campaign.FindCharacterNode(References.Player).tier.ToString());
-                Net.SendMessageToAll("SYNC", s);
+                Net.SendMessageToAllOthers("SYNC", s);
+            }
+
+            //And Offer Help Too
+            IEnumerable<CardData> list = References.PlayerData.inventory.reserve.InRandomOrder();
+            foreach (CardData card in list)
+            {
+                if (card.injuries.Count == 0 && card.traits.FirstOrDefault(s => s.data.name == "mhcdc9.wildfrost.sync.Gaiden") != null)
+                {
+                    if (card.customData == null)
+                    {
+                        card.customData = new Dictionary<string, object>();
+                    }
+                    int lvl = Campaign.FindCharacterNode(References.Player).id;
+                    if (card.customData.ContainsKey("GaidenLvl") && (int)card.customData["GaidenLvl"] == lvl)
+                    {
+                        continue;
+                    }
+                    string s = Net.ConcatMessage(true, "GAIDEN", "OFFER", card.id.ToString(), CardEncoder.Encode(card));
+                    Net.SendMessageToAllOthers("SYNC", s);
+                }
             }
         }
 
@@ -64,19 +84,21 @@ namespace Sync
             }
         }
 
-        [HarmonyPostfix]
+        /*[HarmonyPostfix]
         [HarmonyPatch(typeof(CardControllerDeck), nameof(CardControllerDeck.MoveToReserve))]
         public static void ForceHelp(Entity entity)
         {
             if (entity.statusEffects.FirstOrDefault(s => s.type == "mhcdc9.gaiden") != null)
             {
-                string s = Net.ConcatMessage(false, "GAIDEN", "OFFER", entity.data.id.ToString(), CardEncoder.Encode(entity.data));
-                Net.SendMessageToAll("SYNC", s);
+                string s = Net.ConcatMessage(true, "GAIDEN", "OFFER", entity.data.id.ToString(), CardEncoder.Encode(entity.data));
+                Net.SendMessageToAllOthers("SYNC", s);
             }
-        }
+        }*/
 
         public static void SendHelp(Friend f, string data)
         {
+            if (References.Battle == null) { return; }
+
             if (References.PlayerData?.inventory?.reserve != null)
             {
                 IEnumerable<CardData> list = References.PlayerData.inventory.reserve.InRandomOrder();
@@ -128,7 +150,8 @@ namespace Sync
         public static void UpdateCustomData(string idString, string tierString)
         {
             ulong id = ulong.Parse(idString);
-            int tier = int.Parse(tierString);
+            //int tier = int.Parse(tierString);
+            int lvl = Campaign.FindCharacterNode(References.Player).id;
             if (References.PlayerData?.inventory?.reserve != null)
             {
                 References.PlayerData.inventory.reserve.Do(c =>
@@ -139,7 +162,7 @@ namespace Sync
                         {
                             c.customData = new Dictionary<string, object>();
                         }
-                        c.customData["GaidenLvl"] = tier;
+                        c.customData["GaidenLvl"] = lvl;
                     }
                 });
                 References.PlayerData.inventory.deck.Do(c =>
@@ -150,7 +173,7 @@ namespace Sync
                         {
                             c.customData = new Dictionary<string, object>();
                         }
-                        c.customData["GaidenLvl"] = tier;
+                        c.customData["GaidenLvl"] = lvl;
                     }
                 });
             }
@@ -163,7 +186,7 @@ namespace Sync
             if (entity.statusEffects.FirstOrDefault(s => s.type == "mhcdc9.gaiden") != null)
             {
                 string s = Net.ConcatMessage(false, "GAIDEN", "LEAVE", HandlerSystem.self.Name + entity.data.id);
-                Net.SendMessageToAll("SYNC", s);
+                Net.SendMessageToAllOthers("SYNC", s);
             }
         }
 

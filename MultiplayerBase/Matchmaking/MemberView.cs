@@ -31,9 +31,9 @@ namespace MultiplayerBase.Matchmaking
             TweenUI tween = obj.AddComponent<TweenUI>();
             tween.target = obj;
             tween.property = TweenUI.Property.Move;
-            tween.ease = LeanTweenType.easeOutElastic;
+            tween.ease = LeanTweenType.easeOutQuart;
             tween.fireOnEnable = true;
-            tween.duration = 1f;
+            tween.duration = 0.75f;
             tween.to = pos;
             tween.hasFrom = true;
             tween.from = pos + new Vector3(-8,0,0);
@@ -44,7 +44,7 @@ namespace MultiplayerBase.Matchmaking
             tween.property = TweenUI.Property.Move;
             tween.ease = LeanTweenType.easeOutQuart;
             tween.disableAfter = true;
-            tween.duration = 1f;
+            tween.duration = 0.5f;
             tween.to = pos + new Vector3(-9, 0, 0);
 
             MemberView mv = obj.AddComponent<MemberView>();
@@ -136,8 +136,9 @@ namespace MultiplayerBase.Matchmaking
             }
         }
 
-        public void CloseMemberView()
+        public void CloseMemberView(bool disable = true)
         {
+            exitTween.disableAfter = disable;
             exitTween.Fire();
         }
     }

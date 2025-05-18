@@ -27,7 +27,7 @@ namespace MultiplayerBase.Handlers
         }
 
         //CardData! customData! attackEffects! startWithEffects! traits! injuries! hp! damage! counter! upgrades! forceTitle
-        public static string SubEncode(Entity entity)
+        internal static string SubEncode(Entity entity)
         {
             CardData cardData = entity.data;
             string s = $"{cardData.name.Replace("!", "!:")}! "; //0.CardData (id doesn't count)
@@ -75,7 +75,7 @@ namespace MultiplayerBase.Handlers
                 s += $"{upgrade.name.Replace("!", "!:").Replace(",", ",:")}, ";
             }
             s += "! ";
-            s += cardData.forceTitle.Replace("!", "!:").Replace('|', 'l'); //10. nickname
+            s += cardData.forceTitle.Replace("!", "!:").Replace('|', 'l'); //10. nickname (I think the second replace is a relic of an old time)
             return s;
         }
 
@@ -150,7 +150,7 @@ namespace MultiplayerBase.Handlers
         {
             entity.enabled = false;
             yield return entity.Reset();
-            entity.enabled = true;
+            //entity.enabled = true;
             if (messages.Length <= 11)
             {
                 yield break;
@@ -186,6 +186,7 @@ namespace MultiplayerBase.Handlers
             {
                 entity.silenceCount += 100;
             }
+            yield return entity.display.UpdateDisplay();
         }
 
         //CardData! customData! attackEffects! startWithEffects! traits! injuries! hp! damage! counter! upgrades! forceTitle! 
@@ -248,6 +249,37 @@ namespace MultiplayerBase.Handlers
             data.forceTitle = messages[10]; // 10. nickname
         Debug.Log($"[Multiplayer] Nickname: {data.forceTitle}");
             return data;
+        }
+
+        public static void Modify(ref string s, Action<string[]> modifications)
+        {
+            string[] messages = HandlerSystem.DecodeMessages(s);
+            modifications(messages);
+            s = HandlerSystem.ConcatMessage(true, messages);
+        }
+
+        public static string EncodeStacks(IEnumerable<(string name, int count)> list)
+        {
+            return EncodeStacks(list.Select(s => $"{s.count} {s.name.Replace("!", "!:").Replace(",", ",:")}"));
+        }
+
+        public static string EncodeStacks(IEnumerable<string> list)
+        {
+            return string.Join(", ", list);
+        }
+
+        public static List<(string name,int count)> DecodeToStacks(string s)
+        {
+            List<(string,int)> list = new List<(string, int)>();
+            string[] messages = s.Split(new string[] { ", " }, StringSplitOptions.RemoveEmptyEntries);
+            foreach (string message in messages)
+            {
+                int splitIndex = message.IndexOf(' ');
+                int count = int.Parse(message.Substring(0, splitIndex));
+                string name = message.Substring(splitIndex + 1).Replace(",:", ","); ;
+                list.Add((name, count));
+            }
+            return list;
         }
 
         public static List<EffectStack> DecodeToEffectStacks(string s)

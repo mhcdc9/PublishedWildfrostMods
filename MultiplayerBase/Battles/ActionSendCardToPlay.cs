@@ -26,7 +26,8 @@ namespace MultiplayerBase.Battles
         {
             None,
             Entity,
-            Container
+            Container,
+            Slot //Needs work
         }
 
 
@@ -86,13 +87,13 @@ namespace MultiplayerBase.Battles
             switch (type)
             {
                 case TargetType.None:
-                    s = HandlerSystem.ConcatMessage(false, "PLAY", "NON ", id.ToString(), s);
+                    s = HandlerSystem.ConcatMessage(false, "PLAY", "NON ", entity.data.id.ToString(), s);
                     break;
                 case TargetType.Entity:
-                    s = HandlerSystem.ConcatMessage(false, "PLAY", $"ENT {id}", id.ToString(), s);
+                    s = HandlerSystem.ConcatMessage(false, "PLAY", $"ENT {id}", entity.data.id.ToString(), s);
                     break;
                 case TargetType.Container:
-                    s = HandlerSystem.ConcatMessage(false, "PLAY", $"ROW {id}", id.ToString(), s);
+                    s = HandlerSystem.ConcatMessage(false, "PLAY", $"ROW {id}", entity.data.id.ToString(), s);
                     break;
             }
 

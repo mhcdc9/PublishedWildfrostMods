@@ -20,6 +20,7 @@ using WildfrostHopeMod.VFX;
 using UnityEngine.UI;
 using WildfrostHopeMod;
 using MultiplayerBase.Battles;
+using MultiplayerBase;
 
 namespace Sync
 {
@@ -45,22 +46,22 @@ namespace Sync
         public string harderSync = "No";
 
         [ConfigManagerTitle("Item Sync Frequency")]
-        [ConfigManagerDesc("Determines the %-chance that an item has a sync effect")]
+        [ConfigManagerDesc("Sync effects provide a bonus if another player has played a sync card recently")]
         [ConfigItem(0.33f, "", "SyncItems")]
         public float itemSyncChance = 0.33f;
 
         [ConfigManagerTitle("Item Mystic Frequency")]
-        [ConfigManagerDesc("Determines the %-chance that an item has mystic")]
+        [ConfigManagerDesc("Mystic allows items to be played on the board of another player")]
         [ConfigItem(0.2f, "", "MystItems")]
         public float itemMystChance = 0.2f;
 
-        [ConfigManagerTitle("Item Promo Frquency")]
-        [ConfigManagerDesc("Determines the %-chance that an item has promo")]
+        [ConfigManagerTitle("Item Promo Frequency")]
+        [ConfigManagerDesc("Promo gives copies of the selected card to other players")]
         [ConfigItem(0.1f, "", "PromoItems")]
         public float itemPromoChance = 0.1f;
 
-        [ConfigManagerTitle("Gaiden Frquency")]
-        [ConfigManagerDesc("Determines the %-chance that a companion has gaiden")]
+        [ConfigManagerTitle("Gaiden Frequency")]
+        [ConfigManagerDesc("Gaiden allows companions in the reserve to join other player's battles")]
         [ConfigItem(0.05f, "", "GaidenComp")]
         public float compGaidenChance = 0.05f;
 
@@ -166,7 +167,6 @@ namespace Sync
                 .Create<StatusEffectPromo>("Send Copies Elsewhere")
                 .WithCanBeBoosted(false)
                 .WithType("")
-                .WithConstraints(Extensions.IsItem())
                 );
 
             assets.Add(this.CreateTrait("Promo", "promo", false, "Send Copies Elsewhere"));
@@ -382,7 +382,10 @@ namespace Sync
                     {
                         References.PlayerData.inventory.deck.Add(data);
                     }
-                    HandlerBattle.instance.Queue(new ActionGainCardToHand(messages.Skip(1).ToArray()));
+                    if (!HandlerBattle.instance.Queue(new ActionGainCardToHand(messages.Skip(1).ToArray())))
+                    {
+                        MultTextManager.AddEntry($"Received a card from {friend.Name}", 0.55f, new Color(1f,0.75f,0.38f), 1f);
+                    }
                     break;
                 case "SYNC":
                     int combo = int.Parse(messages[1]);

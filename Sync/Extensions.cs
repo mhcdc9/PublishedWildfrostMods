@@ -48,7 +48,7 @@ namespace Sync
                 (data) =>
                 {
                     T syncData = data as T;
-                    syncData.effectToApply = AddressableLoader.Get<StatusEffectData>("StatusEffectData", effectToApply);
+                    syncData.effectToApply = SyncMain.Instance.Get<StatusEffectData>(effectToApply);
                     syncData.applyToFlags = StatusEffectApplyX.ApplyToFlags.Self;
                     syncData.ongoing = ongoing;
                     syncData.keyword = "";

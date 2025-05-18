@@ -564,6 +564,8 @@ namespace MultiplayerBase.Handlers
             return strings;
         }
 
+        public int updateTasks = 0;
+
         public void HandleMessage(Friend friend, string message)
         {
             string[] messages = HandlerSystem.DecodeMessages(message);
@@ -584,8 +586,11 @@ namespace MultiplayerBase.Handlers
 
             if (!Blocking || friend.Id != HandlerBattle.friend?.Id) { return; }
 
+            updateTasks++;
+
             switch (messages[0])//0 -> Action
             {
+                
                 //   "ASK"
                 //  See Above.
                 case "ENEMY":
@@ -598,11 +603,15 @@ namespace MultiplayerBase.Handlers
                     StartCoroutine(UpdateBoard(friend, messages));
                     break;
                 case "MARK":
-                    StartCoroutine(MarkCard(friend, messages));
+                    StartCoroutine(MarkCard(friend, messages)); //Not really an IEnumerator
                     break;
                 case "UPDATE":
                     StartCoroutine(UpdateCard(friend, messages));
                     break;
+                default:
+                    updateTasks--;
+                    break;
+
             }
         }
 
@@ -716,6 +725,7 @@ namespace MultiplayerBase.Handlers
             return dictionary;
         }
 
+        //PLAY! TargetMode Target! id! {Entity}
         public void PlayCard(Friend friend, string[] messages)
         {
             string[] targets = messages[1].Split(' ');
@@ -743,6 +753,19 @@ namespace MultiplayerBase.Handlers
                     if (container != null)
                     {
                         action = new ActionPlayOtherCard(messages.Skip(3).ToArray(), friend, null, container);
+                    }
+                    break;
+                case "SLT":
+                    id = ulong.Parse(targets[1]);
+                    if (FindContainerID(id) is CardSlotLane lane)
+                    {
+                        int position = int.Parse(targets[2]);
+                        if (position >= 0 && position < lane.slots.Count)
+                        {
+                            container = lane.slots[position];
+                            action = new ActionPlayOtherCard(messages.Skip(3).ToArray(), friend, null, container);
+                        }
+                             
                     }
                     break;
             }
@@ -867,14 +890,15 @@ namespace MultiplayerBase.Handlers
         }
 
         
-        public void Queue(PlayAction p)
+        public bool Queue(PlayAction p)
         {
             if (Battle.instance == null)
             {
-                return;
+                return false;
             }
 
             ActionQueue.Add(p);
+            return true;
             
         }
         

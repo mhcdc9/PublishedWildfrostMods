@@ -40,6 +40,7 @@ namespace MultiplayerBase.Matchmaking
 
         internal Button[] lobbyButtons = new Button[0];
 
+        internal TweenUI exitTween;
         public void CreateObjects()
         {
             instance = this;
@@ -77,23 +78,28 @@ namespace MultiplayerBase.Matchmaking
             tween.hasFrom = true;
             tween.from = new Vector3(0, -8f, 0);
 
+            exitTween = buttonGroup.AddComponent<TweenUI>();
+            exitTween.target = buttonGroup;
+            exitTween.property = TweenUI.Property.Move;
+            exitTween.ease = LeanTweenType.easeOutQuart;
+            exitTween.duration = 0.5f;
+            exitTween.to = new Vector3(0, -8f, 0);
+
             createLobbyButton = HelperUI.BetterButtonTemplate(buttonGroup.transform,new Vector2(2,0.8f), new Vector3(-1.5f, 1, 0), "Create", Color.white);
             createLobbyButton.EditButtonAnimator(Color.white, Color.black, Color.white, Color.black);
             findLobbyButton = HelperUI.BetterButtonTemplate(buttonGroup.transform, new Vector2(2, 0.8f), new Vector3(-1.5f, 0, 0), "Refresh", Color.white);
             findLobbyButton.EditButtonAnimator(Color.white, Color.black, Color.white, Color.black);
             joinLobbyButton = HelperUI.BetterButtonTemplate(buttonGroup.transform, new Vector2(2, 0.8f), new Vector3(1.5f, 0, 0), "Join", Color.white);
             joinLobbyButton.EditButtonAnimator(Color.white, Color.black, Color.white, Color.black);
-            joinLobbyButton.interactable = false;
             leaveLobbyButton = HelperUI.BetterButtonTemplate(buttonGroup.transform, new Vector2(2, 0.8f), new Vector3(1.5f, 1, 0), "Leave", Color.white);
             leaveLobbyButton.EditButtonAnimator(Color.white, Color.black, Color.white, Color.black);
-            leaveLobbyButton.interactable = false;
             finalizeButton = HelperUI.BetterButtonTemplate(buttonGroup.transform, new Vector2(3, 0.8f), new Vector3(0f, -1, 0), "Finalize", Color.white);
             finalizeButton.EditButtonAnimator(Color.white, Color.black, Color.white, Color.black);
-            //finalizeButton.interactable = false; //!!!
             unfinalizeButton = HelperUI.BetterButtonTemplate(buttonGroup.transform, new Vector2(3, 0.8f), new Vector3(0f, -1, 0), "Disband", new Color(1f,0.33f,0.33f));
             unfinalizeButton.EditButtonAnimator(Color.white, Color.red, new Color(1f, 0.33f, 0.33f), Color.black);
             unfinalizeButton.gameObject.SetActive(false);
-            
+
+            ButtonToggle(true, true, false, false, true); //!!!
 
             createLobbyButton.onClick.AddListener(CreateLobby);
             findLobbyButton.onClick.AddListener(FindLobby);
@@ -110,10 +116,7 @@ namespace MultiplayerBase.Matchmaking
         public void DisbandMenu()
         {
             lobbyView.gameObject.SetActive(false);
-            createLobbyButton.interactable = false;
-            findLobbyButton.interactable = false;
-            joinLobbyButton.interactable = false;
-            leaveLobbyButton.interactable = false;
+            ButtonToggle(false, false, false, false, false);
             finalizeButton.gameObject.SetActive(false);
             unfinalizeButton.gameObject.SetActive(true);
         }
@@ -143,13 +146,9 @@ namespace MultiplayerBase.Matchmaking
             Dashboard.instance.enabled = false;
             Debug.Log("[Multiplayer] Successfully disbanded!");
             MultiplayerMain.isHost = true;
-            createLobbyButton.interactable = true;
-            findLobbyButton.interactable = true;
-            joinLobbyButton.interactable = false;
-            leaveLobbyButton.interactable = false;
             finalizeButton.gameObject.SetActive(true);
-            finalizeButton.interactable = true; //!!!
             unfinalizeButton.gameObject.SetActive(false);
+            ButtonToggle(true, true, false, false, true); //!!!
             RemoveSidePanels();
             FindLobby();
         }
@@ -161,9 +160,7 @@ namespace MultiplayerBase.Matchmaking
             if (lobby is Lobby lob)
             {
                 lob.Leave();
-                createLobbyButton.interactable = true;
-                leaveLobbyButton.interactable = false;
-                finalizeButton.interactable = false;
+                ButtonToggle(false, false, false, false, false);
                 lobby = null;
             }
         }
@@ -186,10 +183,7 @@ namespace MultiplayerBase.Matchmaking
                 memberView.OpenMemberView(lob, true, true);
                 lobbyView.ExitLobbyView();
                 MultiplayerMain.instance.HookToChatRoom();
-                createLobbyButton.interactable = false;
-                leaveLobbyButton.interactable = true;
-                finalizeButton.interactable = true;
-                findLobbyButton.interactable = false;
+                ButtonToggle(false, false, false, true, true);
                 Debug.Log("[Multiplayer] You have created a lobby.");
             }
         }
@@ -229,9 +223,7 @@ namespace MultiplayerBase.Matchmaking
                 MultiplayerMain.instance.HookToChatRoom();
                 modView.OpenModView((Lobby)lobby, false);
                 memberView.OpenMemberView((Lobby)lobby, true, false);
-                createLobbyButton.interactable = false;
-                leaveLobbyButton.interactable = true;
-                findLobbyButton.interactable = false;
+                ButtonToggle(false, false, false, true, false);
                 //lobbyView.SelectLobby(-1);
                 lobbyView.ExitLobbyView();
             }
@@ -250,10 +242,7 @@ namespace MultiplayerBase.Matchmaking
                 lob.Leave();
                 MultiplayerMain.isHost = true;
                 MultiplayerMain.instance.UnhookToChatRoom();
-                createLobbyButton.interactable = true;
-                leaveLobbyButton.interactable = false;
-                finalizeButton.interactable = false;
-                findLobbyButton.interactable = true;
+                ButtonToggle(true, true, false, false, false);
                 RemoveSidePanels();
                 FindLobby();
                 lobby = null;
@@ -289,6 +278,27 @@ namespace MultiplayerBase.Matchmaking
                 (lob).SetData("mods", ModView.ActiveModListAsString());
             }
             UpdateModView();
+        }
+
+        public void ButtonToggle(bool create, bool find, bool join, bool leave, bool finalize)
+        {
+            if (create) { ButtonOn(createLobbyButton); } else { ButtonOff(createLobbyButton); }
+            if (find) { ButtonOn(findLobbyButton); } else { ButtonOff(findLobbyButton); }
+            if (join) { ButtonOn(joinLobbyButton); } else { ButtonOff(joinLobbyButton); }
+            if (leave) { ButtonOn(leaveLobbyButton); } else { ButtonOff(leaveLobbyButton); }
+            if (finalize) { ButtonOn(finalizeButton); } else { ButtonOff(finalizeButton); }
+        }
+
+        public void ButtonOn(Button button)
+        {
+            button.interactable = true;
+            button.transform.parent.GetComponent<ButtonAnimator>().UnHighlight();
+        }
+
+        public void ButtonOff(Button button)
+        {
+            button.interactable = false;
+            button.transform.parent.GetComponent<ButtonAnimator>().Disable();
         }
     }
 }

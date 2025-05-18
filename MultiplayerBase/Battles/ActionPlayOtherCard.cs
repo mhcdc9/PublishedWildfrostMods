@@ -38,6 +38,7 @@ namespace MultiplayerBase.Battles
 
         public override IEnumerator RunSequence()
         {
+            displayedEntity.enabled = true;
             PlayAction action;
             if (entity == null && container == null)
             {
