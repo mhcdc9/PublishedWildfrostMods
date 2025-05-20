@@ -27,6 +27,9 @@ namespace MultiplayerBase.StatusEffects
         public ToWhom toWhom = ToWhom.Self;
         public string[] parts = new string[0];
         public bool includeSelf = false;
+        public string feedback = null;
+
+        public ScriptableAmount amount;
 
         public override IEnumerator Process()
         {
@@ -40,7 +43,7 @@ namespace MultiplayerBase.StatusEffects
 
         public virtual string Convert(string original)
         {
-            return string.Format(original, count, CardEncoder.Encode(target), target.data.id.ToString());
+            return string.Format(original, count, CardEncoder.Encode(target), target.data.id.ToString(), amount?.Get(target) ?? 0);
         }
 
         public virtual IEnumerator SendMessage(string fullMessage)
@@ -48,17 +51,17 @@ namespace MultiplayerBase.StatusEffects
             Debug.Log($"[Multiplayer]: {fullMessage}");
             switch(toWhom)
             {
-                case ToWhom.Self: HandlerSystem.SendMessage(handler, HandlerSystem.self, fullMessage);
+                case ToWhom.Self: HandlerSystem.SendMessage(handler, HandlerSystem.self, fullMessage, feedback);
                     break;
-                case ToWhom.All: HandlerSystem.SendMessageToAll(handler, fullMessage, includeSelf);
+                case ToWhom.All: HandlerSystem.SendMessageToAll(handler, fullMessage, includeSelf, feedback);
                     break;
-                case ToWhom.Random: HandlerSystem.SendMessageToRandom(handler, fullMessage, includeSelf);
+                case ToWhom.Random: HandlerSystem.SendMessageToRandom(handler, fullMessage, includeSelf, feedback);
                     break;
                 case ToWhom.Select: 
                     yield return Dashboard.SelectFriend(includeSelf);
                     if (Dashboard.selectedFriend is Friend f)
                     {
-                        HandlerSystem.SendMessage(handler, f, fullMessage);
+                        HandlerSystem.SendMessage(handler, f, fullMessage, feedback);
                     }
                     break;
                 default: Debug.Log("[Multiplayer] Message not send (did you forget to set ToWhom?)");

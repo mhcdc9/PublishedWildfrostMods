@@ -137,7 +137,7 @@ namespace MultiplayerBase.Handlers
                     s = HandlerSystem.ConcatMessage(true, "DISP2", $"{id}", $"{flag}", "UPGR", reward.popUpName);
                 }
                 flag = "F";
-                HandlerSystem.SendMessage("EVE", friend, s);
+                HandlerSystem.SendMessage("EVE", friend, s, "Sending...");
             }
         }
 

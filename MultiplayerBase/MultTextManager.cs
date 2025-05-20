@@ -1,4 +1,8 @@
-﻿using System;
+﻿using MultiplayerBase.Handlers;
+using MultiplayerBase.UI;
+using Steamworks;
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -72,6 +76,34 @@ namespace MultiplayerBase
             instance.text.color = color;
             instance.enabled = true;
             instance.text.CrossFadeAlpha(1, 0.1f, true);
+        }
+
+        public static void VisFeedback(Friend friend, string s = "Sending...")
+        {
+            if (!HandlerSystem.enabled || !Dashboard.friendIcons[friend].gameObject.activeSelf) { return; }
+            GameObject obj = new GameObject("Feedback string");
+            obj.transform.SetParent(instance.transform, false);
+            obj.transform.position = Dashboard.friendIcons[friend].transform.position + new Vector3(2.02f + 0.5f * Dashboard.instance.iconSize, 0, 0);
+            TextMeshProUGUI textElement = obj.AddComponent<TextMeshProUGUI>();
+            textElement.fontSize = 0.5f * Dashboard.instance.iconSize;
+            textElement.verticalAlignment = VerticalAlignmentOptions.Middle;
+            textElement.horizontalAlignment = HorizontalAlignmentOptions.Left;
+            textElement.text = s;
+            textElement.outlineColor = Color.black;
+            textElement.outlineWidth = 0.1f;
+            obj.GetComponent<RectTransform>().sizeDelta = new Vector2(3f, Dashboard.instance.iconSize);
+            textElement.StartCoroutine(instance.FeedbackRoutine(textElement));
+        }
+
+        public IEnumerator FeedbackRoutine(TextMeshProUGUI text)
+        {
+            text.CrossFadeAlpha(0, 0.01f, true);
+            yield return null;
+            text.CrossFadeAlpha(1, 0.5f, false);
+            yield return Sequences.Wait(0.5f);
+            text.CrossFadeAlpha(0, 0.5f, false);
+            yield return Sequences.Wait(0.5f);
+            text.gameObject.Destroy();
         }
     }
 }

@@ -39,6 +39,8 @@ namespace MultiplayerBase.Handlers
 
         public static Character playerDummy;
         public static Character enemyDummy;
+
+        #region INIT
         public static void Enable()
         {
             if (enabled) return;
@@ -114,15 +116,35 @@ namespace MultiplayerBase.Handlers
             }
         }
 
-        public static void SendMessage(string handler, Friend to, string message)
+        private static void SessionRequest(SteamId id)
+        {
+            foreach (Friend friend in HandlerSystem.friends)
+            {
+                if (friend.Id == id)
+                {
+                    if (SteamNetworking.AcceptP2PSessionWithUser(id))
+                    {
+                        Debug.Log("[Multiplayer] Accepted Session");
+                    }
+                }
+            }
+        }
+        #endregion INIT
+
+        #region MESSAGES
+        public static void SendMessage(string handler, Friend to, string message, string feedback = null)
         {
             if (!enabled) return;
 
             string s = $"{handler}|{self.Id.Value}|{message}";
             SteamNetworking.SendP2PPacket(to.Id, Encoding.UTF8.GetBytes(s));
+            if (feedback != null)
+            {
+                MultTextManager.VisFeedback(to, feedback);
+            }
         }
 
-        public static void SendMessageToAll(string handler, string message, bool includeSelf = true)
+        public static void SendMessageToAll(string handler, string message, bool includeSelf = true, string feedback = null)
         {
             if (!enabled) return;
 
@@ -132,13 +154,17 @@ namespace MultiplayerBase.Handlers
                 if ((friend.Id.Value != self.Id.Value) || includeSelf)
                 {
                     SteamNetworking.SendP2PPacket(friend.Id, Encoding.UTF8.GetBytes(s));
+                    if (feedback != null)
+                    {
+                        MultTextManager.VisFeedback(friend, feedback);
+                    }
                 }
             }
         }
 
-        public static void SendMessageToAllOthers(string handler, string message)
+        public static void SendMessageToAllOthers(string handler, string message, string feedback = null)
         {
-            SendMessageToAll(handler, message, false);
+            SendMessageToAll(handler, message, false, feedback);
             /*
             if (!enabled) return;
 
@@ -153,14 +179,14 @@ namespace MultiplayerBase.Handlers
             */
         }
 
-        public static void SendMessageToRandom(string handler, string message, bool includeSelf = true)
+        public static void SendMessageToRandom(string handler, string message, bool includeSelf = true, string feedback = null)
         {
             if (!enabled) return;
 
             Friend[] choices = friends.Where(f => (includeSelf || f.Id == self.Id)).ToArray();
             if (choices.Length == 0) return;
 
-            SendMessage(handler, choices.RandomItem(), message);
+            SendMessage(handler, choices.RandomItem(), message, feedback);
         }
 
         public static string ConcatMessage(bool performReplacement, params string[] messages)
@@ -229,7 +255,9 @@ namespace MultiplayerBase.Handlers
             }
             return false;
         }
+        #endregion MESSAGES
 
+        #region MISC
         public static Friend? FindFriend(string id)
         {
             foreach(Friend friend in friends)
@@ -297,19 +325,6 @@ namespace MultiplayerBase.Handlers
             }
         }
 
-        private static void SessionRequest(SteamId id)
-        {
-            foreach (Friend friend in HandlerSystem.friends)
-            {
-                if (friend.Id == id)
-                {
-                    if (SteamNetworking.AcceptP2PSessionWithUser(id))
-                    {
-                        Debug.Log("[Multiplayer] Accepted Session");
-                    }
-                }
-            }
-        }
         private static void SceneChanged(Scene scene)
         {
             MultiplayerMain.textElement.text = "";
@@ -340,5 +355,6 @@ namespace MultiplayerBase.Handlers
             SendMessageToAllOthers("MSC", HandlerSystem.ConcatMessage(true, "SCENE", sceneName, s2));
             FriendSceneChanged(self, sceneName, s2);
         }
+        #endregion MISC
     }
 }

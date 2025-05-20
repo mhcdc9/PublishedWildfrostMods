@@ -186,6 +186,7 @@ namespace MultiplayerBase.UI
         public void FriendIconPressed()
         {
             SfxSystem.OneShot("event:/sfx/ui/menu_click");
+            if (Dashboard.waitingForSelection) { Dashboard.selectedFriend = friend; return; }
             if (preventClicking > 0) { return; }
 
             if (HandlerMap.instance.Blocking && (friend.Id != HandlerMap.friend?.Id || HandlerSystem.friendStates[(Friend)HandlerMap.friend] != PlayerState.Map) )
@@ -219,6 +220,7 @@ namespace MultiplayerBase.UI
                         if (friend.Id != HandlerSystem.self.Id)
                         {
                             HandlerEvent.instance.SendData(friend);
+                            MultTextManager.VisFeedback(friend);
                         }
                     }
                 }

@@ -198,7 +198,7 @@ namespace MultiplayerBase.Handlers
             string s = HandlerSystem.ConcatMessage(false,"DISP",$"{friend.Id.Value}");
             //s += EncodeEntity(entity, id);
             s += "! " + id + "! " + CardEncoder.Encode(entity);
-            HandlerSystem.SendMessageToAll("INS", s);    
+            HandlerSystem.SendMessageToAll("INS", s, true, "Sending...");    
         }
 
         /*

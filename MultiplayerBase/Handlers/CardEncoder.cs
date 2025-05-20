@@ -49,7 +49,7 @@ namespace MultiplayerBase.Handlers
             foreach (StatusEffectData effect in entity.statusEffects) //3. startWithEffects
             {
                 trueCount = effect.count;
-                foreach(TraitStack tstack in cardData.traits)
+                foreach(Entity.TraitStacks tstack in entity.traits)
                 {
                     if (tstack.data.effects.Select(e => e.name).Contains(effect.name))
                     {
@@ -61,7 +61,7 @@ namespace MultiplayerBase.Handlers
             s += "! ";
             foreach (Entity.TraitStacks stack in entity.traits) //4. traits
             {
-                s += $"{stack.count} {stack.data.name.Replace("!", "!:").Replace(",", ",:")}, ";
+                s += $"{stack.count - stack.tempCount} {stack.data.name.Replace("!", "!:").Replace(",", ",:")}, ";
             }
             s += "! ";
             foreach (EffectStack stack in cardData.injuries) //5. injuries

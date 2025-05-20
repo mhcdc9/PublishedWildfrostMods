@@ -90,14 +90,14 @@ namespace MultiplayerBase.ConsoleCommands
 
                 if (length <= 1)
                 {
-                    IEnumerable<string> friends = HandlerSystem.friends.Select(x => x.Name);
+                    IEnumerable<string> friends = HandlerSystem.friends.Select(x => x.Name).Where(s => args[length-1] == "" || s.ToLower().Contains(args[length-1].ToLower()));
                     predictedArgs = friends.ToArray();
                     yield break;
                 }
 
                 else if (length == 2)
                 {
-                    IEnumerable<string> keys = HandlerSystem.HandlerRoutines.Keys;
+                    IEnumerable<string> keys = HandlerSystem.HandlerRoutines.Keys.Where(s => args[length-1] == "" || s.ToLower().Contains(args[1].ToLower()));
                     predictedArgs = keys.Select(s => $"{args[0]} {s}").ToArray();
                     yield break;
                 }

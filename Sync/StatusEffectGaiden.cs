@@ -44,7 +44,7 @@ namespace Sync
         {
             if (Battle.instance != null && target.IsAliveAndExists() && target.data.customData != null && target.data.customData.ContainsKey("ActualId") && (string)target.data.customData["ActualId"] == nameId)
             {
-                if (Battle.instance.cards.Contains(target) || target.containers.Contains(References.Player.reserveContainer))
+                if (!Battle.instance.cards.Contains(target) || target.containers.Contains(References.Player.reserveContainer))
                 {
                     return;
                 }
