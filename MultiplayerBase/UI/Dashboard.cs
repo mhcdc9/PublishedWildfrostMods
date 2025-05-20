@@ -43,6 +43,9 @@ namespace MultiplayerBase.UI
             gameObject.AddComponent<RectTransform>();
             background.SetActive(false);
             gameObject.AddComponent<WorldSpaceCanvasSafeArea>().parent = transform.parent.GetComponent<RectTransform>();
+            Fader fader = gameObject.AddComponent<Fader>();
+            fader.onEnable = true;
+            fader.dur = 0.4f;
 
             //float totalSize = HandlerSystem.friends.Length*(1.2f) - 0.2f;
             friendIconGroup = HelperUI.VerticalGroup("Friend Icons", transform, new Vector2(0f, 0f), 0.2f*iconSize);
@@ -146,6 +149,33 @@ namespace MultiplayerBase.UI
             }
             friendsHidden = !friendIcons[HandlerSystem.self].gameObject.activeSelf;
             visibleButton.GetComponent<UnityEngine.UI.Image>().color = friendsHidden ? new Color(0.5f, 0.5f, 0.5f, 0.5f) : Color.white;
+        }
+
+        public static Friend? selectedFriend;
+
+        public static IEnumerator SelectFriend(bool includeSelf = false)
+        {
+            if (!HandlerSystem.enabled || (!includeSelf && HandlerSystem.friends.Length <= 1))
+            {
+                yield break;
+            }
+            selectedFriend = null;
+            instance.background.gameObject.SetActive(true);
+            GameObject obj = new GameObject("ID Tooltip");
+            obj.transform.SetParent(instance.background.transform, false);
+            TextMeshProUGUI textElement = obj.AddComponent<TextMeshProUGUI>();
+            textElement.fontSize = 0.7f;
+            textElement.horizontalAlignment = HorizontalAlignmentOptions.Center;
+            textElement.text = "Select a player";
+            textElement.outlineColor = Color.black;
+            textElement.outlineWidth = 0.2f;
+            obj.GetComponent<RectTransform>().sizeDelta = new Vector2(8f, 2f);
+            yield return new WaitUntil(() => selectedFriend is Friend f);
+            instance.background.GetComponent<Fader>().Out(0.2f);
+            yield return Sequences.Wait(0.2f);
+            instance.background.gameObject.SetActive(false);
+            obj.Destroy();
+
         }
     }
 }

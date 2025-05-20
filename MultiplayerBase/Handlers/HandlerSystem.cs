@@ -122,19 +122,24 @@ namespace MultiplayerBase.Handlers
             SteamNetworking.SendP2PPacket(to.Id, Encoding.UTF8.GetBytes(s));
         }
 
-        public static void SendMessageToAll(string handler, string message)
+        public static void SendMessageToAll(string handler, string message, bool includeSelf = true)
         {
             if (!enabled) return;
 
             string s = $"{handler}|{self.Id.Value}|{message}";
             foreach (Friend friend in friends)
             {
-                SteamNetworking.SendP2PPacket(friend.Id, Encoding.UTF8.GetBytes(s));
+                if ((friend.Id.Value != self.Id.Value) || includeSelf)
+                {
+                    SteamNetworking.SendP2PPacket(friend.Id, Encoding.UTF8.GetBytes(s));
+                }
             }
         }
 
         public static void SendMessageToAllOthers(string handler, string message)
         {
+            SendMessageToAll(handler, message, false);
+            /*
             if (!enabled) return;
 
             string s = $"{handler}|{self.Id.Value}|{message}";
@@ -145,9 +150,10 @@ namespace MultiplayerBase.Handlers
                     SteamNetworking.SendP2PPacket(friend.Id, Encoding.UTF8.GetBytes(s));
                 }
             }
+            */
         }
 
-        public static void SendMessageToRandom(string handler, string message, bool includeSelf)
+        public static void SendMessageToRandom(string handler, string message, bool includeSelf = true)
         {
             if (!enabled) return;
 

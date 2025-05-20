@@ -161,7 +161,6 @@ namespace MultiplayerBase
         }
 
         private bool hookedToChatRooms;
-
         internal void HookToChatRoom()
         {
             if (hookedToChatRooms) { return; }

@@ -481,6 +481,7 @@
     <Compile Include="MultEvents.cs" />
     <Compile Include="MultTextManager.cs" />
     <Compile Include="StatusEffects\IAlternatePlay.cs" />
+    <Compile Include="StatusEffects\StatusEffectInstantMessage.cs" />
     <Compile Include="UI\Dashboard.cs" />
     <Compile Include="Handlers\HandlerBattle.cs" />
     <Compile Include="Handlers\HandlerDeck.cs" />

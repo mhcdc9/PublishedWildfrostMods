@@ -54,11 +54,14 @@ namespace MultiplayerBase.Handlers
         Vector3 defaultPosition = new Vector3(0, 0, -8f);
         Vector3 viewerPosition = new Vector3(0, 0, 2);
 
-        static Button refreshButton;
-        static Button fetchButton;
+        //static Button refreshButton;
+        //static Button fetchButton;
 
         MarkerManager marks;
+        public int updateTasks = 0;
 
+
+        #region INIT
         protected void OnEnable()
         {
             Events.OnEntityMove += EntityMove;
@@ -86,10 +89,10 @@ namespace MultiplayerBase.Handlers
             
             instance = this;
 
-            refreshButton = Dashboard.buttons[1];
+            //refreshButton = Dashboard.buttons[1];
             //refreshButton.onClick.AddListener(QueueActions);
 
-            fetchButton = Dashboard.buttons[2];
+            //fetchButton = Dashboard.buttons[2];
             //fetchButton.onClick.AddListener(Fetch);
 
             marks = gameObject.AddComponent<MarkerManager>();
@@ -107,7 +110,69 @@ namespace MultiplayerBase.Handlers
             CreateBattleViewer();
             HandlerSystem.HandlerRoutines.Add("BAT", HandleMessage);
         }
+        #endregion INIT 
 
+        public void HandleMessage(Friend friend, string message)
+        {
+            string[] messages = HandlerSystem.DecodeMessages(message);
+            Debug.Log($"[Multiplayer] {message}");
+
+            switch (messages[0])
+            {
+                case "ASK":
+                    SendData(friend, messages);
+                    return;
+                case "PLAY":
+                    PlayCard(friend, messages);
+                    break;
+                case "UNSUB":
+                    watchers.Remove(friend);
+                    break;
+            }
+
+            if (!Blocking || ignoreFurtherMessages || friend.Id != HandlerBattle.friend?.Id) { return; }
+
+            updateTasks++;
+
+            switch (messages[0])//0 -> Action
+            {
+
+                //   "ASK"
+                //  See Above.
+                case "ENEMY":
+                    fader.StartCoroutine(PlaceCard(friend, messages, enemyLanes));
+                    break;
+                case "PLAYER":
+                    fader.StartCoroutine(PlaceCard(friend, messages, playerLanes));
+                    break;
+                case "BOARD":
+                    fader.StartCoroutine(UpdateBoard(friend, messages));
+                    break;
+                case "MARK":
+                    fader.StartCoroutine(MarkCard(friend, messages)); //Not really an IEnumerator
+                    break;
+                case "UPDATE":
+                    fader.StartCoroutine(UpdateCard(friend, messages));
+                    break;
+                default:
+                    updateTasks--;
+                    break;
+
+            }
+        }
+
+        public bool Queue(PlayAction p)
+        {
+            if (Battle.instance == null && Battle.instance.phase != Battle.Phase.End)
+            {
+                return false;
+            }
+
+            ActionQueue.Add(p);
+            return true;
+        }
+
+        #region REALTIME UPDATES
         private void PreTurn(int _)
         {
             SendCardUpdates();
@@ -249,7 +314,9 @@ namespace MultiplayerBase.Handlers
                 HandlerSystem.SendMessage("BAT", friend, s);
             }
         }
+        #endregion REALTIME UPDATES
 
+        #region BATTLEVIEWER OBJECTS
         private void CreateBattleViewer()
         {
             background = HelperUI.Background(transform, new Color(1f, 1f, 1f, 0.75f));
@@ -403,8 +470,6 @@ namespace MultiplayerBase.Handlers
             fader.StartCoroutine(FadeOut());
         }
 
-
-
         internal IEnumerator FadeOut()
         {
             marks.ClearMarkers("PLAYER");
@@ -491,6 +556,8 @@ namespace MultiplayerBase.Handlers
             }
             invisContainer.ClearAndDestroyAllImmediately();
         }
+
+        #endregion BATTLEVIEWER OBJECTS
 
         public void AskForData(Friend friend)
         {
@@ -591,57 +658,6 @@ namespace MultiplayerBase.Handlers
                 }
             }
             return strings;
-        }
-
-        public int updateTasks = 0;
-
-        public void HandleMessage(Friend friend, string message)
-        {
-            string[] messages = HandlerSystem.DecodeMessages(message);
-            Debug.Log($"[Multiplayer] {message}");
-
-            switch(messages[0])
-            {
-                case "ASK":
-                    SendData(friend, messages); 
-                    return;
-                case "PLAY":
-                    PlayCard(friend, messages);
-                    break;
-                case "UNSUB":
-                    watchers.Remove(friend);
-                    break;
-            }
-
-            if (!Blocking || ignoreFurtherMessages || friend.Id != HandlerBattle.friend?.Id) { return; }
-
-            updateTasks++;
-
-            switch (messages[0])//0 -> Action
-            {
-                
-                //   "ASK"
-                //  See Above.
-                case "ENEMY":
-                    fader.StartCoroutine(PlaceCard(friend, messages, enemyLanes));
-                    break;
-                case "PLAYER":
-                    fader.StartCoroutine(PlaceCard(friend, messages, playerLanes));
-                    break;
-                case "BOARD":
-                    fader.StartCoroutine(UpdateBoard(friend, messages));
-                    break;
-                case "MARK":
-                    fader.StartCoroutine(MarkCard(friend, messages)); //Not really an IEnumerator
-                    break;
-                case "UPDATE":
-                    fader.StartCoroutine(UpdateCard(friend, messages));
-                    break;
-                default:
-                    updateTasks--;
-                    break;
-
-            }
         }
 
         //MARK! PLAYER/ENEMY! ID! TYPE
@@ -930,19 +946,6 @@ namespace MultiplayerBase.Handlers
                 */
             }
         }
-
-        
-        public bool Queue(PlayAction p)
-        {
-            if (Battle.instance == null && Battle.instance.phase != Battle.Phase.End)
-            {
-                return false;
-            }
-
-            ActionQueue.Add(p);
-            return true;
-            
-        }
         
 
         public static Vector3 FindPositionForBosses(OtherCardViewer viewer, Entity entity)
@@ -966,6 +969,7 @@ namespace MultiplayerBase.Handlers
             return Vector3.zero;
         }
 
+        /*
         public static bool TryAction(PlayAction action)
         {
             if (Battle.instance == null)
@@ -983,6 +987,7 @@ namespace MultiplayerBase.Handlers
             }
             return true;
         }
+        */
 
         public static List<CardContainer> GetContainers()
         {
