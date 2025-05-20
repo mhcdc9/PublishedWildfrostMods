@@ -26,7 +26,7 @@ namespace MultiplayerBase.UI
         protected static  KeywordData keyword;
         protected bool popped = false;
 
-        protected static bool preventClicking = false;
+        protected static int preventClicking = 0;
 
         public string nickname = "(Unknown)";
 
@@ -186,7 +186,7 @@ namespace MultiplayerBase.UI
         public void FriendIconPressed()
         {
             SfxSystem.OneShot("event:/sfx/ui/menu_click");
-            if (preventClicking) { return; }
+            if (preventClicking > 0) { return; }
 
             if (HandlerMap.instance.Blocking && (friend.Id != HandlerMap.friend?.Id || HandlerSystem.friendStates[(Friend)HandlerMap.friend] != PlayerState.Map) )
             {
@@ -242,9 +242,9 @@ namespace MultiplayerBase.UI
 
         public static IEnumerator Cooldown(float seconds)
         {
-            preventClicking = true;
+            preventClicking++;
             yield return new WaitForSeconds(seconds);
-            preventClicking = false;
+            preventClicking--;
         }
 
         public static Sprite GetAvatarSprite(SSprite steamSprite)

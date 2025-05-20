@@ -45,18 +45,16 @@ namespace MultiplayerBase.Battles
                 }
                 if (type == TargetType.Slot)
                 {
+                    this.id = HandlerBattle.instance.ConvertToID(e.containers[0]);
                     this.slotId = e.containers[0].IndexOf(e);
                 }
             }
             if (context is CardContainer c)
             {
-                if (type == TargetType.Container)
-                {
-                    this.id = HandlerBattle.instance.ConvertToID(c);
-                }
+                this.id = HandlerBattle.instance.ConvertToID(c);
                 if (type == TargetType.Slot)
                 {
-                    this.id = (ulong)c.IndexOf(null);
+                    this.slotId = c.Count;
                 }
                 
             }

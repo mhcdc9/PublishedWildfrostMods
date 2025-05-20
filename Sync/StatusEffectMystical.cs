@@ -59,7 +59,7 @@ namespace Sync
         public IEnumerator GainZoomlinRoutine()
         {
             yield return Run(GetTargets(), 1);
-            yield return Remove();
+            //yield return Remove();
         }
 
         public void Play(Friend friend, Entity entity)

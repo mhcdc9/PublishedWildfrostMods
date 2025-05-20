@@ -274,7 +274,7 @@ namespace MultiplayerBase.Handlers
             playerLanes = new OtherCardViewer[lanes];
             for (int i = 0; i < playerLanes.Length; i++)
             {
-                playerLanes[i] = HelperUI.OtherCardViewer($"Player Row {i + 1}", background.transform, cc);
+                playerLanes[i] = HelperUI.OtherCardViewer($"Other Player Row {i + 1}", background.transform, cc);
                 playerLanes[i].transform.localPosition = new Vector3(-0.47f, 0.26f - 0.43f * i, 0);
                 playerLanes[i].BattleCardViewer = true;
                 //0.47, -0.17
@@ -291,7 +291,7 @@ namespace MultiplayerBase.Handlers
             enemyLanes = new OtherCardViewer[lanes];
             for (int i = 0; i < enemyLanes.Length; i++)
             {
-                enemyLanes[i] = HelperUI.OtherCardViewer($"Enemy Row {i + 1}", background.transform, cc);
+                enemyLanes[i] = HelperUI.OtherCardViewer($"Other Enemy Row {i + 1}", background.transform, cc);
                 enemyLanes[i].transform.localPosition = new Vector3(0.47f, 0.26f - 0.43f * i, 0);
                 enemyLanes[i].BattleCardViewer = true;
                 enemyLanes[i].gap = new Vector3(1f, 0, 0);
@@ -356,12 +356,12 @@ namespace MultiplayerBase.Handlers
             {
                 background.transform.localPosition = defaultPosition;
                 LeanTween.moveLocal(background, viewerPosition, 0.75f).setEase(LeanTweenType.easeInOutQuart);
+            }
 
-                for(int i=0; i < 2; i++)
-                {
-                    LeanTween.moveLocalY(playerLanes[i].gameObject, 0.26f - 0.43f * i, 0.4f).setEaseOutQuart();
-                    LeanTween.moveLocalY(enemyLanes[i].gameObject, 0.26f - 0.43f * i, 0.4f).setEaseOutQuart();
-                }
+            for (int i = 0; i < 2; i++)
+            {
+                playerLanes[i].transform.localPosition = new Vector3(-0.47f, 0.26f - 0.43f * i, 0);
+                enemyLanes[i].transform.localPosition = new Vector3(0.47f, 0.26f - 0.43f * i, 0);
             }
 
             ActionQueue.Stack(new ActionBattleViewer());

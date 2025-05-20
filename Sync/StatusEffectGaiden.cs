@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using MultiplayerBase.Handlers;
+using MultiplayerBase.UI;
 using UnityEngine;
 using Net = MultiplayerBase.Handlers.HandlerSystem;
 
@@ -43,6 +44,10 @@ namespace Sync
         {
             if (Battle.instance != null && target.IsAliveAndExists() && target.data.customData != null && target.data.customData.ContainsKey("ActualId") && (string)target.data.customData["ActualId"] == nameId)
             {
+                if (Battle.instance.cards.Contains(target) || target.containers.Contains(References.Player.reserveContainer))
+                {
+                    return;
+                }
                 ActionQueue.Stack(new ActionSequence(Leave()));
             }
         }

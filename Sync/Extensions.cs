@@ -29,10 +29,21 @@ namespace Sync
         {
             return b.Create<StatusEffectTemporaryTrait>(name)
                 .WithType("")
-                .FreeModify<StatusEffectTemporaryTrait>(
+                .SubscribeToAfterAllBuildEvent<StatusEffectTemporaryTrait>(
                 (data) =>
                 {
                     data.trait = trait;
+                });
+        }
+
+        public static StatusEffectDataBuilder CreateTempTrait(this StatusEffectDataBuilder b, string name, string trait)
+        {
+            return b.Create<StatusEffectTemporaryTrait>(name)
+                .WithType("")
+                .SubscribeToAfterAllBuildEvent<StatusEffectTemporaryTrait>(
+                (data) =>
+                {
+                    data.trait = SyncMain.Instance.Get<TraitData>(trait);
                 });
         }
 
@@ -184,6 +195,14 @@ namespace Sync
         {
             TargetConstraintPlayType play =  ScriptableObject.CreateInstance<TargetConstraintPlayType>();
             play.targetPlayType = Card.PlayType.Play;
+            return play;
+        }
+
+        public static TargetConstraint NotGoop()
+        {
+            TargetConstraintPlayType play = ScriptableObject.CreateInstance<TargetConstraintPlayType>();
+            play.targetPlayType = Card.PlayType.None;
+            play.not = true;
             return play;
         }
 

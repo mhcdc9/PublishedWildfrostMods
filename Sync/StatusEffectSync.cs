@@ -33,9 +33,9 @@ namespace Sync
 
         public override bool RunCardPlayedEvent(Entity entity, Entity[] targets)
         {
-            if (entity == target && !target.silenced && !SyncMain.sentSyncMessage)
+            if (entity == target && !target.silenced && !SyncMain.sentSyncMessage && !Battle.IsOnBoard(target))
             {
-                Debug.Log($"[Sync]{target.data.title}");
+                Debug.Log($"[Sync] {target.data.title}");
                 SyncMain.SyncOthers();
             }
             return false;

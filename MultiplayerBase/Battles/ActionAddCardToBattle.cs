@@ -52,6 +52,7 @@ namespace MultiplayerBase.Battles
             else
             {
                 yield return Sequences.CardMove(displayedEntity, new CardContainer[] { container });
+                Battle.instance.cards.Add(displayedEntity);
                 if (location == Location.PlayerBoard || location == Location.EnemyBoard || location == Location.Hand)
                 {
                     ActionQueue.Stack(new ActionRunEnableEvent(displayedEntity));

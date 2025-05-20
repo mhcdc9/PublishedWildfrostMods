@@ -90,6 +90,8 @@ namespace MultiplayerBase.Battles
         }
     }
 
+#pragma warning disable IDE0051 // Remove unused private members
+
     [HarmonyPatch(typeof(Entity), "CanPlayOn", new Type[]
     {
         typeof(Entity),
@@ -107,7 +109,7 @@ namespace MultiplayerBase.Battles
             if (NavigationStateMultiplayerCard.warpCanPlayOnMethods && __instance.data.playOnSlot)
             {
                 //UnityEngine.Debug.Log("Slot??");
-                if (target.owner == __instance.owner)
+                if (target.owner == __instance.owner && Battle.IsOnBoard(target))
                 {
                     //UnityEngine.Debug.Log("Success?");
                     __result = __instance.data.canPlayOnFriendly;
@@ -210,6 +212,34 @@ namespace MultiplayerBase.Battles
                     SpriteRenderer obj = __instance.targets[i];
                     obj.sprite = (__instance.targetArrowSystem.target.CanPlayOn(container, ignoreRowCheck: true) ? __instance.canTarget : __instance.cannotTarget);
                 }
+            }
+        }
+    }
+
+    [HarmonyPatch(typeof(TargetingArrow), nameof(TargetingArrow.ContainerHover))]
+    internal static class PatchArrows3
+    {
+        static void Postfix(TargetingArrow __instance, CardContainer cardContainer, TargetingArrowSystem system)
+        {
+            if (NavigationStateMultiplayerCard.warpCanPlayOnMethods && system.target.data.playOnSlot
+                && system.target.CanPlayOn(cardContainer))
+            {
+                system.snapToContainer = cardContainer;
+                __instance.SetStyle("TargetRow");
+            }
+        }
+    }
+
+    [HarmonyPatch(typeof(TargetingArrowSystem), nameof(TargetingArrowSystem.EntityHover))]
+    internal static class PatchSlotArrows
+    {
+        static void Postfix(TargetingArrowSystem __instance, Entity entity)
+        {
+            if (NavigationStateMultiplayerCard.warpCanPlayOnMethods && __instance.active
+                && !__instance.target.targetMode.TargetRow && __instance.target.data.playOnSlot)
+            {
+                __instance.hover = entity;
+                __instance.currentArrow.EntityHover(entity);
             }
         }
     }

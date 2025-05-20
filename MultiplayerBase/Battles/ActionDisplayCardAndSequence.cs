@@ -70,7 +70,7 @@ namespace MultiplayerBase.Battles
         {
             if (messages != null)
             {
-                displayedEntity = CardEncoder.DecodeEntity1(null, References.Player, messages);
+                displayedEntity = CardEncoder.DecodeEntity1(Battle.instance.playerCardController, References.Player, messages);
                 displayedEntity.transform.SetParent(HandlerInspect.instance.transform, false);
                 yield return CardEncoder.DecodeEntity2(displayedEntity, messages);
                 displayedEntity.silenceCount -= 100;

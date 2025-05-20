@@ -97,17 +97,17 @@ namespace MultiplayerBase.Battles
                             else if (dragging.data.playOnSlot) //Unused case for now...
                             {
                                 Debug.Log("[Multiplayer] Slots?!?");
-                                if (dragging.CanPlayOn(hoverEntity))
+                                if (hoverEntity != null && hoverEntity != dragging && Battle.IsOnBoard(hoverEntity) && dragging.CanPlayOn(hoverEntity))
                                 {
                                     ActionQueue.Stack(new ActionSendCardToPlay(dragging, (Friend)HandlerBattle.friend, hoverEntity, ActionSendCardToPlay.TargetType.Slot));
                                     flag = false;
                                 }
-
-                                else if (!dragging.CanPlayOn(hoverContainer))
+                                else if (dragging.CanPlayOn(hoverContainer))
                                 {
                                     ActionQueue.Stack(new ActionSendCardToPlay(dragging, (Friend)HandlerBattle.friend, hoverContainer, ActionSendCardToPlay.TargetType.Slot));
                                     flag = false;
                                 }
+                                Debug.Log($"[Multiplayer] {hoverContainer?.name ?? "No Container"}");
                             }
                             else if (dragging.targetMode.TargetRow)
                             {

@@ -59,7 +59,7 @@ namespace MultiplayerBase.Handlers
                 s += $"{trueCount} {effect.name.Replace("!", "!:").Replace(",", ",:")}, ";
             }
             s += "! ";
-            foreach (TraitStack stack in cardData.traits) //4. traits
+            foreach (Entity.TraitStacks stack in entity.traits) //4. traits
             {
                 s += $"{stack.count} {stack.data.name.Replace("!", "!:").Replace(",", ",:")}, ";
             }

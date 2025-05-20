@@ -172,13 +172,14 @@ namespace Sync
                 .Create<StatusEffectPromo>("Send Copies Elsewhere")
                 .WithCanBeBoosted(false)
                 .WithType("")
+                .WithConstraints(Extensions.NotGoop())
                 );
 
             assets.Add(this.CreateTrait("Promo", "promo", false, "Send Copies Elsewhere"));
             #endregion
 
             #region MYSTIC
-            assets.Add(Extensions.CreateBasicKeyword(this, "mystic", "Mystic", "Playable on another board|Reward: replace this effect with Zoomlin"));
+            assets.Add(Extensions.CreateBasicKeyword(this, "mystic", "Mystic", "Playable on another board|Reward: Add Zoomlin"));
 
             assets.Add(new StatusEffectDataBuilder(this)
                 .Create<StatusEffectMystical>("Play Elsewhere")
@@ -196,7 +197,7 @@ namespace Sync
             assets.Add(this.CreateTrait("Mystic", "mystic", false, "Play Elsewhere"));
 
             assets.Add(new StatusEffectDataBuilder(this)
-                .CreateTempTrait("Temporary Mystic", Get<TraitData>("Mystic"))
+                .CreateTempTrait("Temporary Mystic", "Mystic")
                 .WithConstraints()
                 );
             #endregion
@@ -206,7 +207,7 @@ namespace Sync
                 .WithConstraints(Extensions.IsItem(), Extensions.IsPlay(), Extensions.TargetsBoard())
                 );
 
-            assets.Add(Extensions.CreateBasicKeyword(this, "sync", "Sync", "Gain an effect when a <sync> card is played or attacks elsewhere"));
+            assets.Add(Extensions.CreateBasicKeyword(this, "sync", "Sync", "Gain an effect when a <sync> card is played elsewhere"));
             
 
             assets.Add(new StatusEffectDataBuilder(this)
@@ -226,7 +227,7 @@ namespace Sync
 
             assets.Add(new StatusEffectDataBuilder(this)
                 .CreateSyncEffect<StatusEffectSync>("Sync Frenzy", "<keyword=mhcdc9.wildfrost.sync.sync>: <x{a}><keyword=frenzy>", "", "MultiHit", boostable: true)
-                .WithConstraints()
+                .WithConstraints(Extensions.NotGoop())
                 );
 
             assets.Add(new StatusEffectDataBuilder(this)
@@ -236,7 +237,7 @@ namespace Sync
 
             assets.Add(new StatusEffectDataBuilder(this)
                 .CreateSyncEffect<StatusEffectSync>("Sync Zoomlin", "<keyword=mhcdc9.wildfrost.sync.sync>: <keyword=zoomlin>", "", "Temporary Zoomlin")
-                .WithConstraints(Extensions.NotTrait("Zoomlin"))
+                .WithConstraints(Extensions.NotTrait("Zoomlin"), Extensions.NotGoop())
                 );
 
             assets.Add(new StatusEffectDataBuilder(this)
