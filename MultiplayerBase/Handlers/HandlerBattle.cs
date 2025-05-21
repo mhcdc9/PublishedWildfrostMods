@@ -67,6 +67,7 @@ namespace MultiplayerBase.Handlers
             Events.OnEntityMove += EntityMove;
             Events.OnEntityKilled += EntityKilled;
             Events.OnEntityPreTrigger += EntityTrigger;
+            Events.OnStatusEffectApplied += EffectApplied;
             Events.OnBattlePreTurnStart += PreTurn;
         }
 
@@ -79,8 +80,11 @@ namespace MultiplayerBase.Handlers
             Events.OnEntityMove -= EntityMove;
             Events.OnEntityKilled -= EntityKilled;
             Events.OnEntityPreTrigger -= EntityTrigger;
+            Events.OnStatusEffectApplied -= EffectApplied;
             Events.OnBattlePreTurnStart -= PreTurn;
         }
+
+        
 
         protected void Awake()
         {
@@ -210,7 +214,18 @@ namespace MultiplayerBase.Handlers
         {
             if (trigger?.entity != null)
             {
-                CreateEffect(trigger.entity, trigger.entity.containers, "counter down");
+                CreateEffect(trigger.entity, trigger.entity.containers, "mult.trigger");
+            }
+        }
+
+        private void EffectApplied(StatusEffectApply apply)
+        {
+            if (HandlerBattle.instance.Blocking) { return; }
+
+            Debug.Log($"[Multiplayer] Effect {apply?.effectData?.name ?? "null"}");
+            if (apply?.effectData?.type != null && marks.system != null && marks.system.profileLookup.ContainsKey(apply.effectData.type) && apply.target != null)
+            {
+                CreateEffect(apply.target, apply.target.containers, apply.effectData.type);
             }
         }
 

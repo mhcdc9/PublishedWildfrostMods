@@ -12,8 +12,10 @@ namespace MultiplayerBase.UI
     {
         List<GameObject> enemyMarks = new List<GameObject>();
         List<GameObject> playerMarks = new List<GameObject>();
+        internal VfxStatusSystem system;
 
         static GameObject prefab;
+        static GameObject triggerPrefab;
 
         private bool visible = true;
 
@@ -21,6 +23,8 @@ namespace MultiplayerBase.UI
         {
             Events.OnInspect += OnInspect;
             Events.OnInspectEnd += OnInspectEnd;
+            system = FindObjectOfType<VfxStatusSystem>();
+            PrepareTriggerPrefab();
         }
 
         public void OnDestroy()
@@ -31,8 +35,8 @@ namespace MultiplayerBase.UI
         
         private bool FindPrefab()
         {
-            VfxDeathSystem system = GameObject.FindObjectOfType<VfxDeathSystem>();
-            prefab = system?.sacrificeFX?.transform?.GetChild(4).gameObject;
+            VfxDeathSystem dSystem = GameObject.FindObjectOfType<VfxDeathSystem>();
+            prefab = dSystem?.sacrificeFX?.transform?.GetChild(4).gameObject;
             return prefab == null;
         }
 
@@ -56,19 +60,63 @@ namespace MultiplayerBase.UI
             StartCoroutine(GrowAndStop(obj));
         }
 
-        public static float scalingFactor = 1f;
+        public void PrepareTriggerPrefab()
+        {
+            system = FindObjectOfType<VfxStatusSystem>();
+            if (system == null || system.profileLookup.ContainsKey("mult.trigger"))
+            {
+                return;
+            }
+            GameObject origPrefab = system?.profileLookup["counter down"]?.applyEffectPrefab;
+            ParticleSystem.MainModule origPSystem = origPrefab.GetComponent<ParticleSystem>().main;
+            origPSystem.playOnAwake = false;
+            GameObject triggerPrefab = Instantiate(origPrefab, null);
+            DontDestroyOnLoad(triggerPrefab);
+            triggerPrefab.name = "mult.trigger";
+            foreach(var child in triggerPrefab.transform.GetAllChildren())
+            {
+                switch(child.name.ToLower())
+                {
+                    case "inner star": child.gameObject.SetActive(false);
+                        break;
+                    case "hit": child.gameObject.SetActive(true);
+                        break;
+                    case "sparks": child.gameObject.SetActive(false);
+                        break;
+                    case "star": 
+                        ParticleSystem.MainModule starSystem = child.GetComponent<ParticleSystem>().main;
+                        starSystem.startColor = new Color(1f, 0.5f, 0.5f);
+                        break;
+                }
+            }
+            origPSystem.playOnAwake = true;
+            ParticleSystem.MainModule newPSystem = triggerPrefab.GetComponent<ParticleSystem>().main;
+            newPSystem.playOnAwake = true;
+            VfxStatusSystem.Profile profile = new VfxStatusSystem.Profile()
+            {
+                type = "mult.trigger",
+                applyEffectPrefab = triggerPrefab
+            };
+            system.profileLookup["mult.trigger"] = profile;
+        }
+
+        public static float scalingFactor = 0.8f;
 
         public void CreateMarker(string side, Vector3 position, string type = "death")
         {
             if (type == "death")
             {
                 CreateDeathMarker(side, position);
+                return;
             }
 
             if (!visible || !markList(side, out List<GameObject> markers))
             { return; }
 
-            VfxStatusSystem system = GameObject.FindObjectOfType<VfxStatusSystem>();
+            if (system == null)
+            {
+                system = FindObjectOfType<VfxStatusSystem>();
+            }
 
             if (system == null || !system.profileLookup.ContainsKey(type))
             { return; }
