@@ -83,7 +83,6 @@ namespace MultiplayerBase.Matchmaking
             List<Image> images = new List<Image>();
             if (joined)
             {
-                Debug.Log("[Multiplayer] Displaying Members");
                 foreach(Friend friend in lobby.Members)
                 {
                     GameObject obj1 = HelperUI.ButtonTemplateWithIcon(memberGroup.transform, memberDim, iconDim, Vector3.zero, friend.Name, new Color(0.3f, 0.3f, 0.3f), 0.1f, 0.1f).gameObject;
@@ -109,7 +108,6 @@ namespace MultiplayerBase.Matchmaking
                 images.Add(obj1.GetComponentInChildren<Image>());
             }
             int maxPlayers = int.Parse(lobby.GetData("maxplayers"));
-            Debug.Log("[Multiplayer] Displaying Vacancies");
             for (int i=memberGroup.transform.childCount-1; i<maxPlayers; i++)
             {
                 GameObject obj1 = HelperUI.ButtonTemplateWithIcon(memberGroup.transform, memberDim, iconDim, Vector3.zero, "[Vacant]", new Color(0.3f, 0.3f, 0.3f), 0.1f, 0.1f).gameObject;

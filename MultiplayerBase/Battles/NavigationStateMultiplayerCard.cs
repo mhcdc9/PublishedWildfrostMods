@@ -138,11 +138,11 @@ namespace MultiplayerBase.Battles
             }
             
             //UnityEngine.Debug.Log("Warped.");
-            UnityEngine.Debug.Log($"{container.name}, {container is OtherCardViewer}, {ignoreRowCheck}");
+            //UnityEngine.Debug.Log($"{container.name}, {container is OtherCardViewer}, {ignoreRowCheck}");
             bool flag = container is OtherCardViewer;
             if (!flag)
             {
-                UnityEngine.Debug.Log("Flagged?");
+                //UnityEngine.Debug.Log("Flagged?");
                 return false;
             }
             if (__instance.data.playType == Card.PlayType.Play)
@@ -150,10 +150,10 @@ namespace MultiplayerBase.Battles
                 UnityEngine.Debug.Log("Play.");
                 if (__instance.targetMode.TargetRow && !ignoreRowCheck)
                 {
-                    UnityEngine.Debug.Log("Row.");
+                    //UnityEngine.Debug.Log("Row.");
                     if (__instance.data.canPlayOnBoard && !__instance.data.playOnSlot)
                     {
-                        UnityEngine.Debug.Log("Board.");
+                        //UnityEngine.Debug.Log("Board.");
                         Entity[] targets = __instance.targetMode.GetTargets(__instance, null, container);
                         if (targets == null || targets.Length <= 0)
                         {

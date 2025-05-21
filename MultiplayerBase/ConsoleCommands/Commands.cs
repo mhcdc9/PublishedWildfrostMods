@@ -259,11 +259,11 @@ namespace MultiplayerBase.ConsoleCommands
                 GameObject obj = new GameObject("ID Tooltip");
                 obj.transform.SetParent(entity.display.GetCanvas().transform, false);
                 TextMeshProUGUI textElement = obj.AddComponent<TextMeshProUGUI>();
-                textElement.fontSize = 0.55f;
+                textElement.fontSize = 0.6f;
                 textElement.horizontalAlignment = HorizontalAlignmentOptions.Center;
                 textElement.text = entity.data?.id.ToString() ?? "???";
                 textElement.outlineColor = Color.black;
-                textElement.outlineWidth = 0.2f;
+                textElement.outlineWidth = 0.1f;
                 obj.GetComponent<RectTransform>().sizeDelta = new Vector2(4f, 1f);
                 activeTexts.Add(obj);
             }

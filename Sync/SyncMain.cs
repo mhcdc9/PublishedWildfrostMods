@@ -400,10 +400,10 @@ namespace Sync
                     if (References.PlayerData?.inventory?.deck != null)
                     {
                         References.PlayerData.inventory.deck.Add(data);
-                    }
-                    if (!HandlerBattle.instance.Queue(new ActionGainCardToHand(messages.Skip(1).ToArray())))
-                    {
-                        MultTextManager.AddEntry($"Received {data.title} from {friend.Name}", 0.55f, new Color(1f,0.75f,0.38f), 1f);
+                        if (!HandlerBattle.instance.Queue(new ActionGainCardToHand(messages.Skip(1).ToArray())))
+                        {
+                            MultTextManager.AddEntry($"Received {data.title} from {friend.Name}", 0.55f, new Color(1f, 0.75f, 0.38f), 1f);
+                        }
                     }
                     break;
                 case "SYNC":

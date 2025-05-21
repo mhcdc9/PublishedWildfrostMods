@@ -169,6 +169,16 @@ namespace MultiplayerBase.UI
             base.SetChildPosition(child);
         }
 
+        public override Vector3 GetChildPosition(Entity child)
+        {
+            Vector3 v =  base.GetChildPosition(child);
+            if (child?.actualContainers != null && child.actualContainers.Count() > 1)
+            {
+                v *= 1f;
+            }
+            return v;
+        }
+
         new public void ClearAndDestroyAllImmediately()
         {
             Entity[] array = ToArray();

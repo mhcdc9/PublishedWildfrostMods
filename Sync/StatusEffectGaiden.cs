@@ -54,6 +54,10 @@ namespace Sync
 
         public void LeaveAfterLoad()
         {
+            if (!Battle.instance.cards.Contains(target) || target.containers.Contains(References.Player.reserveContainer))
+            {
+                return;
+            }
             ActionQueue.Stack(new ActionSequence(Leave()));
         }
 

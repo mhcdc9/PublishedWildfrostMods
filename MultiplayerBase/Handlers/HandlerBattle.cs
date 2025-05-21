@@ -163,7 +163,7 @@ namespace MultiplayerBase.Handlers
 
         public bool Queue(PlayAction p)
         {
-            if (Battle.instance == null && Battle.instance.phase != Battle.Phase.End)
+            if (Battle.instance == null || Battle.instance.phase != Battle.Phase.End)
             {
                 return false;
             }
@@ -241,7 +241,6 @@ namespace MultiplayerBase.Handlers
 
             bool flag = false;
 
-            Debug.Log($"[Multiplayer] {entity.data.title}");
             foreach(CardContainer container in entity.preContainers)
             {
                 if (Battle.IsOnBoard(container))
@@ -709,27 +708,28 @@ namespace MultiplayerBase.Handlers
             Dictionary<ulong, Entity> dictionary = CollectCardsFromOCVs(ocvs);
             InspectSystem inspect = GameObject.FindObjectOfType<InspectSystem>();
 
+            List<Entity> placed = new List<Entity>();
             for (int i = 2; i<messages.Length; i++)
             {
                 if(ulong.TryParse(messages[i], out ulong result))
                 {
-                    Debug.Log($"[Multiplayer] {result}");
                     int laneIndex = i % 2;
                     int index = (i - laneIndex - 2) / 2;
                     if (dictionary.ContainsKey(result))
                     {
                         Debug.Log($"[Multiplayer] Contains Key {result}");
                         ocvs[laneIndex].Insert(index, dictionary[result], friend, result);
-                        if (dictionary[result].height == 2)
+                        /*if (dictionary[result].height == 2)
                         {
                             ocvs[1].Insert(index, dictionary[result], friend, result);
-                        }
+                            i++;
+                        }*/
                         if (inspect?.inspect != dictionary[result])
                         {
                             ocvs[laneIndex].TweenChildPosition(dictionary[result]);
                         }
-                        dictionary.Remove(result);
-                        Debug.Log($"[Multiplayer] Removed {result}");
+                        placed.Add(dictionary[result]);
+                        //dictionary.Remove(result);
                     }
                     else
                     {
@@ -741,6 +741,10 @@ namespace MultiplayerBase.Handlers
             List<Entity> entities = dictionary.Values.ToList();
             for(int i = entities.Count - 1; i>=0; i--)
             {
+                if (placed.Contains(entities[i]))
+                {
+                    continue;
+                }
                 if (inspect != null && inspect.inspect ==  entities[i])
                 {
                     entities[i].actualContainers.Clear();
@@ -906,7 +910,6 @@ namespace MultiplayerBase.Handlers
             CardEncoder.DecodeData(messages.Skip(5).ToArray(), entity.data);
             yield return CardEncoder.DecodeEntity2(entity, messages.Skip(5).ToArray());
             entity.owner = ocvs[0].owner;
-            Debug.Log($"[Multiplayer] {entity.data.title} -> {ocvs[0].owner}");
             entity.PromptUpdate();
             //entity.flipper.FlipUp(force: true);
             updateTasks--;
@@ -1002,7 +1005,6 @@ namespace MultiplayerBase.Handlers
         {
             static void Prefix(Entity entity, ref bool __state)
             {
-                Debug.Log("[Multiplayer] Asked for description");
                 if (entity.silenceCount >= 100)
                 {
                     entity.silenceCount -= 100;

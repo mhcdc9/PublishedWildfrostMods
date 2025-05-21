@@ -295,6 +295,10 @@ namespace MultiplayerBase.Handlers
         {
             Debug.Log($"[Multiplayer] {scene}");
             Dashboard.friendIcons[friend].SceneChanged(scene, extra);
+            if (scene != "Battle" && HandlerBattle.instance.Blocking && HandlerBattle.friend is Friend f && f.Id == friend.Id)
+            {
+                MultTextManager.AddEntry($"{friend.Name}'s battle has concluded. Please leave the viewer.", 0.6f, UnityEngine.Color.yellow, 3f);
+            }
             switch (scene)
             {
                 case "Battle":

@@ -189,6 +189,11 @@ namespace MultiplayerBase.UI
             if (Dashboard.waitingForSelection) { Dashboard.selectedFriend = friend; return; }
             if (preventClicking > 0) { return; }
 
+            if (InspectSystem.IsActive())
+            {
+                HandlerInspect.SelectDisp(FindObjectOfType<InspectSystem>(true).inspect);
+                return; 
+            }
             if (HandlerMap.instance.Blocking && (friend.Id != HandlerMap.friend?.Id || HandlerSystem.friendStates[(Friend)HandlerMap.friend] != PlayerState.Map) )
             {
                 HandlerMap.instance.CloseViewer();
@@ -198,11 +203,7 @@ namespace MultiplayerBase.UI
                 HandlerBattle.instance.CloseBattleViewer();
             }
             Debug.Log($"[Multiplayer] Sending Message to {friend.Name}");
-            if (InspectSystem.IsActive())
-            {
-                HandlerInspect.SelectDisp(FindObjectOfType<InspectSystem>(true).inspect);
-            }
-            else if (SceneManager.IsLoaded("BossReward"))
+            if (SceneManager.IsLoaded("BossReward"))
             {
                 HandlerEvent.instance.SendRewardData(friend);
             }

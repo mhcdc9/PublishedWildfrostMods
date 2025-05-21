@@ -277,6 +277,7 @@ namespace MultiplayerBase.Handlers
 
             Entity entity = CardEncoder.DecodeEntity1(cc, lanes[laneIndex].owner, messages.Skip(3).ToArray());
             yield return CardEncoder.DecodeEntity2(entity, messages.Skip(3).ToArray());
+            SetLane(index);
             lanes[laneIndex].Add(entity,owner, id);
             lanes[laneIndex].SetChildPositions();
             entity.flipper.FlipUp(force: true);

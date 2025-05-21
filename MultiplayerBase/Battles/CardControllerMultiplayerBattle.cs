@@ -50,8 +50,6 @@ namespace MultiplayerBase.Battles
             if (base.enabled)
             {
                 
-
-                Debug.Log("[Multiplayer] Base is enabled.");
                 if (InputSwitcher.justSwitched)
                 {
                     dragging.TweenToContainer();
@@ -84,10 +82,9 @@ namespace MultiplayerBase.Battles
                     switch (dragging.data.playType)
                     {
                         case Card.PlayType.Play:
-                            Debug.Log("[Multiplayer] Play!");
                             if (!dragging.NeedsTarget)
                             {
-                                Debug.Log("[Multiplayer] Targetless?");
+                                //Debug.Log("[Multiplayer] Targetless?");
                                 if (!hoverContainer || !dragging.InContainer(hoverContainer))
                                 {
                                     ActionQueue.Stack(new ActionSendCardToPlay(dragging, (Friend)HandlerBattle.friend, 0, ActionSendCardToPlay.TargetType.None));
@@ -96,7 +93,7 @@ namespace MultiplayerBase.Battles
                             }
                             else if (dragging.data.playOnSlot) //Unused case for now...
                             {
-                                Debug.Log("[Multiplayer] Slots?!?");
+                                //Debug.Log("[Multiplayer] Slots?");
                                 if (hoverEntity != null && hoverEntity != dragging && Battle.IsOnBoard(hoverEntity) && dragging.CanPlayOn(hoverEntity))
                                 {
                                     ActionQueue.Stack(new ActionSendCardToPlay(dragging, (Friend)HandlerBattle.friend, hoverEntity, ActionSendCardToPlay.TargetType.Slot));
@@ -107,11 +104,10 @@ namespace MultiplayerBase.Battles
                                     ActionQueue.Stack(new ActionSendCardToPlay(dragging, (Friend)HandlerBattle.friend, hoverContainer, ActionSendCardToPlay.TargetType.Slot));
                                     flag = false;
                                 }
-                                Debug.Log($"[Multiplayer] {hoverContainer?.name ?? "No Container"}");
                             }
                             else if (dragging.targetMode.TargetRow)
                             {
-                                Debug.Log("[Multiplayer] Barrage?");
+                                //Debug.Log("[Multiplayer] Barrage?");
                                 if (dragging.CanPlayOn(hoverContainer))
                                 {
                                     ActionQueue.Stack(new ActionSendCardToPlay(dragging, (Friend)HandlerBattle.friend, hoverContainer, ActionSendCardToPlay.TargetType.Container));
@@ -120,7 +116,7 @@ namespace MultiplayerBase.Battles
                             }
                             else if ((bool)hoverEntity && hoverEntity != dragging)
                             {
-                                Debug.Log("[Multiplayer] Standard!");
+                                //Debug.Log("[Multiplayer] Standard!");
                                 ActionQueue.Stack(new ActionSendCardToPlay(dragging, (Friend)HandlerBattle.friend, hoverEntity, ActionSendCardToPlay.TargetType.Entity));
                                 flag = false;
                             }
@@ -131,11 +127,9 @@ namespace MultiplayerBase.Battles
 
                 if (flag)
                 {
-                    Debug.Log("[Multiplayer] Tweening!");
                     dragging.TweenToContainer();
                 }
             }
-            Debug.Log("[Multiplayer] Ending!");
 
             TweenUnHover(dragging, retainScale, retainPosition, retainRotation, retainDrawOrder);
             DragEnd();

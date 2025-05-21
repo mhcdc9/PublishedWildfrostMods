@@ -195,7 +195,6 @@ namespace MultiplayerBase
 
         private void CheckAnotherConsoleMod(WildfrostMod mod)
         {
-            Debug.Log($"[Multiplayer] {mod.Title}");
             if (mod.GUID == "hope.wildfrost.console")
             {
                 CoroutineManager.Start(Commands.AddCustomCommands(mod));
@@ -207,7 +206,6 @@ namespace MultiplayerBase
             List<WildfrostMod> mods = Bootstrap.Mods.ToList();
             foreach(WildfrostMod mod in mods)
             {
-                Debug.Log($"[Multiplayer] {mod.Title}");
                 if (mod.GUID == "hope.wildfrost.console" && mod.HasLoaded)
                 {
                     CoroutineManager.Start(Commands.AddCustomCommands(mod));
@@ -250,7 +248,7 @@ namespace MultiplayerBase
                 dashboard = gameObject.AddComponent<Dashboard>();
             }
             Finalized?.Invoke();
-            ToggleMatchmaking();
+            CloseMatchmaking();
             UnhookToChatRoom();
             Debug.Log("[Multiplayer] Finalized.");
         }
@@ -290,14 +288,18 @@ namespace MultiplayerBase
             }
             else
             {
-                
-                matchmaker.exitTween.Fire();
-                matchmaker.lobbyView.ExitLobbyView(false);
-                matchmaker.memberView.CloseMemberView(false);
-                matchmaker.modView.CloseModView(false);
-                matchmaker.background.GetComponent<Fader>().Out(0.4f);
-                References.instance.StartCoroutine(Close(0.45f));
+                CloseMatchmaking();
             }
+        }
+
+        internal void CloseMatchmaking()
+        {
+            matchmaker.exitTween.Fire();
+            matchmaker.lobbyView.ExitLobbyView(false);
+            matchmaker.memberView.CloseMemberView(false);
+            matchmaker.modView.CloseModView(false);
+            matchmaker.background.GetComponent<Fader>().Out(0.4f);
+            References.instance.StartCoroutine(Close(0.45f));
         }
 
         private bool closing = false;

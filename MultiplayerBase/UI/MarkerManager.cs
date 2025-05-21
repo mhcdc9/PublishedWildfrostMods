@@ -78,8 +78,9 @@ namespace MultiplayerBase.UI
 
         private IEnumerator GrowAndStop(GameObject obj)
         {
+            ParticleSystem system = obj?.GetComponent<ParticleSystem>(); //I sure hope that the object hasn't been destroyed in a fraction of a frame :/
             yield return new WaitForSeconds(0.5f);
-            obj?.GetComponent<ParticleSystem>()?.Pause();
+            system?.Pause();
         }
 
         public void OnInspect(Entity _)

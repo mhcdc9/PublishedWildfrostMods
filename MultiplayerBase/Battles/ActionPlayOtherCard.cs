@@ -88,10 +88,11 @@ namespace MultiplayerBase.Battles
 
         public void DisplayOwner(Entity otherCard)
         {
-            Debug.Log($"[Multiplayer] {otherCard != null}, {otherCard?.canvas != null}, {friend}");
+            //Debug.Log($"[Multiplayer] {otherCard != null}, {otherCard?.canvas != null}, {friend}");
             GameObject obj = new GameObject("Owner Text");
-            obj.transform.SetParent(otherCard.canvas.transform, false);
-            Debug.Log($"[Multiplayer] Got past this part, at least");
+            obj.transform.SetParent(otherCard.canvas.transform, false); //canvas only exists once you hover over it. 
+            //change it to otherCard.display.GetConvas().transform
+            //Debug.Log($"[Multiplayer] Got past this part, at least");
             obj.transform.localPosition = startTextPosition;
             TextMeshProUGUI textElement = obj.AddComponent<TextMeshProUGUI>();
             textElement.fontSize = 0.4f;
@@ -99,7 +100,6 @@ namespace MultiplayerBase.Battles
             textElement.text = friend.Name;
             textElement.outlineColor = Color.black;
             textElement.outlineWidth = 0.06f;
-            Debug.Log($"[Multiplayer] Text Element Stuff");
             obj.GetComponent<RectTransform>().sizeDelta = new Vector2(4f, 1f);
         }
     }
