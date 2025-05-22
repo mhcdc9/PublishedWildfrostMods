@@ -12,9 +12,23 @@ using UnityEngine.SceneManagement;
 using TMPro;
 using static UnityEngine.Rendering.DebugUI;
 
-//Battle/Canvas
 
 
+/* The HandlerSystem class deals with sending/receiving of messages.
+ * For modders
+ * - Don't forget to add your handler to the handlerRoutines dictionary in your Load() of your main mod class.
+ * - Messages will not send/receive until you have finalized the party.
+ * - Use SendMessage and variants to send messages
+ * 
+ * Useful methods
+ * - SendMessage
+ * - SendMessageToAll
+ * - SendMessageToAllOthers
+ * - SendMessageToRandom
+ * 
+ * Notes
+ * - SendMessage is done through safe channels. So, a sequence of messages will be received at most once and in the right order.
+ */
 namespace MultiplayerBase.Handlers
 {
     public enum PlayerState
@@ -57,13 +71,13 @@ namespace MultiplayerBase.Handlers
                 SteamNetworking.OnP2PSessionRequest += SessionRequest;
                 HandlerRoutines.Add("CHT", CHT_Handler);
                 HandlerRoutines.Add("MSC", MSC_Handler);
-                GameObject gameObject = new GameObject("Inspect Handler");
+                GameObject gameObject = new GameObject("InspectHandler");
                 gameObject.AddComponent<HandlerInspect>();
-                gameObject = new GameObject("Battle Handler");
+                gameObject = new GameObject("BattleHandler");
                 gameObject.AddComponent<HandlerBattle>();
-                gameObject = new GameObject("Event Handler");
+                gameObject = new GameObject("EventHandler");
                 gameObject.AddComponent<HandlerEvent>();
-                gameObject = new GameObject("Map Handler");
+                gameObject = new GameObject("MapHandler");
                 gameObject.AddComponent<HandlerMap>();
                 Events.OnSceneChanged += SceneChanged;
                 

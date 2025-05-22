@@ -11,6 +11,23 @@ using System.Collections;
 
 namespace MultiplayerBase.Handlers
 {
+    /* The CardEncoder class turns CardData/Entities into strings and vice versa.
+     * For modders:
+     * - The Encode and Decode methods are very useful if you want to send cards between games for any reason.
+     * 
+     * Useful methods:
+     * - Encode (both versions)
+     * - DecodeData
+     * - DecodeEntity1
+     * - DecodeEntity2
+     * - CreateAndPlaceEntity
+     * - Modify
+     * 
+     * Notes:
+     * - DecodeEntity1 and 2 can be used on a CardData string.
+     * - CustomData only works for strings and ints.
+     */
+
     public static class CardEncoder
     {
 
@@ -34,10 +51,19 @@ namespace MultiplayerBase.Handlers
             if (cardData.customData != null) //1. CustomData
             {
                 Dictionary<string, object> customData = cardData.customData;
+                string substring = "";
                 foreach (string key in customData.Keys)
                 {
-                    s += $"{key},";
+                    if (customData[key] is string stringValue)
+                    {
+                        substring += "s, " + key.Replace(",", ",:") + ", " + stringValue.Replace(",", ",:") + ", ";
+                    }
+                    if (customData[key] is int intValue)
+                    {
+                        substring += "i, " + key.Replace(",", ",:") + ", " + intValue.ToString() + ", ";
+                    }
                 }
+                s += substring.Replace("!", "!:");
             }
             s += "! ";
             foreach (EffectStack stack in entity.attackEffects) //2. attackEffects
@@ -86,9 +112,18 @@ namespace MultiplayerBase.Handlers
             if (cardData.customData != null) //1. CustomData
             {
                 Dictionary<string, object> customData = cardData.customData;
+                string substring = "";
                 foreach (string key in customData.Keys)
                 {
-                    s += $"{key},";
+                    if (customData[key] is string stringValue)
+                    {
+                        substring += "s, " + key.Replace(",", ",:") + ", " + stringValue.Replace(",", ",:") + ", ";
+                    }
+                    if (customData[key] is int intValue)
+                    {
+                        substring += "i, " + key.Replace(",", ",:") + ", " + intValue.ToString() + ", ";
+                    }
+                    s += substring.Replace("!", "!:");
                 }
             }
             s += "! ";
@@ -211,13 +246,9 @@ namespace MultiplayerBase.Handlers
             }
         Debug.Log($"[Multiplayer] {data.name}");
 
-            if (! messages[1].IsNullOrEmpty()) //1. CustomData: Fix Later
+            if (! messages[1].IsNullOrEmpty())
             {
-                if (data.cardType.name == "Leader")
-                {
-                    Debug.Log("[Multiplayer] Leader Detected.");
-                    //data.customData = References.PlayerData.inventory.deck.FirstOrDefault((deckcard) => deckcard.cardType.name == "Leader").customData;
-                }
+                data.customData = DecodeToCustomData(messages[1], data.customData);
             }
             //Debug.Log("[Multiplayer] 1");
             data.attackEffects = DecodeToEffectStacks(messages[2]).ToArray(); //2. attackEffects
@@ -280,6 +311,28 @@ namespace MultiplayerBase.Handlers
                 list.Add((name, count));
             }
             return list;
+        }
+
+        public static Dictionary<string, object> DecodeToCustomData(string s, Dictionary<string, object> customData)
+        {
+            if (customData == null)
+            {
+                customData = new Dictionary<string, object>();
+            }
+            string[] messages = s.Split(new string[] { ", " }, StringSplitOptions.None);
+            Debug.Log(messages.Length);
+            for(int i=0; i<messages.Length/3; i++)
+            {
+                if (messages[3*i] == "s")
+                {
+                    customData[messages[3 * i + 1].Replace(",:", ",")] = messages[3 * i + 2].Replace(",:", ",");
+                }
+                if (messages[3*i] == "i")
+                {
+                    customData[messages[3 * i + 1].Replace(",:", ",")] = int.Parse(messages[3 * i + 2]);
+                }
+            }
+            return customData;
         }
 
         public static List<EffectStack> DecodeToEffectStacks(string s)

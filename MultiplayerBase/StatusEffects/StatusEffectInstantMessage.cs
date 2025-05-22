@@ -26,6 +26,7 @@ namespace MultiplayerBase.StatusEffects
         public string handler;
         public ToWhom toWhom = ToWhom.Self;
         public string[] parts = new string[0];
+        public bool performReplacement = true;
         public bool includeSelf = false;
         public string feedback = null;
 
@@ -35,7 +36,7 @@ namespace MultiplayerBase.StatusEffects
         {
             if (HandlerSystem.enabled)
             {
-                string fullMessage = HandlerSystem.ConcatMessage(true, parts);
+                string fullMessage = (parts.Length > 1) ? HandlerSystem.ConcatMessage(performReplacement, parts) : parts[0];
                 yield return SendMessage(fullMessage);
             }
             yield return base.Process();

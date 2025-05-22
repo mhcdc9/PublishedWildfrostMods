@@ -21,6 +21,16 @@ using HarmonyLib;
 
 namespace MultiplayerBase.Handlers
 {
+    /* The HandlerBattle class deals with the battle viewer and a couple of playActions.
+     * Location: CameraContainer/CameraMover/MinibossZoomer/CameraPositioner/CameraPointer/Animator/Rumbler/Shaker/InspectSystem/BattleHandler
+     *
+     * For modders:
+     * - Other than queueing PlayActions through Queue(), none of the other methods are particularly useful to invoke.
+     * - Unless you want to mess with the BattleViewer, in which case you have a long road ahead.
+     * 
+     * Useful methods:
+     * Queue
+     */
     public class HandlerBattle : MonoBehaviour
     {
 
@@ -401,6 +411,7 @@ namespace MultiplayerBase.Handlers
             }
             ignoreFurtherMessages = false;
             updateTasks = 0;
+            stopMultipleEntityUpdates.Clear();
             if (Battle.instance != null)
             {
                 if (Battle.instance.phase == Battle.Phase.Battle || References.Player.endTurn)
@@ -904,6 +915,8 @@ namespace MultiplayerBase.Handlers
             updateTasks--;
         }
 
+        List<string> stopMultipleEntityUpdates = new List<string>(); 
+
         //UPDATE! PLAYER/ENEMY! rowIndex! index! id! otherCardStuff
         public IEnumerator UpdateCard(Friend friend, string[] messages)
         {
@@ -921,12 +934,17 @@ namespace MultiplayerBase.Handlers
                 updateTasks--;
                 yield break;
             }
-
-            CardEncoder.DecodeData(messages.Skip(5).ToArray(), entity.data);
-            yield return CardEncoder.DecodeEntity2(entity, messages.Skip(5).ToArray());
-            entity.owner = ocvs[0].owner;
-            entity.PromptUpdate();
-            //entity.flipper.FlipUp(force: true);
+            yield return new WaitUntil(() => !stopMultipleEntityUpdates.Contains(messages[4]));
+            if (entity != null)
+            {
+                stopMultipleEntityUpdates.Add(messages[4]);
+                CardEncoder.DecodeData(messages.Skip(5).ToArray(), entity.data);
+                yield return CardEncoder.DecodeEntity2(entity, messages.Skip(5).ToArray());
+                entity.owner = ocvs[0].owner;
+                entity.PromptUpdate();
+                //entity.flipper.FlipUp(force: true);
+                stopMultipleEntityUpdates.Remove(messages[4]);
+            }
             updateTasks--;
         }
 

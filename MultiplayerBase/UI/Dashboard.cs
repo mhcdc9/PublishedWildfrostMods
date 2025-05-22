@@ -17,8 +17,11 @@ using Image = UnityEngine.UI.Image;
 
 namespace MultiplayerBase.UI
 {
-    //After the party is finalized, the dashboard will be the main means of communication. It lives in front of the inspection system.
-    //SetInsetAndSizeFromParentEdge
+    /* The Dashbaord class deals with managing the icons of other players (see the FriendIcon class).
+     * 
+     * Useful methods:
+     * - SelectFriend
+     */
     public class Dashboard : MonoBehaviour
     {
         public static Dashboard instance;

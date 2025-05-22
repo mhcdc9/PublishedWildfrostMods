@@ -197,12 +197,14 @@ namespace MultiplayerBase.UI
             if (HandlerMap.instance.Blocking && (friend.Id != HandlerMap.friend?.Id || HandlerSystem.friendStates[(Friend)HandlerMap.friend] != PlayerState.Map) )
             {
                 HandlerMap.instance.CloseViewer();
+                return;
             }
             if (HandlerBattle.instance.Blocking && (friend.Id != HandlerBattle.friend?.Id || HandlerSystem.friendStates[(Friend)HandlerBattle.friend] != PlayerState.Battle))
             {
                 HandlerBattle.instance.CloseBattleViewer();
+                return;
             }
-            Debug.Log($"[Multiplayer] Sending Message to {friend.Name}");
+            //Debug.Log($"[Multiplayer] Sending Message to {friend.Name}");
             if (SceneManager.IsLoaded("BossReward"))
             {
                 HandlerEvent.instance.SendRewardData(friend);
