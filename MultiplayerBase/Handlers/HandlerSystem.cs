@@ -10,7 +10,6 @@ using UnityEngine;
 using MultiplayerBase.UI;
 using UnityEngine.SceneManagement;
 using TMPro;
-using static UnityEngine.Rendering.DebugUI;
 
 
 
@@ -311,7 +310,7 @@ namespace MultiplayerBase.Handlers
             Dashboard.friendIcons[friend].SceneChanged(scene, extra);
             if (scene != "Battle" && HandlerBattle.instance.Blocking && HandlerBattle.friend is Friend f && f.Id == friend.Id)
             {
-                MultTextManager.AddEntry($"{friend.Name}'s battle has concluded. Please leave the viewer.", 0.6f, UnityEngine.Color.yellow, 3f);
+                MultTextManager.AddEntry($"Battle ended. Please leave the viewer.", 0.6f, UnityEngine.Color.yellow, 3f);
             }
             switch (scene)
             {

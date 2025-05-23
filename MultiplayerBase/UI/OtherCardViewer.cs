@@ -159,14 +159,22 @@ namespace MultiplayerBase.UI
         public override void SetChildPosition(Entity child)
         {
             if (child == null) { return; }
-            if (child.height > 1 && BattleCardViewer)
+            /*if (child.height > 1 && BattleCardViewer)
             {
                 child.transform.position = HandlerBattle.FindPositionForBosses(this, child);
                 child.transform.localScale = GetChildScale(child);
                 child.transform.localEulerAngles = GetChildRotation(child);
                 return;
-            }
+            }*/
             base.SetChildPosition(child);
+            if (child?.actualContainers != null && child.actualContainers.Count() > 1)
+            {
+                child.transform.position = HandlerBattle.FindPositionForBosses(this, child);
+            }
+            /*if (child?.actualContainers != null && child.actualContainers.Count() > 1)
+            {
+                child.transform.localPosition *= -1;
+            }*/
         }
 
         public override Vector3 GetChildPosition(Entity child)
@@ -174,7 +182,7 @@ namespace MultiplayerBase.UI
             Vector3 v =  base.GetChildPosition(child);
             if (child?.actualContainers != null && child.actualContainers.Count() > 1)
             {
-                v *= 1f;
+                v *= -1f;
             }
             return v;
         }

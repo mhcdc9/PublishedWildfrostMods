@@ -848,7 +848,6 @@ namespace MultiplayerBase.Handlers
                             container = lane.slots[lane.slots.Count - 1];
                             action = new ActionPlayOtherCard(messages.Skip(3).ToArray(), friend, null, container);
                         }
-                             
                     }
                     break;
             }
@@ -910,8 +909,10 @@ namespace MultiplayerBase.Handlers
                 ocvs[1].Insert(int.Parse(messages[2]), entity, friend, ulong.Parse(messages[3]));
             }
             ocv.SetChildPosition(entity);
+            stopMultipleEntityUpdates.Add(messages[3]);
             yield return CardEncoder.DecodeEntity2(entity, messages.Skip(4).ToArray());
             entity.flipper.FlipUp(force: true);
+            stopMultipleEntityUpdates.Remove(messages[3]);
             updateTasks--;
         }
 
@@ -986,23 +987,31 @@ namespace MultiplayerBase.Handlers
 
         public static Vector3 FindPositionForBosses(OtherCardViewer viewer, Entity entity)
         {
-            if (instance == null) { return Vector3.zero; }
+            if (instance == null || entity == null) { return Vector3.zero; }
 
+            Vector3 v = Vector3.zero;
+            foreach(CardContainer c in entity.actualContainers)
+            {
+                v += c.GetChildPosition(entity) * (-1f) + c.transform.position;
+            }
+            v /= entity.actualContainers.Count;
+            /*
             if (instance.playerLanes.Contains(viewer))
             {
                 Vector3 first = instance.playerLanes[0].GetChildPosition(entity) + instance.playerLanes[0].transform.position;
                 Vector3 second = instance.playerLanes[1].GetChildPosition(entity) + instance.playerLanes[1].transform.position;
-                return (first + second) / 2;
+                return (first + second) / -2;
             }
 
             if (instance.enemyLanes.Contains(viewer))
             {
                 Vector3 first = instance.enemyLanes[0].GetChildPosition(entity) + instance.enemyLanes[0].transform.position;
                 Vector3 second = instance.enemyLanes[1].GetChildPosition(entity) + instance.enemyLanes[1].transform.position;
-                return (first + second) / 2;
+                return (first + second) / -2;
             }
+            */
 
-            return Vector3.zero;
+            return v;
         }
 
         /*
