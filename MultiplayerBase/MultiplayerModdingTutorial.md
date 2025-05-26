@@ -39,7 +39,7 @@ Below is an outline of the document on what you should get out of it.
 - Encoding/Decoding CardData/Entities
 - Modifiying CardData/Entities as strings
 
-**Chapter 3: `HandlerBattle` and `PlayActions`safe**
+**Chapter 3: `HandlerBattle` and `PlayActions`**
 - Queueing up `PlayAction`s through `HandlerBattle`
 - Sending a card to another player to be played
 - Sending a card to another player to add to their hand
@@ -128,7 +128,7 @@ What's usually going to happen is that messages end up being a sequence of keywo
 `string HandlerSystem.AppendTo(string original, string addOn, bool performReplacement = true)`**  
 `string[] HandlerSystem.DecodeMessage(string message)`
 
-`ConcatMessage` and `AppendTo` work by adding a delimiter to separate different strings (as of writing, it uses "! "). If you are sending user-data, a user may break the system by putting that delimiter. As a coutermeasure, if `performReplacement` is set to true, then it will perform a pre-emptive replacement to avoid that disaster (as of writing, it is "!" to "!:". `DecodeMessage` undoes this automatically. 
+`ConcatMessage` and `AppendTo` work by adding a delimiter to separate different strings (as of writing, it uses "! "). If you are sending user-data, a user may break the system by putting that delimiter. As a countermeasure, if `performReplacement` is set to true, then it will perform a pre-emptive replacement to avoid that disaster (as of writing, it is "!" to "!:". `DecodeMessage` undoes this automatically. 
 
 ```C#
 //Example of concatenating messages
@@ -159,10 +159,10 @@ A general status class has been made to send messages. It extends the `StatusEff
   - `Custom` and `Misc` are unimplemented. There are there in case someone extends this class.
 - `bool includeSelf` specifies whether include the sending player for `All`, `Random`, and `Select` designations. 
 - `bool performReplacement` performs the replacement as described in `SendMessage`.
-- `string feedback` displays a message on sned as described in `SendMessage`.
+- `string feedback` displays a message on send as described in `SendMessage`.
 - `ScriptableAmount amount` calculates an amount to possibly send in the message.
 
-In addition, there are some replacement subsctrings. Inputting these will be replaced as follows.
+In addition, there are some replacement substrings. Inputting these will be replaced as follows.
 - `{0}`: number of stacks of this status effect (ignoring boosts).
 - `{1}`: the target, encoded as a string (see next chapter).
 - `{2}`: the id of the card.
@@ -180,7 +180,10 @@ We know enough to do something interesting. Let's make a card similar to Folby b
 
 ---
 
-***Solution Outline***  
+<details>
+	<summary>
+		<b><i>Solution Outline (Click here to expand)</i></b>
+	</summary>
 The sequence of events would look something like the following. 
  
 (Sender's Game)
@@ -195,8 +198,6 @@ The sequence of events would look something like the following.
 ---
 
 Step 1 does not require any coding. Step 2 requires making two new effects. The first is an `ApplyXWhenHit` that is similar to Folby's original effect except for its `effectToApply`. The second effect is an instance of a new class. A variant of this is provided below.
-
-<details>
 
 ```C#
 //In CreateModAssets
@@ -213,8 +214,6 @@ assets.Add(new StatusEffectDataBuilder(this)
 		data.feedback = "Sending...";
 	}));
 ```
-
-</details>
 
 I'll leave you with making the necessary code for the `ApplyXWhenHit` effect (check the Discord modding channels and/or the pinned tutorials there if you have troubles). Step 3 is handled by the code above. Step 4 requires us to include that necessary line from way above (in *defining a handler*). Finally, step 5 requires editing our handler routine. If you notice in the code block for `MyHandlerRoutine`, we already set the "JUNK" to perform the `DoSomething1` method. Here is what that `DoSomething1` would do. 
 
@@ -234,6 +233,8 @@ public void DoSomething1(Friend f, string[] messages)
 ```
 All that's left is to make a Quantum Folby card and give them the `ApplyXWhenHit` effect, then test it out. 
 
+</details>
+
 ---
 
 ## Chapter 2: The `CardEncoder` class
@@ -242,9 +243,9 @@ Now that you know how to send/receive messages, you can do anything (with enough
 
 **How do you send a card as a string?**
 
-With just a name, `Get` and `TryGet` can fetch a clean copy of `CardData`, but that's a bit inauthentic. During a run `CardData`s are burdened by charms, crowns, and the blood of their enemies. If you want to send a copy from your current battle, then you need to deal with an `Entity`, which could have more effects than its `CardData` (and likely less health).
+With just a name, `Get` and `TryGet` can fetch a clean copy of `CardData`, but that's a bit inauthentic. During a run `CardData`s are burdened by charms, crowns, and the blood of their enemies. If you want to send a copy from your current battle, then you are dealing with an `Entity`, which could have more effects than its `CardData` (and likely less health).
 
-The `CardEncoder` class has already defined a protocol for encoding/decoding `CardData`s and `Entity`s. The information it stores is roughly the same as if you saved the game mid-battle and reloaded with some exceptions. The only entries of `customData` that are saved are those that are strings and ints. Splatter surfaces are also not maintained (alas, no blood of enemies). There are two methods available for card encoding. The version with the `Entity` argument will hold more information than the `CardData` variant.
+The `CardEncoder` class has already defined a protocol for encoding/decoding `CardData`s and `Entity`s. The information it stores is the same as if you saved the game mid-battle and reloaded with the following exceptions: (1) the only entries of `customData` that are saved are those that are strings and ints, (2) Splatter surfaces are also not maintained (alas, no blood of enemies), and (3) effect bonuses are remembered. There are two methods available for card encoding. The version with the `Entity` argument will hold more information than the `CardData` variant.
 
 `string CardEncoder.Encode(CardData cardData)`  
 `string CardEncoder.Encode(Entity entity)`
@@ -253,11 +254,11 @@ The `CardEncoder` class has already defined a protocol for encoding/decoding `Ca
 Since these strings hold the essence of the card, editing the strings can change the cards on the receiver side. MBM provides some methods to help with that.
 
 `void CardEncoder.Modify(ref string s, Action <string[]> modifications)`  
-`List<(string, int)> CardEncoder.DecodeToStacks(string s)`
-`string CardEncoder.EncodeToStacks(IEnumerable<(string, int)> list)`
-`string CardEncoder.EncodeToStacks(IEnumerable<string> list)
+`List<(string, int)> CardEncoder.DecodeToStacks(string s)`  
+`string CardEncoder.EncodeToStacks(IEnumerable<(string, int)> list)`  
+`string CardEncoder.EncodeToStacks(IEnumerable<string> list)`  
 
-Sometimes, just `string.Replace` will suffice for your needs, but these methods are there if you need it. `Modify` takes the string, breaks it into parts, and runs whatever `modifications` method before putting it back together. Using this does require knowing how the card strings are organized. The list below should help with that.
+Sometimes, just `string.Replace` will suffice for your needs, but these methods are there if you need it. `Modify` takes the string, breaks it into parts, and runs whatever `modifications` method before putting it back together. Using this does require knowledge of how the card strings are organized. The list below should help with that.
 
 ```
 //The string[] passed into modifications is as follows
@@ -285,35 +286,39 @@ Sometimes, just `string.Replace` will suffice for your needs, but these methods 
 [19] = effect boost (multiplicative)
 ```
 
-attackEffects, startWithEffects, and traits have an additional encoding attached to them. Using `DecodeToStacks` will convert it to an easier to deal with form. After editing it, be sure to use `EncodeToStack` to get a string, then replace the corresponding entry in the array with this new string.
+attackEffects, startWithEffects, and traits have an additional encoding attached to them. Using `DecodeToStacks` will convert it to a more direct form. After editing it, be sure to use `EncodeToStack` to get a string, then replace the corresponding entry in the array with this new string.
 
 ***Decoding cards***  
-`CardData CardEncoder.DecodeData(string[] messages, CardData data = null)`
-`Entity CardEncoder.DecodeEntity1(CardController cc, Character owner, string[] messages)`*
-`IEnumerator CardEncoder.DecodeEntity2(Entity entity, string[] messages)`*
+`CardData CardEncoder.DecodeData(string[] messages, CardData data = null)`  
+`Entity CardEncoder.DecodeEntity1(CardController cc, Character owner, string[] messages)`*  
+`IEnumerator CardEncoder.DecodeEntity2(Entity entity, string[] messages)`*  
 `IEnumerator CardEncoder.CreateAndPlaceEntity(CardController c, CardContainer container, string[] messages)`**
 
-How you decode the string is up to you. If you only need the CardData, use `DecodeData`. This is more suited for manipulating the deck. Note that `DecodeData` can be used on an entity-encoded string (that is, the "wrong" encoding).
+Which decode methods to use is up to you. If you only need the CardData, use `DecodeData`. This is more suited for manipulating the deck. Note that `DecodeData` can be used on an entity-encoded string (that is, the "wrong" encoding).
 
-If you need the Entity (say for battle), use **BOTH** `DecodeEntity1` and `DecodeEntity2`. The only reason it is split up is because (1) the method ideally should return the entity and (2) the method must be a `Coroutine/IEnumerator` (Yes, there is a way to do both in one method, but it requires lines that are worse to read in my opinion). The `CreateAndPlaceEntity` method exists if you truly do not want to do anything with the entity after making it. This is what decoding an entity generally looks like.
+If you need the Entity (say for battle), use **BOTH** `DecodeEntity1` and `DecodeEntity2`. The only reason it is split up is because (1) the method ideally should return the entity and (2) the method must be a `Coroutine/IEnumerator` (Yes, there is a way to do both in one method, but it requires lines that are worse to read in my opinion). The `CreateAndPlaceEntity` method exists if you truly do not want to do anything with the entity after making and placing it. Below is what decoding an entity generally looks like.
 
 ```
-//Say I have a string[] with the message.
-Entity entity = CardEncoder.DecodeEntity1( null, References.Player, message);
+//Say I have a string[] named messages.
+Entity entity = CardEncoder.DecodeEntity1( null, References.Player, messages);
 //If the card will actually be used in battle, null should probably be Battle.instance.playerController.
 yield return CardEncoder.DecodeEntity2(entity, messages);
 ```
 
-Just like `DecodeData`, you can decode the "wrong" (CardData) encoding with this message. As you will see in the next chapter, much of the common uses for decoding an entity has been streamlined.
+As long as you do not attach more entries at the end of your `string[]`, you can decode a CardData encoding with this message. As you will see in the next chapter, much of the common uses for decoding an entity has been streamlined.
 
 ---
 
 ## Exercise 2: Bug Maze
 
+***Problem Statement***  
 Are you familiar with the chess-like game played using two boards where you give captured pieces to your partner to place? Well, this Wildfrost version will be something similar. Whenever a companion dies on one player's board, the companion will leave their deck and move to the deck of another player... with a small health penalty (-1 max hp). Try it for yourself and good luck!
 
 ---
-
+<details>
+	<summary>
+		<b><i>Solution Outline (Click here to expand)</i></b>
+	</summary>
 Bug Maze sounds like it should be a modifier system (Tutorial 1). Simply hook a `TransferOnDeath` method on `Events.OnEntityKilled` somewhere in `Load` (and unhook on `Unload`). This method will (1) remove the card and (2) encode the card with 1 less max hp.
 
 ```C#
@@ -371,18 +376,18 @@ public void AddCardToDeck(Friend f, string[] m)
 }
 	
 ```
+</details>
 
 ---
 
-
-## Chapter 3: `HandlerBattle` and `PlayAction`'s
+## Chapter 3: `HandlerBattle` and `PlayAction`s
 
 This is the most eventful chapter: the one where we can mess with other players while they are actually playing the game. This is also the chapter that can be the most error-prone if you are not following protocol. 
 
 Since we are dealing with battles, it makes sense to be using the `HandlerBattle` class, which handles all messages of MBM involving battles and the battle viewer. In addition, a couple of new `PlayAction`s are in MBM to help with some common animation/sequencing.
 
 ***Respect the ActionQueue***  
-Most actions (card movement, applying statuses, triggering units) that occur in a battle are coroutines/IEnumerators. So, many of them will take several frames to complete. In order to prevent errors from mistimed interactions, the `ActionQueue` is used to sequence these actions. This is great for MBM because this tells us exactly when to act on messages from other players: at the end of the queue.
+Most actions (card movement, applying statuses, triggering units) that occur in a battle are Coroutines/IEnumerators. So, many of them will take several frames to complete. In order to prevent errors from mistimed interactions, the `ActionQueue` is used to sequence these actions. This is great for MBM because this tells us exactly when to act on messages from other players: at the end of the queue.
 
 `bool HandlerBattle.instance.Queue(PlayAction playAction)`
 
@@ -393,12 +398,12 @@ There are some vanilla `PlayAction`s that are useful for modders. Things like`Ac
 
 `ActionDisplayCardAndSequence(CardData/string[], Func<Entity,IEnumerator>/PlayAction, float beforeDelay = 0, float afterDelay = 0)`*
 
-This action is broken into 4 stages. It will (1) create the entity given either `CardData` or a card string, (2) move the entity to the bottom-left corner of the screen, (3) perform the `IEnumerator` or `PlayAction` provided (optionally based on number of frenzy stacks), and (4) destroy itself afterwards.
+This action is broken into 4 stages. It will (1) create the entity given either `CardData` or a card string, (2) move the entity to the bottom-left corner of the screen, (3) perform the `IEnumerator` or `PlayAction` provided (optionally based on number of frenzy stacks), and (4) destroy itself afterwards. If you want the card to ignore the current frenzy stacks, change the `includeFrenzy` field of this action to `false`.
 
 If you want to do something weird and specific, this would be what you want. If you are extremely meticulous, you can also extend the class and override any of the stages. The two ways you probably want to use them is to play the displayed entity or place it somewhere in the battle. These two variations are the next two `PlayAction`s. 
 
 `ActionPlayOtherCard(string[] messages, Friend friend, Entity entity, CardContainer container)`
-`ActionGainCardToBattle(CardData/string[], Location location = Hand, float beforeDelay = 0, float afterDelay = 0)`  
+`ActionAddCardToBattle(CardData/string[], Location location = Hand, float beforeDelay = 0, float afterDelay = 0)`  
 
 There is one last `PlayAction`. This one is used to send a copy of a card to be played on another board. You are not expected to use it because `HandlerBattle` uses it implicitly (see Mystic code in the Sync mod).
 
@@ -408,11 +413,17 @@ There is one last `PlayAction`. This one is used to send a copy of a card to be 
 
 ## Exercise 3: Magical Mallet
 
-This exercise involves creating a special Gearhammer named the "Magical Mallet". After this mallet hits a target, it will leave the game and show up in another person's game. They can then use it and send it to another player (hopefully you). Theoretically, the same mallet could be used from the first fight to the final battle, gaining attack every time it's been collectively used. Good luck! (Tip: If you want to choose another player instead of it being random, now would be a good time to look at `StatusEffectInstantMessage` class.)
+***Problem Statement***  
+This exercise involves creating a special Gearhammer named the "Magical Mallet". After this mallet hits a target, it will leave the game and show up in another person's game. They can then use it and send it to another player (hopefully back to you). Theoretically, the same mallet could be used from the first fight to the final battle, gaining attack every time it's been collectively used. Good luck! (Tip: If you want to choose another player instead of it being random, now would be a good time to look at `StatusEffectInstantMessage` class again.)
 
 ---
 
-The easiest implementation is to copy a normal Gearhammer and give it two new effects: consume and a custom ApplyXWhenDestroyed (specifically consumed) where the `effectToApply` is an `StatusEffectInstantMessage` (this is also an MBM class) or equivalent. In a structure like the GitHub tutorials, 
+<details>
+	<summary>
+		<b><i>Solution Outline (Click here to expand)</i></b>
+	</summary>
+	
+The easiest implementation is to copy a normal Gearhammer and give it two new effects: Consume and a custom ApplyXWhenDestroyed (specifically consumed) where the `effectToApply` is an `StatusEffectInstantMessage` or equivalent. In a structure like the GitHub tutorials, 
 ```C#
 //Don't forget to make the ApplyXWhenDestroyed and attach that to the card.
 assets.Add(new StatusEffectDataBuilder(this)
@@ -436,6 +447,7 @@ public void DoSomething2(Friend f, string[] m)
 	HandlerBattle.instance.Queue(action);
 }
 ```
+</details>
 
 ---
 
