@@ -7,8 +7,10 @@ As the name implies, the *Multiplayer Base Mod* (MBM) is a mod for Wildfrost tha
 
 The goal of this document is two-fold. The first goal is to explain the parts of MBM that will be most relevant to those who want to make multiplayer mods. MBM is a framework mod; it does not add any additional content by itself. It wants to be built up from, and this document should help streamline the process of understanding it. The second goal is to direct those same people towards what I believe are the parts most resistant to change. MBM will be modified as time goes on, and that affects anything dependent on it. If a method is listed in this document, then I will have a strong aversion to change it in the future (though maybe not forever).
 
-Each chapter/part will focus on a specific class (and possibly some satellite classes as well). `Noteworthy methods will be  
-written in code and given its own line like this.`  
+Each chapter/part will focus on a specific class (and possibly some satellite classes as well).  
+
+`Noteworthy methods will be written in code and given its own line like this.`  
+
 Any method denoted with an asterisk `*` might be less relevant to you, possibly because it is called implicitly elsewhere or the functionality is rather specific. Any method denoted with two asterisks `**` are ones that I have not found a use for, but may have a relevance to someone. All other methods are important in their own way. 
 
 At the end of each chapter is an exercise. I recommend trying them out yourself, but a solution outline is provided.
@@ -54,12 +56,10 @@ Below is an outline of the document on what you should get out of it.
 
 ### Referencing the dll's
 
-**Steamworks**
-
+***Steamworks***  
 MBM is build off the Steamworks API, so you need to reference that to have access to the `Friend` class. The dll (Steamworks.dll) is located in the same folder as all the other dlls from *Basic Project Setup* in the GitHub tutorials. It was not a necessary one, so make sure that you have it in your project.
 
-**Multiplayer Base Mod**
-
+***Multiplayer Base Mod***  
 Subscribe to the mod and find the address where Steam has downloaded it (Easiest way is to open the game, find MBM, and click the folder icon (If you have Mod Stabilizer, you may also need to right-click to see the file button)). Copy the address to the dll. In your preferred IDE of choice, simply add the reference to your project (In Visual Studios, this can be done by right-clicking the project icon and selecting "Add References"). Once you have done that, you have access to the MBM classes.
 
 ## Chapter 1: The `HandlerSystem` Class
@@ -68,8 +68,7 @@ The `HandlerSystem` class is the backbone of the mod. It is the class in charge 
 
 ### The Receiving Side
 
-**Defining a handler**
-
+***Defining a handler***  
 When `HandlerSystem` receives a message, it will try to find the right method to read it based on its *handler*. All messages transmitted have a "handler" string at the beginning to designate where it needs to go and who should read it. The handlers used in MBM are "CHT", "BAT", "EVE", "INS", "MSC", and "MAP". The sync mod uses one handler: "SYNC". Mods can use as few or as many handlers as they want, as long as they do not overlap. Preferably, make them unique enough to not be replicated (something similar to the GUID perhaps?). The only rule is **do not use vertical bars "|" in your handler**. The `HandlerSystem` uses that as a delimiter. To set up your handler, you need the following line in your `Load` method of the main mod class:
 
 ```C#
@@ -83,7 +82,7 @@ HandlerSystem.HandlerRoutines.RemoveKey("MY_HANDLER");
 
 (Expect the corresponding `Remove` line in `Unload` as well)
 
-This line says that all messages beginning with "MY_HANDLER" will be routed to the method `MyHandlerMethod` (Please change these names when working on a real mod). Depending on your mod, you may expect different types of messages going through `MyHandlerMethod`. I usually set these methods as a glorified switch statement (a dictionary is approximately the same result as well). This is the general form I end up with.
+This line says that all messages beginning with "MY_HANDLER" will be routed to the method `MyHandlerRoutine` (Please change these names when working on a real mod). Depending on your mod, you may expect different types of messages going through `MyHandlerRoutine`. I usually set these methods as a glorified switch statement (a dictionary is approximately the same result as well). This is the general form I end up with.
 
 ---
 
@@ -112,7 +111,7 @@ public void MyHandlerRoutine(Friend f, string message) //The handler is not incl
 
 The sending side consists of `HandlerSystem.SendMessage`, its variants, and some helper functions. Here are all the variants.
 
-***Sending Messages***
+***Sending Messages***  
 `HandlerSystem.SendMessage(string handler, Friend to, string message, string feedback = null)`  
 `HandlerSystem.SendMessageToAll(string handler, string message, bool includeSelf, string feedback = null)`*  
 `HandlerSystem.SendMessageToAllOthers(string handler, string message, string feedback = null)`  
@@ -124,7 +123,7 @@ The sending side consists of `HandlerSystem.SendMessage`, its variants, and some
 
 What's usually going to happen is that messages end up being a sequence of keywords that takes your handler method to the line of code it needs to be in. The `HandlerSystem` class has some methods to do exactly that. Use`ConcatMessage` and/or `AppendTo` to pack seperate strings together and `DecodeMessage` to split them apart.
 
-***Combining/Splitting Basic Messages***
+***Combining/Splitting Basic Messages***  
 `string HandlerSystem.ConcatMessage(bool performReplacement, params string[] messages)`  
 `string HandlerSystem.AppendTo(string original, string addOn, bool performReplacement = true)`**  
 `string[] HandlerSystem.DecodeMessage(string message)`
@@ -176,14 +175,12 @@ This class is not meant to encapture every use of messages in a status effect. F
 
 ## Exercise 1: Quantum Folby
 
-**Problem Statement**
-
+***Problem Statement***  
 We know enough to do something interesting. Let's make a card similar to Folby but with the effect "When hit, add a Junk to a random player's deck". Try it for yourself or read below for an outline of how it can be done. 
 
 ---
 
-**Solution Outline**
-
+***Solution Outline***  
 The sequence of events would look something like the following. 
  
 (Sender's Game)
@@ -252,8 +249,7 @@ The `CardEncoder` class has already defined a protocol for encoding/decoding `Ca
 `string CardEncoder.Encode(CardData cardData)`  
 `string CardEncoder.Encode(Entity entity)`
 
-**Hacky Modifications**
-
+***Hacky Modifications***  
 Since these strings hold the essence of the card, editing the strings can change the cards on the receiver side. MBM provides some methods to help with that.
 
 `void CardEncoder.Modify(ref string s, Action <string[]> modifications)`  
@@ -291,8 +287,7 @@ Sometimes, just `string.Replace` will suffice for your needs, but these methods 
 
 attackEffects, startWithEffects, and traits have an additional encoding attached to them. Using `DecodeToStacks` will convert it to an easier to deal with form. After editing it, be sure to use `EncodeToStack` to get a string, then replace the corresponding entry in the array with this new string.
 
-**Decoding cards**
-
+***Decoding cards***  
 `CardData CardEncoder.DecodeData(string[] messages, CardData data = null)`
 `Entity CardEncoder.DecodeEntity1(CardController cc, Character owner, string[] messages)`*
 `IEnumerator CardEncoder.DecodeEntity2(Entity entity, string[] messages)`*
@@ -386,16 +381,14 @@ This is the most eventful chapter: the one where we can mess with other players 
 
 Since we are dealing with battles, it makes sense to be using the `HandlerBattle` class, which handles all messages of MBM involving battles and the battle viewer. In addition, a couple of new `PlayAction`s are in MBM to help with some common animation/sequencing.
 
-**Respect the ActionQueue**
-
+***Respect the ActionQueue***  
 Most actions (card movement, applying statuses, triggering units) that occur in a battle are coroutines/IEnumerators. So, many of them will take several frames to complete. In order to prevent errors from mistimed interactions, the `ActionQueue` is used to sequence these actions. This is great for MBM because this tells us exactly when to act on messages from other players: at the end of the queue.
 
 `bool HandlerBattle.instance.Queue(PlayAction playAction)`
 
 This `Queue` method is `ActionQueue.Add` wrapped in some general checks (Is the player in a battle? Did the battle end already?). If the action was successfully queued, the method returns true. 
 
-**New PlayActions**
-
+***New PlayActions***  
 There are some vanilla `PlayAction`s that are useful for modders. Things like`ActionApplyStatus`, `ActionDraw`, and `ActionTrigger` can have their uses. In the context of multiplayer, these vanilla actions do not show the card that procced them (as it's on another board. This brings us to the first `PlayAction`.
 
 `ActionDisplayCardAndSequence(CardData/string[], Func<Entity,IEnumerator>/PlayAction, float beforeDelay = 0, float afterDelay = 0)`*
@@ -450,8 +443,7 @@ public void DoSomething2(Friend f, string[] m)
 
 This is a loose collection of other stuff that may be useful.
 
-**MultEvents**
-
+***MultEvents***  
 There are a couple of events that you can hook onto. They are all found in the `MultEvents` class.
 
 `OnHandlerSystemEnabled()`  
@@ -467,8 +459,7 @@ The first two are self-explanatory. The third event fires sometime within `Actio
 `OnBlessingSelected(BossRewardData.Data data)`*  
 This final event is called when a boss reward is selected (there didn't seem to be any existing events that di this already). 
 
-**MultTextManager**
-
+***MultTextManager***  
 To display a message to another player, you can use the following method
 
 `void MultTextManager.AddEntry(string s, float size, Color color, float duration)`
