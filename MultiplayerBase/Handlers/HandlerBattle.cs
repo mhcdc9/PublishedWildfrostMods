@@ -177,7 +177,7 @@ namespace MultiplayerBase.Handlers
 
         public bool Queue(PlayAction p)
         {
-            if (Battle.instance == null || Battle.instance.phase != Battle.Phase.End)
+            if (Battle.instance == null || Battle.instance.phase == Battle.Phase.End)
             {
                 return false;
             }

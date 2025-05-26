@@ -100,7 +100,7 @@ namespace MultiplayerBase
             text.CrossFadeAlpha(0, 0.01f, true);
             yield return null;
             text.CrossFadeAlpha(1, 0.5f, false);
-            yield return Sequences.Wait(0.5f);
+            yield return Sequences.Wait(1f);
             text.CrossFadeAlpha(0, 0.5f, false);
             yield return Sequences.Wait(0.5f);
             text.gameObject.Destroy();

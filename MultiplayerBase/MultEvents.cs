@@ -11,6 +11,10 @@ namespace MultiplayerBase
     //Ideally, all events created in this mod should be stored. Although there may be some events from Steamworks not referenced here.
     public static class MultEvents
     {
+        //Handler System
+        public static event UnityAction OnHandlerSystemEnabled;
+        public static event UnityAction OnHandlerSystemDisabled;
+
         //Handler Battle
         public static event UnityAction<Friend> OnBattleViewerOpen;
         public static event UnityAction<Friend> OnBattleViewerClose;
@@ -19,6 +23,16 @@ namespace MultiplayerBase
 
         //Handler Event
         public static event UnityAction<BossRewardData.Data> OnBlessingSelected;
+
+        public static void InvokeHandlerSystemEnabled()
+        {
+            OnHandlerSystemEnabled?.Invoke();
+        }
+
+        public static void InvokeHandlerSystemDisabled()
+        {
+            OnHandlerSystemDisabled?.Invoke();
+        }
 
         public static void InvokeBattleViewerOpen(Friend f)
         {

@@ -1,15 +1,16 @@
-﻿using Steamworks.Data;
+﻿using MultiplayerBase.UI;
 using Steamworks;
+using Steamworks.Data;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using UnityEngine;
-using MultiplayerBase.UI;
-using UnityEngine.SceneManagement;
 using TMPro;
+using UnityEngine;
+using UnityEngine.Localization.Pseudo;
+using UnityEngine.SceneManagement;
 
 
 
@@ -103,6 +104,7 @@ namespace MultiplayerBase.Handlers
             SceneChanged(SceneManager.GetActive());
 
             enabled = true;
+            MultEvents.InvokeHandlerSystemEnabled();
         }
 
         public static void Disable()
@@ -118,6 +120,7 @@ namespace MultiplayerBase.Handlers
             HandlerMap.instance.enabled = false;
             Debug.Log("[Multiplayer] Handler System is disabled.");
             enabled = false;
+            MultEvents.InvokeHandlerSystemDisabled();
         }
 
         private static IEnumerator ListenLoop()
@@ -248,6 +251,7 @@ namespace MultiplayerBase.Handlers
                     Debug.Log($"[Multiplayer] Running handler [{strings[0]}]");
                     if (FindFriend(strings[1]) is Friend friend)
                     {
+                        //Debug.Log($"[Multiplayer] {s}");
                         s = string.Concat(strings.RangeSubset(2, strings.Length - 2));
                         //Debug.Log($"[Multiplayer] Message [{s}]");
                         HandlerRoutines[strings[0]](friend,s);

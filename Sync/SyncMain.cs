@@ -202,6 +202,7 @@ namespace Sync
                 );
             #endregion
 
+            #region SYNC
             assets.Add(new StatusEffectDataBuilder(this)
                 .CreateSyncEffect<StatusEffectSync>("Sync Mystic", "<keyword=mhcdc9.wildfrost.sync.sync>: <keyword=mhcdc9.wildfrost.sync.mystic>", "", "Temporary Mystic")
                 .WithConstraints(Extensions.IsItem(), Extensions.IsPlay(), Extensions.TargetsBoard())
@@ -279,7 +280,7 @@ namespace Sync
                     cycle.AddComponent<SyncArrows>().enabled = false;
                     cycle.GetComponent<RectTransform>().sizeDelta = new Vector2(1f, 1f);
                 }));
-
+            #endregion SYNC
         }
 
         internal static Sprite GetSprite(string s)
@@ -315,6 +316,9 @@ namespace Sync
                     if (Dead.Random.Range(0f, 1f) < itemSyncChance && data.cardType.name == "Item")
                     {
                         Extensions.TryAddSync(data, ItemSyncEffects);
+                    }
+                    if (Dead.Random.Range(0f, 1f) < itemMystChance)
+                    {
                         Extensions.TryAddTrait(data, TStack("Mystic", 1));
                     }
                 }
@@ -373,7 +377,7 @@ namespace Sync
             {
                 //entity.data.traits.Remove(stack);
                 string message = Net.ConcatMessage(false, "PROM", CardEncoder.Encode(entity.data));
-                Net.SendMessageToAllOthers("SYNC", message);
+                Net.SendMessageToAllOthers("SYNC", message, "Sending...");
             }
         }
 
@@ -389,6 +393,7 @@ namespace Sync
         internal void SYNC_Handler(Friend friend, string message)
         {
             string[] messages = Net.DecodeMessages(message);
+            Debug.Log("[Sync] " + message);
             switch(messages[0])
             {
                 case "PROM":
@@ -400,7 +405,7 @@ namespace Sync
                     if (References.PlayerData?.inventory?.deck != null)
                     {
                         References.PlayerData.inventory.deck.Add(data);
-                        if (!HandlerBattle.instance.Queue(new ActionGainCardToHand(messages.Skip(1).ToArray())))
+                        if (!HandlerBattle.instance.Queue(new ActionAddCardToBattle(data)))
                         {
                             MultTextManager.AddEntry($"Received {data.title} from {friend.Name}", 0.55f, new Color(1f, 0.75f, 0.38f), 1f);
                         }
@@ -422,7 +427,6 @@ namespace Sync
                     }
                     break;
                 case "GAIDEN":
-                    Debug.Log("[Sync] " + message);
                     GaidenSystem.GAIDEN_Handler(friend, messages);
                     break;
                 default:

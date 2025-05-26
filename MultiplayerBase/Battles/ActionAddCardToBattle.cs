@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace MultiplayerBase.Battles
 {
-    public class ActionGainCardToHand : ActionDisplayCardAndSequence
+    public class ActionAddCardToBattle : ActionDisplayCardAndSequence
     {
         public enum Location
         {
@@ -22,14 +22,14 @@ namespace MultiplayerBase.Battles
 
         public Location location = Location.Hand;
 
-        public ActionGainCardToHand(CardData cardData, Location location = Location.Hand, float beforeDelay = 0f, float afterDelay = 0f)
+        public ActionAddCardToBattle(CardData cardData, Location location = Location.Hand, float beforeDelay = 0f, float afterDelay = 0f)
             : base(cardData, null, null, null, beforeDelay, afterDelay)
         {
             this.location = location;
             note = cardData.title;
         } 
 
-        public ActionGainCardToHand(string[] messages, Location location = Location.Hand, float beforeDelay = 0f, float afterDelay = 0f)
+        public ActionAddCardToBattle(string[] messages, Location location = Location.Hand, float beforeDelay = 0f, float afterDelay = 0f)
             : base(null, messages, null, null, beforeDelay, afterDelay) 
         {
             this.location = location;

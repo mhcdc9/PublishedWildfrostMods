@@ -45,9 +45,9 @@ namespace MultiplayerBase
 
         public override string[] Depends => new string[0];
 
-        public override string Title => "Multiplayer Base Mod";
+        public override string Title => "Multiplayer Base Mod v0.1";
 
-        public override string Description => "A foundation for multiplayer mods to build on top of.";
+        public override string Description => "[Work In Progress] A foundation for multiplayer mods to build on top of.";
 
         [ConfigManagerTitle("Friend Icon Sizes")]
         [ConfigManagerDesc("Determines the size of the friend icons")]
@@ -96,6 +96,8 @@ namespace MultiplayerBase
             textElement = gameobject.AddComponent<TextMeshProUGUI>();
             gameobject.AddComponent<MultTextManager>();
 
+            Get<GameMode>("GameModeNormal").saveFileName = "Multiplayer";
+
             SetIconSize();
         }
 
@@ -123,6 +125,8 @@ namespace MultiplayerBase
             {
                 HandlerSystem.Disable();
             }
+
+            Get<GameMode>("GameModeNormal").saveFileName = "";
         }
 
         private void ConfigChanged(ConfigItem item, object value)

@@ -49,7 +49,7 @@ namespace MultiplayerBase.StatusEffects
 
         public virtual IEnumerator SendMessage(string fullMessage)
         {
-            Debug.Log($"[Multiplayer]: {fullMessage}");
+            Debug.Log($"[Multiplayer] Sending message: {fullMessage}");
             switch(toWhom)
             {
                 case ToWhom.Self: HandlerSystem.SendMessage(handler, HandlerSystem.self, fullMessage, feedback);

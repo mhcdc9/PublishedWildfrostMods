@@ -145,7 +145,7 @@ namespace Sync
                     card.customData= new Dictionary<string, object>();
                     card.customData["ActualId"] = f.Name + id;
                 }
-                HandlerBattle.instance.Queue(new ActionGainCardToHand(card, ActionGainCardToHand.Location.PlayerBoard));
+                HandlerBattle.instance.Queue(new ActionAddCardToBattle(card, ActionAddCardToBattle.Location.PlayerBoard));
                 string s = Net.ConcatMessage(true, "GAIDEN", "ACCEPT", id, Campaign.FindCharacterNode(References.Player).tier.ToString());
                 Net.SendMessage("SYNC", f, s);
             }
