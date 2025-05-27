@@ -18,9 +18,9 @@ namespace MultiplayerBase.Matchmaking
     internal class ModView : MonoBehaviour
     {
         TextMeshProUGUI textElement;
-        static Vector3 defaultPosition = new Vector3(6f,-0.4f,0f);
-        static Vector2 dim = new Vector2(6f, 8.2f);
-        static Vector2 innerDim = new Vector2(5f, 7.5f);
+        static Vector3 defaultPosition = new Vector3(5.75f,-0.4f,0f);
+        static Vector2 dim = new Vector2(5.5f, 8.2f);
+        static Vector2 innerDim = new Vector2(4.5f, 7.5f);
         static float titleSize = 0.6f;
         static float bodySize = 0.3f;
 

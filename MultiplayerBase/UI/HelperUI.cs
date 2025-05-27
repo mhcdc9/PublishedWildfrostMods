@@ -16,7 +16,10 @@ namespace MultiplayerBase.UI
         public static ButtonAnimator betterTemplate;
 
 
+        public static readonly Color restingColor = new Color(0.85f, 0.85f, 0.85f);
+        public static readonly Color hoverColor = new Color(1f, 1f, 1f);
         public static readonly Color highlightYellow = new Color(1, 0.78f, 0.35f);
+        public static readonly Color disabledColor = new Color(0.3f, 0.3f, 0.3f);
 
         public static void CreateTemplates()
         {
@@ -150,6 +153,39 @@ namespace MultiplayerBase.UI
 
             return newButtonObject.GetComponent<Button>();
 
+        }
+
+        public static Button HoverColors(this Button b, Color hover, Color unhover)
+        {
+            ButtonHover bh = b.gameObject.AddComponent<ButtonHover>();
+            bh.Set(b, hover, unhover);
+            return b;
+        }
+
+        public static void ToggleParts(this Button b, bool on)
+        {
+            if (on)
+            {
+                b.EnableAllParts();
+            }
+            else
+            {
+                b.DisableAllParts();
+            }
+        }
+
+        public static void EnableAllParts(this Button b)
+        {
+            b.interactable = true;
+            b.GetComponent<UINavigationItem>().enabled = true;
+            b.GetComponent<ButtonHover>()?.Enable();
+        }
+
+        public static void DisableAllParts(this Button b)
+        {
+            b.interactable = false;
+            b.GetComponent<UINavigationItem>().enabled = false;
+            b.GetComponent<ButtonHover>()?.Disable();
         }
 
         public static ButtonAnimator EditButtonAnimator(this Button b, Color? highlightColor = null, Color? textHighlightColor = null, Color? normalColor = null, Color? textNormalColor = null)

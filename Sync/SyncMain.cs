@@ -77,7 +77,7 @@ namespace Sync
 
         public override string GUID => "mhcdc9.wildfrost.sync";
 
-        public override string[] Depends => new string[0];
+        public override string[] Depends => new string[] {"hope.wildfrost.configs", "hope.wildfrost.vfx", "mhcdc9.wildfrost.multiplayer"};
 
         public override string Title => "Sync and Mystic";
 

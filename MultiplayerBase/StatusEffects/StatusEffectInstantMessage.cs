@@ -44,7 +44,7 @@ namespace MultiplayerBase.StatusEffects
 
         public virtual string Convert(string original)
         {
-            return string.Format(original, count, CardEncoder.Encode(target), target.data.id.ToString(), amount?.Get(target) ?? 0);
+            return string.Format(original, count, CardEncoder.Encode(target), target.data.id.ToString(), name, amount?.Get(target) ?? 0);
         }
 
         public virtual IEnumerator SendMessage(string fullMessage)

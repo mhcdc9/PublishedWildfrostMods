@@ -77,7 +77,8 @@ namespace MultiplayerBase.Matchmaking
             navGroup = HelperUI.HorizontalGroup("Nav Group", transform, innerDim, 0.1f);
             navGroup.transform.localPosition = new Vector3(0, -2.7f, 0);
 
-            leftButton = HelperUI.ButtonTemplate(navGroup.transform, new Vector2(1.5f, 0.7f), Vector2.zero, "<", Color.white);
+            leftButton = HelperUI.ButtonTemplate(navGroup.transform, new Vector2(1.5f, 0.7f), Vector2.zero, "<", HelperUI.restingColor)
+                .HoverColors(HelperUI.hoverColor, HelperUI.restingColor);
             leftButton.onClick.AddListener(PageDown);
             leftButton.transform.AddLayoutElement(new Vector2(1.5f, 0.7f));
 
@@ -89,7 +90,8 @@ namespace MultiplayerBase.Matchmaking
             pageText.alignment = TextAlignmentOptions.Center;
             pageText.fontSize = 0.5f;
 
-            rightButton = HelperUI.ButtonTemplate(navGroup.transform, new Vector2(1.5f, 0.7f), Vector2.zero, ">", Color.white);
+            rightButton = HelperUI.ButtonTemplate(navGroup.transform, new Vector2(1.5f, 0.7f), Vector2.zero, ">", HelperUI.restingColor)
+                .HoverColors(HelperUI.hoverColor, HelperUI.restingColor);
             rightButton.onClick.AddListener(PageUp);
             rightButton.transform.AddLayoutElement(new Vector2(1.5f, 0.7f));
 
@@ -102,7 +104,7 @@ namespace MultiplayerBase.Matchmaking
         {
             index = -1;
             gameObject.SetActive(true);
-            Dashboard.joinLobbyButton.interactable = false;
+            Dashboard.ButtonOff(Dashboard.joinLobbyButton);
             for (int i = lobbyButtons.Length - 1; i >= 0; i--)
             {
                 lobbyButtons[i].gameObject.Destroy();
@@ -111,7 +113,8 @@ namespace MultiplayerBase.Matchmaking
             for (int i = 0; i < lobbies.Length; i++)
             {
                 int j = i;
-                lobbyButtons[j] = HelperUI.ButtonTemplate(buttonGroup.transform, elementDim, Vector2.zero, $"{lobbies[j].GetData("name")}", Color.white); //new Vector3(0, 3 - 1.5f * j, 0)
+                lobbyButtons[j] = HelperUI.ButtonTemplate(buttonGroup.transform, elementDim, Vector2.zero, $"{lobbies[j].GetData("name")}", Color.white)
+                    .HoverColors(HelperUI.hoverColor, HelperUI.restingColor); ; //new Vector3(0, 3 - 1.5f * j, 0)
                 lobbyButtons[j].transform.AddLayoutElement(elementDim);
                 lobbyButtons[j].GetComponentInChildren<TextMeshProUGUI>().fontSize = 0.5f;
                 lobbyButtons[j].onClick.AddListener(() => SelectLobby(j));
@@ -119,10 +122,11 @@ namespace MultiplayerBase.Matchmaking
             for (int i = lobbies.Length; i < lobbyButtons.Length; i++)
             {
                 int j = i;
-                lobbyButtons[j] = HelperUI.ButtonTemplate(buttonGroup.transform, elementDim, Vector2.zero, i == 0 ? "No Lobbies Found :(" : "____", Color.white);
+                lobbyButtons[j] = HelperUI.ButtonTemplate(buttonGroup.transform, elementDim, Vector2.zero, i == 0 ? "No Lobbies Found :(" : "____", Color.white)
+                    .HoverColors(HelperUI.hoverColor, HelperUI.restingColor); ;
                 lobbyButtons[j].transform.AddLayoutElement(elementDim);
                 lobbyButtons[j].GetComponentInChildren<TextMeshProUGUI>().fontSize = 0.5f;
-                lobbyButtons[j].interactable = false;
+                lobbyButtons[j].DisableAllParts();
             }
             numberOfPages = lobbyButtons.Length/5;
             GoToPage(0);
@@ -151,8 +155,8 @@ namespace MultiplayerBase.Matchmaking
             {
                 buttonGroup.transform.GetChild(i).gameObject.SetActive(i / 5 == pageIndex);
             }
-            leftButton.interactable = (pageIndex > 0);
-            rightButton.interactable = (pageIndex < numberOfPages-1);
+            leftButton.ToggleParts(pageIndex > 0);
+            rightButton.ToggleParts(pageIndex < numberOfPages-1);
             int displayedPage = lobbyButtons.Length == 0 ? 0 : pageIndex+1;
             pageText.text = $"{displayedPage} of {numberOfPages}";
         }

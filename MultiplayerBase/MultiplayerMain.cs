@@ -43,9 +43,9 @@ namespace MultiplayerBase
 
         public override string GUID => "mhcdc9.wildfrost.multiplayer";
 
-        public override string[] Depends => new string[0];
+        public override string[] Depends => new string[] { "hope.wildfrost.configs"};
 
-        public override string Title => "Multiplayer Base Mod v0.1";
+        public override string Title => "Multiplayer Base Mod v0.1.1";
 
         public override string Description => "[Work In Progress] A foundation for multiplayer mods to build on top of.";
 
@@ -302,6 +302,8 @@ namespace MultiplayerBase
             matchmaker.lobbyView.ExitLobbyView(false);
             matchmaker.memberView.CloseMemberView(false);
             matchmaker.modView.CloseModView(false);
+            GameObject obj = matchmaker.backButton.transform.parent.parent.gameObject;
+            LeanTween.moveLocal(obj, new Vector3(-12.5f, 0, 0), 0.5f).setEaseOutQuart();
             matchmaker.background.GetComponent<Fader>().Out(0.4f);
             References.instance.StartCoroutine(Close(0.45f));
         }

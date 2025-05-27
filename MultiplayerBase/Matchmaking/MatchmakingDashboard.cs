@@ -19,6 +19,7 @@ namespace MultiplayerBase.Matchmaking
 {
     /*The MatchmakingDashboard is the bulk of the UI for setting up and joining lobbies.
      */
+    //Canvas/SafeArea/Menu/Back Button/
     public class MatchmakingDashboard : MonoBehaviour
     {
         public static Lobby? lobby;
@@ -34,6 +35,8 @@ namespace MultiplayerBase.Matchmaking
         internal Button finalizeButton;
         internal Button unfinalizeButton;
 
+        internal Button backButton;
+
         internal MemberView memberView;
         internal ModView modView;
         internal LobbyView lobbyView;
@@ -45,6 +48,11 @@ namespace MultiplayerBase.Matchmaking
         {
             instance = this;
             transform.SetAsFirstSibling();
+            gameObject.AddComponent<UINavigationLayer>();
+            /*
+            WorldSpaceCanvasSafeArea can = gameObject.AddComponent<WorldSpaceCanvasSafeArea>();
+            can.parent = transform.parent as RectTransform; //NOT A RECT-TRANSFORM <sigh>
+            */
 
             background = HelperUI.Background(transform, new Color(0f, 0f, 0f, .8f));
             Fader fader = background.AddComponent<Fader>();
@@ -85,16 +93,22 @@ namespace MultiplayerBase.Matchmaking
             exitTween.duration = 0.5f;
             exitTween.to = new Vector3(0, -8f, 0);
 
-            createLobbyButton = HelperUI.BetterButtonTemplate(buttonGroup.transform,new Vector2(2,0.8f), new Vector3(-1.5f, 1, 0), "Create", Color.white);
-            createLobbyButton.EditButtonAnimator(Color.white, Color.black, Color.white, Color.black);
-            findLobbyButton = HelperUI.BetterButtonTemplate(buttonGroup.transform, new Vector2(2, 0.8f), new Vector3(-1.5f, 0, 0), "Refresh", Color.white);
-            findLobbyButton.EditButtonAnimator(Color.white, Color.black, Color.white, Color.black);
-            joinLobbyButton = HelperUI.BetterButtonTemplate(buttonGroup.transform, new Vector2(2, 0.8f), new Vector3(1.5f, 0, 0), "Join", Color.white);
-            joinLobbyButton.EditButtonAnimator(Color.white, Color.black, Color.white, Color.black);
-            leaveLobbyButton = HelperUI.BetterButtonTemplate(buttonGroup.transform, new Vector2(2, 0.8f), new Vector3(1.5f, 1, 0), "Leave", Color.white);
-            leaveLobbyButton.EditButtonAnimator(Color.white, Color.black, Color.white, Color.black);
-            finalizeButton = HelperUI.BetterButtonTemplate(buttonGroup.transform, new Vector2(3, 0.8f), new Vector3(0f, -1, 0), "Finalize", Color.white);
-            finalizeButton.EditButtonAnimator(Color.white, Color.black, Color.white, Color.black);
+            GameObject backButtonObj = GameObject.Instantiate(GameObject.Find("Canvas/SafeArea/Menu/Back Button"), transform);
+            backButton = backButtonObj.GetComponentInChildren<Button>();
+            backButtonObj.transform.localPosition = new Vector3(-12.5f, 0, 0);
+            backButton.onClick.SetPersistentListenerState(0, UnityEngine.Events.UnityEventCallState.Off);
+            backButton.onClick.AddListener(MultiplayerMain.instance.CloseMatchmaking);
+
+            createLobbyButton = HelperUI.BetterButtonTemplate(buttonGroup.transform,new Vector2(2,0.8f), new Vector3(-1.4f, 1, 0), "Create", HelperUI.restingColor);
+            createLobbyButton.EditButtonAnimator(Color.white, Color.black, HelperUI.restingColor, Color.black);
+            findLobbyButton = HelperUI.BetterButtonTemplate(buttonGroup.transform, new Vector2(2, 0.8f), new Vector3(-1.4f, 0, 0), "Refresh", HelperUI.restingColor);
+            findLobbyButton.EditButtonAnimator(Color.white, Color.black, HelperUI.restingColor, Color.black);
+            joinLobbyButton = HelperUI.BetterButtonTemplate(buttonGroup.transform, new Vector2(2, 0.8f), new Vector3(1.4f, 0, 0), "Join", HelperUI.restingColor);
+            joinLobbyButton.EditButtonAnimator(Color.white, Color.black, HelperUI.restingColor, Color.black);
+            leaveLobbyButton = HelperUI.BetterButtonTemplate(buttonGroup.transform, new Vector2(2, 0.8f), new Vector3(1.4f, 1, 0), "Leave", HelperUI.restingColor);
+            leaveLobbyButton.EditButtonAnimator(Color.white, Color.black, HelperUI.restingColor, Color.black);
+            finalizeButton = HelperUI.BetterButtonTemplate(buttonGroup.transform, new Vector2(3, 0.8f), new Vector3(0f, -1, 0), "Finalize", HelperUI.restingColor);
+            finalizeButton.EditButtonAnimator(Color.white, Color.black, HelperUI.restingColor, Color.black);
             unfinalizeButton = HelperUI.BetterButtonTemplate(buttonGroup.transform, new Vector2(3, 0.8f), new Vector3(0f, -1, 0), "Disband", new Color(1f,0.33f,0.33f));
             unfinalizeButton.EditButtonAnimator(Color.white, Color.red, new Color(1f, 0.33f, 0.33f), Color.black);
             unfinalizeButton.gameObject.SetActive(false);
@@ -111,6 +125,15 @@ namespace MultiplayerBase.Matchmaking
             lobbyView = LobbyView.Create(transform);
             memberView = MemberView.Create(transform);
             modView = ModView.Create(transform);
+        }
+
+        public void OnEnable()
+        {
+            if (backButton != null)
+            {
+                GameObject obj = backButton.transform.parent.parent.gameObject;
+                LeanTween.moveLocal(obj, new Vector3(-9.5f, 0, 0), 0.5f).setEaseOutQuart(); ;
+            }
         }
 
         public void DisbandMenu()
@@ -291,13 +314,13 @@ namespace MultiplayerBase.Matchmaking
 
         public void ButtonOn(Button button)
         {
-            button.interactable = true;
+            button.EnableAllParts();
             button.transform.parent.GetComponent<ButtonAnimator>().UnHighlight();
         }
 
         public void ButtonOff(Button button)
         {
-            button.interactable = false;
+            button.DisableAllParts();
             button.transform.parent.GetComponent<ButtonAnimator>().Disable();
         }
     }

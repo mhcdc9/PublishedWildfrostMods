@@ -53,10 +53,10 @@ namespace MultiplayerBase.Matchmaking
             return mv;
         }
 
-        static Vector2 dim = new Vector2(6f, 8.2f);
-        static Vector2 dim2 = new Vector2(5f, 7.5f);
-        static Vector3 pos = new Vector3(-6f, -0.4f, 0);
-        static Vector2 memberDim = new Vector2(5f, 1f);
+        static Vector2 dim = new Vector2(5.5f, 8.2f);
+        static Vector2 dim2 = new Vector2(4.5f, 7.5f);
+        static Vector3 pos = new Vector3(-5.75f, -0.4f, 0);
+        static Vector2 memberDim = new Vector2(4.5f, 1f);
         static Vector2 iconDim = new Vector2(0.8f, 0.8f);
         static Vector2 textDim = new Vector2(3f, 0.8f);
         static float fontSize = 0.4f;
@@ -85,7 +85,8 @@ namespace MultiplayerBase.Matchmaking
             {
                 foreach(Friend friend in lobby.Members)
                 {
-                    GameObject obj1 = HelperUI.ButtonTemplateWithIcon(memberGroup.transform, memberDim, iconDim, Vector3.zero, friend.Name, new Color(0.3f, 0.3f, 0.3f), 0.1f, 0.1f).gameObject;
+                    GameObject obj1 = HelperUI.ButtonTemplateWithIcon(memberGroup.transform, memberDim, iconDim, Vector3.zero, friend.Name, new Color(0.3f, 0.3f, 0.3f), 0.1f, 0.1f);
+                    obj1.GetComponent<Button>().HoverColors(new Color(0.5f, 0.5f, 0.5f), new Color(0.3f, 0.3f, 0.3f));
                     obj1.GetComponentInChildren<TextMeshProUGUI>().color = Color.white;
                     obj1.GetComponentInChildren<TextMeshProUGUI>().fontSize = fontSize;
                     obj1.GetComponentInChildren<TextMeshProUGUI>().outlineWidth = 0.15f;
@@ -101,6 +102,7 @@ namespace MultiplayerBase.Matchmaking
                 steamId.Value = id;
                 Friend friend = new Friend(steamId);
                 GameObject obj1 = HelperUI.ButtonTemplateWithIcon(memberGroup.transform, memberDim, iconDim, Vector3.zero, friend.Name, new Color(0.3f, 0.3f, 0.3f), 0.1f, 0.1f).gameObject;
+                obj1.GetComponent<Button>().HoverColors(new Color(0.5f, 0.5f, 0.5f), new Color(0.3f, 0.3f, 0.3f));
                 obj1.GetComponentInChildren<TextMeshProUGUI>().color = Color.white;
                 obj1.GetComponentInChildren<TextMeshProUGUI>().fontSize = fontSize;
                 Task<Steamworks.Data.Image?> imageTask = friend.GetLargeAvatarAsync();
@@ -111,6 +113,7 @@ namespace MultiplayerBase.Matchmaking
             for (int i=memberGroup.transform.childCount-1; i<maxPlayers; i++)
             {
                 GameObject obj1 = HelperUI.ButtonTemplateWithIcon(memberGroup.transform, memberDim, iconDim, Vector3.zero, "[Vacant]", new Color(0.3f, 0.3f, 0.3f), 0.1f, 0.1f).gameObject;
+                obj1.GetComponent<Button>().HoverColors(new Color(0.5f, 0.5f, 0.5f), new Color(0.3f, 0.3f, 0.3f));
                 obj1.GetComponentInChildren<TextMeshProUGUI>().color = Color.white;
                 obj1.GetComponentInChildren<TextMeshProUGUI>().fontSize = fontSize;
             }
