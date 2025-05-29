@@ -161,6 +161,8 @@ namespace MultiplayerBase.UI
                 return;
             }
 
+            StopAllCoroutines();
+
             for (int i = markers.Count - 1; i>=0; i--)
             {
                 markers[i]?.Destroy();

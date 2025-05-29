@@ -475,6 +475,7 @@
     <Compile Include="Battles\NavigationStateMultiplayerCard.cs" />
     <Compile Include="ConsoleCommands\Commands.cs" />
     <Compile Include="Handlers\CardEncoder.cs" />
+    <Compile Include="Handlers\HandlerChat.cs" />
     <Compile Include="Matchmaking\LobbyView.cs" />
     <Compile Include="Matchmaking\MemberView.cs" />
     <Compile Include="Matchmaking\ModView.cs" />

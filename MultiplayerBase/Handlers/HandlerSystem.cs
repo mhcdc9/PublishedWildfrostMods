@@ -69,16 +69,18 @@ namespace MultiplayerBase.Handlers
                 enemyDummy.team = 2;
 
                 SteamNetworking.OnP2PSessionRequest += SessionRequest;
-                HandlerRoutines.Add("CHT", CHT_Handler);
                 HandlerRoutines.Add("MSC", MSC_Handler);
                 GameObject gameObject = new GameObject("InspectHandler");
                 gameObject.AddComponent<HandlerInspect>();
+                gameObject = new GameObject("ChatHandler");
+                gameObject.AddComponent<HandlerChat>();
                 gameObject = new GameObject("BattleHandler");
                 gameObject.AddComponent<HandlerBattle>();
                 gameObject = new GameObject("EventHandler");
                 gameObject.AddComponent<HandlerEvent>();
                 gameObject = new GameObject("MapHandler");
                 gameObject.AddComponent<HandlerMap>();
+                
                 Events.OnSceneChanged += SceneChanged;
                 
 
@@ -91,6 +93,7 @@ namespace MultiplayerBase.Handlers
                 HandlerBattle.instance.enabled = true;
                 HandlerEvent.instance.enabled = true;
                 HandlerMap.instance.enabled = true;
+                HandlerChat.instance.enabled = true;
                 Events.OnSceneChanged += SceneChanged;
             }
 
@@ -118,6 +121,7 @@ namespace MultiplayerBase.Handlers
             HandlerBattle.instance.enabled = false;
             HandlerEvent.instance.enabled = false;
             HandlerMap.instance.enabled = false;
+            HandlerChat.instance.enabled = false;
             Debug.Log("[Multiplayer] Handler System is disabled.");
             enabled = false;
             MultEvents.InvokeHandlerSystemDisabled();
@@ -287,10 +291,10 @@ namespace MultiplayerBase.Handlers
             return null;
         }
 
-        public static void CHT_Handler(Friend friend, string message)
+        /*public static void CHT_Handler(Friend friend, string message)
         {
             MultiplayerMain.textElement.text = message;
-        }
+        }*/
 
         public static void MSC_Handler(Friend friend, string message)
         {
@@ -312,9 +316,18 @@ namespace MultiplayerBase.Handlers
         {
             Debug.Log($"[Multiplayer] {scene}");
             Dashboard.friendIcons[friend].SceneChanged(scene, extra);
+
+            //Prematurely end battle viewer
             if (scene != "Battle" && HandlerBattle.instance.Blocking && HandlerBattle.friend is Friend f && f.Id == friend.Id)
             {
-                MultTextManager.AddEntry($"Battle ended. Please leave the viewer.", 0.6f, UnityEngine.Color.yellow, 3f);
+                if (!HandlerBattle.instance.ignoreFurtherMessages)
+                {
+                    HandlerBattle.instance.CloseBattleViewer();
+                    if (!HandlerBattle.instance.ignoreFurtherMessages)
+                    {
+                        MultTextManager.AddEntry($"Battle ended. Please leave the viewer.", 0.6f, UnityEngine.Color.yellow, 3f);
+                    }
+                }
             }
             switch (scene)
             {
