@@ -205,10 +205,12 @@ namespace Sync
             #region SYNC
             assets.Add(new StatusEffectDataBuilder(this)
                 .CreateSyncEffect<StatusEffectSync>("Sync Mystic", "<keyword=mhcdc9.wildfrost.sync.sync>: <keyword=mhcdc9.wildfrost.sync.mystic>", "", "Temporary Mystic")
-                .WithConstraints(Extensions.IsItem(), Extensions.IsPlay(), Extensions.TargetsBoard())
-                );
+                .SubscribeToAfterAllBuildEvent(data =>
+                {
+                    data.targetConstraints = new TargetConstraint[] { Extensions.IsItem(), Extensions.IsPlay(), Extensions.TargetsBoard(), Extensions.NotTrait("Mystic") };
+                }));
 
-            assets.Add(Extensions.CreateBasicKeyword(this, "sync", "Sync", "Gain an effect when a <sync> card is played elsewhere"));
+            assets.Add(Extensions.CreateBasicKeyword(this, "sync", "Sync", "Gain an effect when a <sync> card is played elsewhere|Effect *usually* lasts until end of turn"));
             
 
             assets.Add(new StatusEffectDataBuilder(this)
@@ -228,7 +230,7 @@ namespace Sync
 
             assets.Add(new StatusEffectDataBuilder(this)
                 .CreateSyncEffect<StatusEffectSync>("Sync Frenzy", "<keyword=mhcdc9.wildfrost.sync.sync>: <x{a}><keyword=frenzy>", "", "MultiHit", boostable: true)
-                .WithConstraints(Extensions.NotGoop())
+                .WithConstraints( Get<StatusEffectData>("Instant Apply Frenzy (To Card In Hand)").targetConstraints.Append(Extensions.NotGoop()).ToArray() )
                 );
 
             assets.Add(new StatusEffectDataBuilder(this)
@@ -313,14 +315,15 @@ namespace Sync
             {
                 foreach (CardData data in References.PlayerData.inventory.deck)
                 {
-                    if (Dead.Random.Range(0f, 1f) < itemSyncChance && data.cardType.name == "Item")
-                    {
-                        Extensions.TryAddSync(data, ItemSyncEffects);
-                    }
                     if (Dead.Random.Range(0f, 1f) < itemMystChance)
                     {
                         Extensions.TryAddTrait(data, TStack("Mystic", 1));
                     }
+                    if (Dead.Random.Range(0f, 1f) < itemSyncChance && data.cardType.name == "Item")
+                    {
+                        Extensions.TryAddSync(data, ItemSyncEffects);
+                    }
+                    
                 }
             }
             return Task.CompletedTask;
@@ -330,12 +333,6 @@ namespace Sync
         {
             if (entity.data.cardType.name == "Item")
             {
-                //Debug.Log($"[Sync] Entity Offered: {entity.data.title}");
-                if (Dead.Random.Range(0f, 1f) < itemSyncChance)
-                {
-                    Extensions.TryAddSync(entity, ItemSyncEffects);
-                }
-                //Debug.Log($"[Myst] Entity Offered: {entity.data.title}");
                 if (Dead.Random.Range(0f, 1f) < itemMystChance)
                 {
                     Extensions.TryAddTrait(entity, TStack("Mystic", 1));
@@ -344,7 +341,11 @@ namespace Sync
                 {
                     Extensions.TryAddTrait(entity, TStack("Promo", 1));
                 }
-                
+                if (Dead.Random.Range(0f, 1f) < itemSyncChance)
+                {
+                    Extensions.TryAddSync(entity, ItemSyncEffects);
+                }
+
             }
             if (entity.data.cardType.name == "Clunker")
             {
@@ -481,7 +482,7 @@ namespace Sync
             ("Sync Attack", 2),
             ("Sync Effect", 1),
             ("Sync Frenzy", 1),
-            ("Sync Nothing", 1),
+            ("Sync Attack", 3),
             ("Sync Heal", 3),
             ("Sync Counter", 1),
             ("Sync Smackback",1)

@@ -20,7 +20,7 @@ namespace MultiplayerBase.ConsoleCommands
     {
         public static IEnumerator AddCustomCommands(WildfrostMod _)
         {
-            yield return new WaitUntil(() => SceneManager.Loaded.ContainsKey("MainMenu"));
+            yield return new WaitUntil(() => (commands != null));
             commands.Add(new CommandMultASK());
             commands.Add(new CommandMultShuffle());
             commands.Add(new CommandSeeIDs());

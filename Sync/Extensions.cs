@@ -194,6 +194,7 @@ namespace Sync
         public static TargetConstraint IsPlay()
         {
             TargetConstraintPlayType play =  ScriptableObject.CreateInstance<TargetConstraintPlayType>();
+            play.name = "Can Be Played";
             play.targetPlayType = Card.PlayType.Play;
             return play;
         }
@@ -201,6 +202,7 @@ namespace Sync
         public static TargetConstraint NotGoop()
         {
             TargetConstraintPlayType play = ScriptableObject.CreateInstance<TargetConstraintPlayType>();
+            play.name = "Has A Playtype";
             play.targetPlayType = Card.PlayType.None;
             play.not = true;
             return play;
@@ -209,6 +211,7 @@ namespace Sync
         public static TargetConstraint NotOnSlot()
         {
             TargetConstraintPlayOnSlot play = ScriptableObject.CreateInstance<TargetConstraintPlayOnSlot>();
+            play.name = "Not Playable On Slot";
             play.not = true;
             play.slot = true;
             return play;
@@ -218,6 +221,7 @@ namespace Sync
         {
             TargetConstraintHasTrait constraint = ScriptableObject.CreateInstance<TargetConstraintHasTrait>();
             constraint.trait = SyncMain.Instance.Get<TraitData>(traitName);
+            constraint.name = "Does Not Have " + constraint.trait.name;
             constraint.not = true;
             return constraint;
         }
