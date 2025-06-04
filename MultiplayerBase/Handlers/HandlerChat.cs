@@ -77,7 +77,7 @@ namespace MultiplayerBase.Handlers
             text.enableWordWrapping = false;
 
             GameObject messageGroupObj = HelperUI.VerticalGroup("Message Group", transform, Vector2.zero, 0f);
-            messageGroupObj.transform.position = new Vector3(0, defaultPlacement, 0);
+            messageGroupObj.transform.position = new Vector3(0, campaignPlacement, 0);
             //messageGroupObj.SetActive(false);
             messageGroup = messageGroupObj.GetComponent<VerticalLayoutGroup>();
             rt = messageGroupObj.GetComponent<RectTransform>();
@@ -85,6 +85,9 @@ namespace MultiplayerBase.Handlers
             rt.SetInsetAndSizeFromParentEdge(RectTransform.Edge.Left, 0.2f, 3);
 
             HandlerSystem.HandlerRoutines["CHT"] = HandleMessage;
+
+            HandleMessage(HandlerSystem.self, "<color=#ff8>[Enter] -> Chat</color>");
+            messages[messages.Count - 1].HideFriend();
         }
 
         public void OnEnable()
@@ -124,15 +127,14 @@ namespace MultiplayerBase.Handlers
             //messageGroup.gameObject.SetActive(true);
             background.SetActive(true);
             textInput.gameObject.SetActive(true);
-            int numberVisible = Math.Min(messages.Count, 5);
-            LeanTween.moveLocalY(messageGroup.gameObject, defaultPlacement + spacing*numberVisible, 0.2f).setEaseInOutQuart().setOnComplete(() =>
+            LeanTween.moveLocalY(messageGroup.gameObject, defaultPlacement + spacing*messages.Count, 0.2f).setEaseInOutQuart().setOnComplete(() =>
             {
-                float difference = spacing*(messages.Count - numberVisible);
-                messageGroup.transform.Translate(0, difference, 0);
+                //float difference = spacing*(messages.Count);
+                //messageGroup.transform.Translate(0, difference, 0);
                 foreach (ChatMessage cm in messages)
                 {
                     cm.ChangeOverflow(TextOverflowModes.Overflow);
-                    cm.gameObject.SetActive(true);
+                    cm.On();
                 }
             });
         }
@@ -156,26 +158,24 @@ namespace MultiplayerBase.Handlers
             ChatMessage cm;
             if (messages.Count < 20) //Add another message
             {
-                cm = ChatMessage.Create(messageGroup.transform, HandlerSystem.self, s);
-                if ((open && !closing) || messages.Count < 5) //If this affects the number of displayed messages
+                cm = ChatMessage.Create(messageGroup.transform, f, s);
+                messageGroup.transform.Translate(0, spacing, 0);
+                if ((!open || closing) && messages.Count >= 5)
                 {
-                    messageGroup.transform.Translate(0, spacing, 0);
-                }
-                else
-                {
-                    messages[messages.Count-5].gameObject.SetActive(false);
+                    messages[messages.Count - 5].Off();
                 }
             }
             else //Replace the last message
             {
                 cm = messages[0];
-                cm.gameObject.SetActive(true);
+                cm.On();
+                cm.StartFading(20);
                 messages.Remove(cm);
                 cm.Set(f, s);
                 cm.transform.SetAsLastSibling();
-                if (!open) //Hide the soon-to-be 6th message
+                if (!open || closing) //Hide the soon-to-be 6th message
                 {
-                    messages[14].gameObject.SetActive(false);
+                    messages[14].Off();
                 }
             }
             messages.Add(cm);
@@ -190,15 +190,19 @@ namespace MultiplayerBase.Handlers
             closing = true;
             textInput.text = "";
 
-            int numberVisible = Math.Min(messages.Count, 5);
+            //int numberVisible = Math.Min(messages.Count, 5);
             Vector3 position = messageGroup.transform.position;
-            messageGroup.transform.position = new Vector3(position.x, campaignPlacement + spacing * numberVisible, position.z);
+            messageGroup.transform.position = new Vector3(position.x, campaignPlacement + spacing * messages.Count, position.z);
             for (int i = 0; i<messages.Count; i++)
             {
                 messages[i].ChangeOverflow(TextOverflowModes.Ellipsis);
-                if (i >= numberVisible)
+                if (messages.Count - i > 5)
                 {
-                    messages[i].gameObject.SetActive(false);
+                    messages[i].Off(true);
+                }
+                else
+                {
+                    messages[i].StartFading(20);
                 }
             }
             //messageGroup.gameObject.SetActive(false);
@@ -222,6 +226,8 @@ namespace MultiplayerBase.Handlers
             string message;
             TextMeshProUGUI text;
 
+            bool hideFriend = false;
+
             public static ChatMessage Create(Transform t, Friend f, string s)
             {
                 GameObject obj = HelperUI.Background(t, new Color(0, 0, 0, 0.5f));
@@ -239,6 +245,12 @@ namespace MultiplayerBase.Handlers
                 cm.text = text;
                 cm.Set(f, s);
                 return cm;
+            }
+
+            public void HideFriend()
+            {
+                hideFriend = true;
+                UpdateString();
             }
 
             public void Set(Friend f, string s)
@@ -261,6 +273,10 @@ namespace MultiplayerBase.Handlers
 
             public string FriendColor()
             {
+                if (hideFriend)
+                {
+                    return "";
+                }
                 string s = "";
                 if (HandlerSystem.self.Id != friend.Id)
                 {
@@ -273,6 +289,30 @@ namespace MultiplayerBase.Handlers
                 s += (text.overflowMode == TextOverflowModes.Ellipsis) ? friend.Name.Substring(0, 1) : friend.Name;
                 s += "</color>: ";
                 return s;
+            }
+
+            public void Off(bool instant = false)
+            {
+                float duration = (instant) ? 0.01f : 0.2f;
+                StopAllCoroutines();
+                text.CrossFadeAlpha(0, duration, true);
+            }
+
+            public void On()
+            {
+                StopAllCoroutines();
+                text.CrossFadeAlpha(1, 0.1f, true);
+            }
+
+            public void StartFading(float duration)
+            {
+                StartCoroutine(FadeAfterDuration(duration));
+            }
+
+            public IEnumerator FadeAfterDuration(float duration)
+            {
+                yield return Sequences.Wait(duration);
+                text.CrossFadeAlpha(0, 2, true);
             }
         }
     }

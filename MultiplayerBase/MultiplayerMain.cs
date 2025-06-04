@@ -45,7 +45,7 @@ namespace MultiplayerBase
 
         public override string[] Depends => new string[] { "hope.wildfrost.configs"};
 
-        public override string Title => "Multiplayer Base Mod v0.1.1";
+        public override string Title => "Multiplayer Base Mod v0.2.0";
 
         public override string Description => "[Work In Progress] A foundation for multiplayer mods to build on top of.";
 

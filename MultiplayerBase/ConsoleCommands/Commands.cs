@@ -25,7 +25,7 @@ namespace MultiplayerBase.ConsoleCommands
             commands.Add(new CommandMultShuffle());
             commands.Add(new CommandSeeIDs());
             //commands.Add(new CommandMultSac());
-            commands.Add(new CommandMultCHAT());
+            //commands.Add(new CommandMultCHAT());
             //commands.Add(new CommandMultEMOTE());
         }
 
@@ -85,6 +85,10 @@ namespace MultiplayerBase.ConsoleCommands
 
             public override IEnumerator GetArgOptions(string currentArgs)
             {
+                if (HandlerSystem.friends == null)
+                {
+                    yield break;
+                }
                 string[] args = currentArgs.Split(new Char[] { ' ' },options: StringSplitOptions.None);
                 int length = args.Length;
 
@@ -113,6 +117,7 @@ namespace MultiplayerBase.ConsoleCommands
             }
         }
 
+        /*
         public class CommandMultCHAT : Command
         {
             public override string id => "chat";
@@ -172,6 +177,7 @@ namespace MultiplayerBase.ConsoleCommands
                 }
             }
         }
+        */
 
         public class CommandSeeIDs : Command
         {
