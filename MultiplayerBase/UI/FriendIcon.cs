@@ -204,8 +204,17 @@ namespace MultiplayerBase.UI
                 HandlerBattle.instance.CloseBattleViewer();
                 return;
             }
+            if (HandlerDeck.active && friend.Id == HandlerDeck.friend?.Id)
+            {
+                HandlerDeck.instance.CloseDeckViewer();
+                return;
+            }
             //Debug.Log($"[Multiplayer] Sending Message to {friend.Name}");
-            if (SceneManager.IsLoaded("BossReward"))
+            if (HandlerDeck.DeckDisplayActive())
+            {
+                HandlerDeck.instance.OpenDeckViewer(friend);
+            }
+            else if (SceneManager.IsLoaded("BossReward"))
             {
                 HandlerEvent.instance.SendRewardData(friend);
             }
@@ -244,7 +253,9 @@ namespace MultiplayerBase.UI
             }
             StartCoroutine(Cooldown(0.2f));
         }
-
+        //Canvas/SafeArea/EventManager/Event-Charm(Clone)/OpenCharmBlockScreen/GainCharmScreen/
+        //Canvas/SafeArea/EventManager/Event-Shop(Clone)/OpenCharmBlockScreen/GainCharmScreen/
+        //Canvas/SafeArea/EventManager/Event-CharmShop(Clone)/GainCharmScreen/
         public static IEnumerator Cooldown(float seconds)
         {
             preventClicking++;

@@ -69,7 +69,7 @@ The `HandlerSystem` class is the backbone of the mod. It is the class in charge 
 ### The Receiving Side
 
 ***Defining a handler***  
-When `HandlerSystem` receives a message, it will try to find the right method to read it based on its *handler*. All messages transmitted have a "handler" string at the beginning to designate where it needs to go and who should read it. The handlers used in MBM are "CHT", "BAT", "EVE", "INS", "MSC", and "MAP". The sync mod uses one handler: "SYNC". Mods can use as few or as many handlers as they want, as long as they do not overlap. Preferably, make them unique enough to not be replicated (something similar to the GUID perhaps?). The only rule is **do not use vertical bars "|" in your handler**. The `HandlerSystem` uses that as a delimiter. To set up your handler, you need the following line in your `Load` method of the main mod class:
+When `HandlerSystem` receives a message, it will try to find the right method to read it based on its *handler*. All messages transmitted have a "handler" string at the beginning to designate where it needs to go and who should read it. The handlers used in MBM are "CHT", "BAT", "DEC", "EVE", "INS", "MSC", and "MAP". The sync mod uses one handler: "SYNC". Mods can use as few or as many handlers as they want, as long as they do not overlap. Preferably, make them unique enough to not be replicated (something similar to the GUID perhaps?). The only rule is **do not use vertical bars "|" in your handler**. The `HandlerSystem` uses that as a delimiter. To set up your handler, you need the following line in your `Load` method of the main mod class:
 
 ```C#
 //Somewhere in your Load method
@@ -141,8 +141,8 @@ string D = HandlerSystem.ConcatMessage(true, A, B);
 
 string[] C_split = HandlerSystem.DecodeMessage(C);
 string[] D_split = HandlerSystem.DecodeMessage(D);
-//C_split ends up as ["Hello World", "Row", "Row", "Fight The Powa"]
-//D_split ends up as ["Hello World", "Row! Row! Fight The Powa]
+//C_split ends up as ["Hello World", "Row", "Row", "Fight The Powa!"]
+//D_split ends up as ["Hello World", "Row! Row! Fight The Powa!"]
 //4 items vs 2 items.
 
 ```

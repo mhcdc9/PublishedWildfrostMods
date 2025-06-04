@@ -78,6 +78,8 @@ namespace MultiplayerBase.Handlers
                 gameObject.AddComponent<HandlerBattle>();
                 gameObject = new GameObject("EventHandler");
                 gameObject.AddComponent<HandlerEvent>();
+                gameObject = new GameObject("DeckHandler");
+                gameObject.AddComponent<HandlerDeck>(); //The deck handler does not need its own object.
                 gameObject = new GameObject("MapHandler");
                 gameObject.AddComponent<HandlerMap>();
                 
