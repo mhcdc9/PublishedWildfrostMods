@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using UnityEngine.UIElements;
 using Image = UnityEngine.UI.Image;
@@ -86,7 +87,7 @@ namespace MultiplayerBase.Handlers
 
             HandlerSystem.HandlerRoutines["CHT"] = HandleMessage;
 
-            HandleMessage(HandlerSystem.self, "<color=#ff8>[Enter] -> Chat</color>");
+            HandleMessage(HandlerSystem.self, "<color=#ff8>[C] -> Chat</color>");
             messages[messages.Count - 1].HideFriend();
         }
 
@@ -108,13 +109,27 @@ namespace MultiplayerBase.Handlers
 
         public void Update()
         {
-            if (Input.GetKeyUp(KeyCode.Return) && !Console.active)
+            if (Input.GetKeyUp(KeyCode.C) && !Console.active && !InputFieldSelected())
             {
                 if (!open)
                 {
                     OpenChat();
                 }
             }
+        }
+
+        public bool InputFieldSelected()
+        {
+            GameObject selected = EventSystem.current.currentSelectedGameObject;
+            if (selected != null)
+            {
+                TMP_InputField input = selected.GetComponent<TMP_InputField>();
+                if (input != null && input != textInput)
+                {
+                    return true;
+                }
+            }
+            return false;
         }
 
         public void OpenChat()

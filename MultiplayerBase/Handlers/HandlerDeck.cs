@@ -167,8 +167,9 @@ namespace MultiplayerBase.Handlers
                 }
                 HandlerSystem.SendMessage("DEC", f, upgradeString);
 
-                foreach(CardData card in References.PlayerData.inventory.deck)
+                for(int i=0; i < References.PlayerData.inventory.deck.Count && i < 50; i++)
                 {
+                    CardData card = References.PlayerData.inventory.deck[i];
                     if (card != null)
                     {
                         string c = HandlerSystem.ConcatMessage(true, card.id.ToString(), CardEncoder.Encode(card));
@@ -177,8 +178,9 @@ namespace MultiplayerBase.Handlers
                 }
                 HandlerSystem.SendMessage("DEC",f, deckString);
 
-                foreach (CardData card in References.PlayerData.inventory.reserve)
+                for (int i = 0; i < References.PlayerData.inventory.reserve.Count && i < 50; i++)
                 {
+                    CardData card = References.PlayerData.inventory.reserve[i];
                     if (card != null)
                     {
                         string c = HandlerSystem.ConcatMessage(true, card.id.ToString(), CardEncoder.Encode(card));
