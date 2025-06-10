@@ -87,7 +87,7 @@ namespace MultiplayerBase.Handlers
 
             HandlerSystem.HandlerRoutines["CHT"] = HandleMessage;
 
-            HandleMessage(HandlerSystem.self, "<color=#ff8>[C] -> Chat</color>");
+            HandleMessage(HandlerSystem.self, $"<color=#ff8>[{MultiplayerMain.instance._chatKey.ToUpper()}] -> Chat</color>");
             messages[messages.Count - 1].HideFriend();
         }
 
@@ -109,7 +109,7 @@ namespace MultiplayerBase.Handlers
 
         public void Update()
         {
-            if (Input.GetKeyUp(KeyCode.C) && !Console.active && !InputFieldSelected())
+            if (Input.GetKeyUp(MultiplayerMain.instance._chatKeyCode) && !Console.active && !InputFieldSelected())
             {
                 if (!open)
                 {

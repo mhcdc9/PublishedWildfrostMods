@@ -1,4 +1,5 @@
-﻿using MultiplayerBase.UI;
+﻿using MultiplayerBase.Ongoing;
+using MultiplayerBase.UI;
 using Steamworks;
 using Steamworks.Data;
 using System;
@@ -70,6 +71,7 @@ namespace MultiplayerBase.Handlers
 
                 SteamNetworking.OnP2PSessionRequest += SessionRequest;
                 HandlerRoutines.Add("MSC", MSC_Handler);
+                OngoingEffectSystem.Enable();
                 GameObject gameObject = new GameObject("InspectHandler");
                 gameObject.AddComponent<HandlerInspect>();
                 gameObject = new GameObject("ChatHandler");
@@ -300,7 +302,8 @@ namespace MultiplayerBase.Handlers
 
         public static void MSC_Handler(Friend friend, string message)
         {
-            string[] messages = HandlerSystem.DecodeMessages(message); ;
+            Debug.Log($"[Multiplayer] {message}");
+            string[] messages = HandlerSystem.DecodeMessages(message);
             switch(messages[0])
             {
                 case "SCENE":
@@ -309,6 +312,16 @@ namespace MultiplayerBase.Handlers
                 case "NICKNAME":
                     Dashboard.friendIcons[friend].SetNickname(messages[1]);
                     break;
+                case "ONGOING":
+                    if (messages[1] == "ACTIVATE")
+                    {
+                        OngoingEffectSystem.ActivateEffect(friend, HandlerSystem.DecodeMessages(messages[2]));
+                    }
+                    else if (messages[1] == "UPDATE")
+                    {
+                        OngoingEffectSystem.UpdateEffects(friend, messages);
+                    }
+                        break;
                 default:
                     break;
             }

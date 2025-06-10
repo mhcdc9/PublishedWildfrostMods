@@ -45,7 +45,7 @@ namespace MultiplayerBase
 
         public override string[] Depends => new string[] { "hope.wildfrost.configs"};
 
-        public override string Title => "Multiplayer Base Mod v0.2.0";
+        public override string Title => "Multiplayer Base Mod v0.3.0";
 
         public override string Description => "[Work In Progress] A foundation for multiplayer mods to build on top of.";
 
@@ -54,6 +54,15 @@ namespace MultiplayerBase
         [ConfigOptions("Baby Snowbo", "Snowbo", "Snow Knight", "Winter Wyrm", "Bamboozle")]
         [ConfigItem("Snow Knight", "", "friendIconSize")]
         public string iconSize = "Snow Knight";
+
+        [ConfigManagerTitle("Chat Hotkey")]
+        [ConfigManagerDesc("Determines which button opens the chat window")]
+        [ConfigInput()]
+        [ConfigItem("C", "", "chatHotkey")]
+        public string chatKey = "C";
+
+        public string _chatKey = "C";
+        public KeyCode _chatKeyCode = KeyCode.C;
 
         public float _iconSize = 1f;
 
@@ -98,6 +107,7 @@ namespace MultiplayerBase
 
             Get<GameMode>("GameModeNormal").saveFileName = "Multiplayer";
 
+            SetChatKeycode();
             SetIconSize();
         }
 
@@ -129,12 +139,16 @@ namespace MultiplayerBase
             Get<GameMode>("GameModeNormal").saveFileName = "";
         }
 
+        #region CONFIG
         private void ConfigChanged(ConfigItem item, object value)
         {
             if (item.fieldName == "iconSize")
             {
                 SetIconSize();
-                
+            }
+            else if (item.fieldName == "chatKey")
+            {
+                SetChatKeycode();
             }
         }
 
@@ -163,6 +177,23 @@ namespace MultiplayerBase
 
             Dashboard.instance?.ResizeIcons();
         }
+
+        private void SetChatKeycode()
+        {
+            if (System.Enum.TryParse(chatKey, true, out KeyCode result))
+            {
+                _chatKeyCode = result;
+                _chatKey = chatKey;
+                Debug.Log("[Multiplayer] Chat key succesfully changed");
+            }
+            else
+            {
+                chatKey = _chatKey;
+                //item.button.transform.FindRecursive("Label")?.GetComponentInChildren<TextMeshProUGUI>()?.SetText(_chatKey);
+            }
+        }
+
+        #endregion CONFIG
 
         private bool hookedToChatRooms;
         internal void HookToChatRoom()

@@ -469,6 +469,7 @@
     <Compile Include="Battles\ActionBattleViewer.cs" />
     <Compile Include="Battles\ActionDisplayCardAndSequence.cs" />
     <Compile Include="Battles\ActionAddCardToBattle.cs" />
+    <Compile Include="Battles\ActionOngoingStatusEffect.cs" />
     <Compile Include="Battles\ActionSendCardToPlay.cs" />
     <Compile Include="Battles\CardControllerMultiplayerBattle.cs" />
     <Compile Include="Battles\ActionPlayOtherCard.cs" />
@@ -476,13 +477,17 @@
     <Compile Include="ConsoleCommands\Commands.cs" />
     <Compile Include="Handlers\CardEncoder.cs" />
     <Compile Include="Handlers\HandlerChat.cs" />
+    <Compile Include="Ongoing\OngoingEffectSystem.cs" />
     <Compile Include="Matchmaking\LobbyView.cs" />
     <Compile Include="Matchmaking\MemberView.cs" />
     <Compile Include="Matchmaking\ModView.cs" />
     <Compile Include="MultEvents.cs" />
     <Compile Include="MultTextManager.cs" />
+    <Compile Include="Ongoing\OngoingEntryStatusEffect.cs" />
     <Compile Include="StatusEffects\IAlternatePlay.cs" />
     <Compile Include="StatusEffects\StatusEffectInstantMessage.cs" />
+    <Compile Include="StatusEffects\StatusEffectOngoingAgent.cs" />
+    <Compile Include="StatusEffects\StatusEffectWhileActiveElsewhereX.cs" />
     <Compile Include="UI\ButtonHover.cs" />
     <Compile Include="UI\Dashboard.cs" />
     <Compile Include="Handlers\HandlerBattle.cs" />
